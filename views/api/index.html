@@ -1,0 +1,627 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-chart-line"></i> 
+                Gestión de Tasas de Cambio
+            </h2>
+        </div>
+    </div>
+
+    <!-- Estado del Sistema -->
+    {{if estado_sistema['modo_desarrollo']:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Modo Desarrollo:</strong> El sistema está funcionando en modo desarrollo. 
+                Las tasas se generan de forma simulada.
+                <br>
+                <small>
+                    Requests disponible: {{='Sí' if estado_sistema['requests_disponible'] else 'No'}} | 
+                    BeautifulSoup disponible: {{='Sí' if estado_sistema['beautifulsoup_disponible'] else 'No'}}
+                </small>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Widget de Tasas Actuales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign"></i> 
+                        Tasas Actuales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{if tasa_actual:}}
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div class="card bg-success mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title">USD/VES</h3>
+                                    <h2 class="text-white">{{="{:,.4f}".format(float(tasa_actual.usd_ves))}}</h2>
+                                    <small>Bolívares por Dólar</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-primary mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title">EUR/VES</h3>
+                                    <h2 class="text-white">{{="{:,.4f}".format(float(tasa_actual.eur_ves))}}</h2>
+                                    <small>Bolívares por Euro</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> 
+                                Última actualización: {{=tasa_actual.fecha}} {{=tasa_actual.hora.strftime('%H:%M:%S') if tasa_actual.hora else ''}}
+                                <br>
+                                <i class="fas fa-source"></i> 
+                                Fuente: {{=tasa_actual.fuente}}
+                            </small>
+                        </div>
+                    </div>
+                    {{else:}}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        No hay tasas disponibles. Haga clic en "Actualizar Tasas" para obtener las tasas actuales.
+                    </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Administrativas -->
+    {{if auth.has_membership('administrador'):}}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sync-alt"></i> 
+                        Actualización de Tasas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <button id="btn-actualizar" class="btn btn-warning btn-block mb-2">
+                        <i class="fas fa-download"></i> 
+                        Actualizar desde BCV
+                    </button>
+                    <button id="btn-forzar" class="btn btn-outline-warning btn-block">
+                        <i class="fas fa-bolt"></i> 
+                        Forzar Actualización
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs"></i> 
+                        Gestión del Sistema
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <button id="btn-scheduler" class="btn btn-info btn-block mb-2">
+                        <i class="fas fa-clock"></i> 
+                        Estado del Scheduler
+                    </button>
+                    <button id="btn-logs" class="btn btn-outline-info btn-block">
+                        <i class="fas fa-file-alt"></i> 
+                        Ver Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inserción Manual de Tasas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Inserción Manual de Tasas (Solo Emergencias)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="form-manual">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="usd_ves">Tasa USD/VES:</label>
+                                    <input type="number" step="0.0001" class="form-control" id="usd_ves" name="usd_ves" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="eur_ves">Tasa EUR/VES:</label>
+                                    <input type="number" step="0.0001" class="form-control" id="eur_ves" name="eur_ves" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-danger btn-block">
+                                        <i class="fas fa-save"></i> 
+                                        Insertar Manualmente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Historial Reciente de Tasas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history"></i> 
+                        Historial Reciente (Últimas 10 actualizaciones)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {{if historial_tasas:}}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>USD/VES</th>
+                                    <th>EUR/VES</th>
+                                    <th>Fuente</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for tasa in historial_tasas:}}
+                                <tr>
+                                    <td>{{=tasa.fecha}}</td>
+                                    <td>{{=tasa.hora.strftime('%H:%M:%S') if tasa.hora else 'N/A'}}</td>
+                                    <td>{{="{:,.4f}".format(float(tasa.usd_ves))}}</td>
+                                    <td>{{="{:,.4f}".format(float(tasa.eur_ves))}}</td>
+                                    <td>{{=tasa.fuente}}</td>
+                                    <td>
+                                        {{if tasa.activa:}}
+                                            <span class="badge bg-success">Activa</span>
+                                        {{else:}}
+                                            <span class="badge bg-secondary">Inactiva</span>
+                                        {{pass}}
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        Total de registros en el sistema: {{=total_tasas}}
+                    </p>
+                    {{else:}}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        No hay historial de tasas disponible.
+                    </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales -->
+<!-- Modal de Estado del Scheduler -->
+<div class="modal fade" id="modalScheduler" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Estado del Scheduler</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="scheduler-content">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Logs -->
+<div class="modal fade" id="modalLogs" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Logs de Actualizaciones</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="fecha_logs">Fecha:</label>
+                        <input type="date" class="form-control" id="fecha_logs">
+                    </div>
+                    <div class="col-md-6">
+                        <label>&nbsp;</label>
+                        <button id="btn-cargar-logs" class="btn btn-info btn-block">
+                            Cargar Logs
+                        </button>
+                    </div>
+                </div>
+                <div id="logs-content">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Cargar tasas actuales al inicio
+    cargarTasasActuales();
+    
+    // Actualizar tasas cada 5 minutos
+    setInterval(cargarTasasActuales, 300000);
+    
+    // Event handlers
+    $('#btn-actualizar').click(function() {
+        actualizarTasas();
+    });
+    
+    $('#btn-forzar').click(function() {
+        forzarActualizacion();
+    });
+    
+    $('#btn-scheduler').click(function() {
+        mostrarEstadoScheduler();
+    });
+    
+    $('#btn-logs').click(function() {
+        $('#fecha_logs').val(new Date().toISOString().split('T')[0]);
+        $('#modalLogs').modal('show');
+    });
+    
+    $('#btn-cargar-logs').click(function() {
+        cargarLogs();
+    });
+    
+    $('#btn-filtrar').click(function() {
+        cargarHistorial();
+    });
+    
+    $('#form-manual').submit(function(e) {
+        e.preventDefault();
+        insertarTasaManual();
+    });
+    
+    // Establecer fechas por defecto para filtros
+    var hoy = new Date().toISOString().split('T')[0];
+    var hace7dias = new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
+    $('#fecha_desde').val(hace7dias);
+    $('#fecha_hasta').val(hoy);
+});
+
+function cargarTasasActuales() {
+    $.ajax({
+        url: '{{=URL("api", "consultar_tasas_actuales")}}',
+        method: 'GET',
+        success: function(data) {
+            if (data.success) {
+                var tasas = data.tasas;
+                var html = `
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div class="card bg-success mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title">USD/VES</h3>
+                                    <h2 class="text-white">${tasas.usd_ves}</h2>
+                                    <small>Bolívares por Dólar</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-primary mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title">EUR/VES</h3>
+                                    <h2 class="text-white">${tasas.eur_ves}</h2>
+                                    <small>Bolívares por Euro</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> 
+                                Última actualización: ${tasas.fecha} ${tasas.hora}
+                                <br>
+                                <i class="fas fa-source"></i> 
+                                Fuente: ${tasas.fuente}
+                            </small>
+                        </div>
+                    </div>
+                `;
+                $('#tasas-actuales').html(html);
+            } else {
+                $('#tasas-actuales').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Error cargando tasas: ${data.mensaje}
+                    </div>
+                `);
+            }
+        },
+        error: function() {
+            $('#tasas-actuales').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Error de conexión al cargar tasas
+                </div>
+            `);
+        }
+    });
+}
+
+function actualizarTasas() {
+    $('#btn-actualizar').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Actualizando...');
+    
+    $.ajax({
+        url: '{{=URL("api", "obtener_tasas")}}',
+        method: 'GET',
+        success: function(data) {
+            if (data.success) {
+                alert('Tasas actualizadas exitosamente');
+                cargarTasasActuales();
+            } else {
+                alert('Error actualizando tasas: ' + data.mensaje);
+            }
+        },
+        error: function() {
+            alert('Error de conexión al actualizar tasas');
+        },
+        complete: function() {
+            $('#btn-actualizar').prop('disabled', false).html('<i class="fas fa-download"></i> Actualizar desde BCV');
+        }
+    });
+}
+
+function forzarActualizacion() {
+    if (!confirm('¿Está seguro de forzar una actualización inmediata?')) return;
+    
+    $('#btn-forzar').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Forzando...');
+    
+    $.ajax({
+        url: '{{=URL("api", "forzar_actualizacion")}}',
+        method: 'GET',
+        success: function(data) {
+            if (data.success) {
+                alert('Actualización forzada completada: ' + data.resultado);
+                cargarTasasActuales();
+            } else {
+                alert('Error en actualización forzada: ' + data.mensaje);
+            }
+        },
+        error: function() {
+            alert('Error de conexión en actualización forzada');
+        },
+        complete: function() {
+            $('#btn-forzar').prop('disabled', false).html('<i class="fas fa-bolt"></i> Forzar Actualización');
+        }
+    });
+}
+
+function mostrarEstadoScheduler() {
+    $.ajax({
+        url: '{{=URL("api", "estado_scheduler")}}',
+        method: 'GET',
+        success: function(data) {
+            var html = '';
+            if (data.success) {
+                if (data.tareas.length > 0) {
+                    html = '<div class="table-responsive"><table class="table table-dark table-striped">';
+                    html += '<thead><tr><th>ID</th><th>Función</th><th>Estado</th><th>Próxima Ejecución</th><th>Ejecutadas</th><th>Fallidas</th></tr></thead><tbody>';
+                    
+                    data.tareas.forEach(function(tarea) {
+                        html += `<tr>
+                            <td>${tarea.id}</td>
+                            <td>${tarea.function_name}</td>
+                            <td><span class="badge badge-${tarea.status === 'RUNNING' ? 'success' : 'info'}">${tarea.status}</span></td>
+                            <td>${tarea.next_run_time || 'N/A'}</td>
+                            <td>${tarea.times_run}</td>
+                            <td>${tarea.times_failed}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                } else {
+                    html = '<div class="alert alert-warning">No hay tareas activas en el scheduler</div>';
+                }
+            } else {
+                html = `<div class="alert alert-danger">Error: ${data.mensaje}</div>`;
+            }
+            
+            $('#scheduler-content').html(html);
+            $('#modalScheduler').modal('show');
+        },
+        error: function() {
+            $('#scheduler-content').html('<div class="alert alert-danger">Error de conexión</div>');
+            $('#modalScheduler').modal('show');
+        }
+    });
+}
+
+function cargarLogs() {
+    var fecha = $('#fecha_logs').val();
+    if (!fecha) {
+        alert('Seleccione una fecha');
+        return;
+    }
+    
+    $.ajax({
+        url: '{{=URL("api", "logs_actualizaciones")}}',
+        method: 'GET',
+        data: { fecha: fecha },
+        success: function(data) {
+            var html = '';
+            if (data.success && data.logs.length > 0) {
+                html = '<div class="table-responsive"><table class="table table-dark table-striped table-sm">';
+                html += '<thead><tr><th>Hora</th><th>Estado</th><th>USD/VES</th><th>EUR/VES</th><th>Fuente</th><th>Mensaje</th></tr></thead><tbody>';
+                
+                data.logs.forEach(function(log) {
+                    var estado = log.exitoso ? 'success' : 'danger';
+                    var icono = log.exitoso ? 'check' : 'times';
+                    
+                    html += `<tr>
+                        <td>${log.timestamp.split(' ')[1]}</td>
+                        <td><i class="fas fa-${icono} text-${estado}"></i></td>
+                        <td>${log.usd_ves}</td>
+                        <td>${log.eur_ves}</td>
+                        <td>${log.fuente}</td>
+                        <td><small>${log.mensaje}</small></td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table></div>';
+            } else {
+                html = `<div class="alert alert-info">No hay logs para la fecha ${fecha}</div>`;
+            }
+            
+            $('#logs-content').html(html);
+        },
+        error: function() {
+            $('#logs-content').html('<div class="alert alert-danger">Error cargando logs</div>');
+        }
+    });
+}
+
+function cargarHistorial() {
+    var desde = $('#fecha_desde').val();
+    var hasta = $('#fecha_hasta').val();
+    
+    if (!desde || !hasta) {
+        alert('Seleccione ambas fechas');
+        return;
+    }
+    
+    $('#historial-tasas').html('<div class="text-center"><div class="spinner-border text-warning"></div><p>Cargando historial...</p></div>');
+    
+    $.ajax({
+        url: '{{=URL("api", "historial_tasas")}}',
+        method: 'GET',
+        data: { fecha_desde: desde, fecha_hasta: hasta },
+        success: function(data) {
+            var html = '';
+            if (data.success && data.tasas.length > 0) {
+                html = '<div class="table-responsive"><table class="table table-dark table-striped">';
+                html += '<thead><tr><th>Fecha</th><th>Hora</th><th>USD/VES</th><th>EUR/VES</th><th>Fuente</th><th>Estado</th></tr></thead><tbody>';
+                
+                data.tasas.forEach(function(tasa) {
+                    var activa = tasa.activa ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-secondary">Inactiva</span>';
+                    
+                    html += `<tr>
+                        <td>${tasa.fecha}</td>
+                        <td>${tasa.hora}</td>
+                        <td>${tasa.usd_ves}</td>
+                        <td>${tasa.eur_ves}</td>
+                        <td>${tasa.fuente}</td>
+                        <td>${activa}</td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table></div>';
+                html += `<p class="text-muted mt-2">Total: ${data.total} registros</p>`;
+            } else {
+                html = '<div class="alert alert-info">No se encontraron registros para el rango seleccionado</div>';
+            }
+            
+            $('#historial-tasas').html(html);
+        },
+        error: function() {
+            $('#historial-tasas').html('<div class="alert alert-danger">Error cargando historial</div>');
+        }
+    });
+}
+
+function insertarTasaManual() {
+    if (!confirm('¿Está seguro de insertar estas tasas manualmente? Esta acción desactivará las tasas actuales.')) {
+        return;
+    }
+    
+    var usd = $('#usd_ves').val();
+    var eur = $('#eur_ves').val();
+    
+    if (!usd || !eur || usd <= 0 || eur <= 0) {
+        alert('Ingrese tasas válidas (mayores a 0)');
+        return;
+    }
+    
+    $.ajax({
+        url: '{{=URL("api", "insertar_tasa_manual")}}',
+        method: 'POST',
+        data: { usd_ves: usd, eur_ves: eur },
+        success: function(data) {
+            if (data.success) {
+                alert('Tasa manual insertada exitosamente');
+                $('#form-manual')[0].reset();
+                cargarTasasActuales();
+            } else {
+                alert('Error insertando tasa manual: ' + data.mensaje);
+            }
+        },
+        error: function() {
+            alert('Error de conexión al insertar tasa manual');
+        }
+    });
+}
+</script>
+
+<style>
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.btn {
+    border-radius: 5px;
+}
+
+.table th {
+    border-top: none;
+}
+
+.modal-content {
+    border-radius: 10px;
+}
+
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+</style>

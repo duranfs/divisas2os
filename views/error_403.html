@@ -1,0 +1,232 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="error-icon mb-4">
+                    <i class="fas fa-lock" style="font-size: 8rem; color: var(--color-warning);"></i>
+                </div>
+                
+                <!-- Error Code -->
+                <h1 class="display-1 text-warning font-weight-bold">403</h1>
+                
+                <!-- Error Message -->
+                <h2 class="text-gold mb-4">Acceso Denegado</h2>
+                
+                <p class="lead text-muted mb-4">
+                    No tiene permisos suficientes para acceder a este recurso.
+                </p>
+                
+                <!-- Access Information -->
+                <div class="card bg-dark-custom border-warning mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fas fa-user-shield"></i> Información de Acceso
+                        </h5>
+                        <div class="row text-left">
+                            <div class="col-md-6">
+                                <strong>Usuario:</strong><br>
+                                <code class="text-gold">{{=auth.user.email if auth.user else 'No autenticado'}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Rol Actual:</strong><br>
+                                <code class="text-gold">
+                                    {{if auth.user:}}
+                                        {{try:}}
+                                            {{roles = [g.role for g in db(db.auth_membership.user_id == auth.user.id).select(db.auth_group.role, join=db.auth_group.on(db.auth_group.id == db.auth_membership.group_id))]}}
+                                            {{=', '.join(roles) if roles else 'Sin rol asignado'}}
+                                        {{except:}}
+                                            Sin rol asignado
+                                        {{pass}}
+                                    {{else:}}
+                                        Invitado
+                                    {{pass}}
+                                </code>
+                            </div>
+                        </div>
+                        <div class="row text-left mt-3">
+                            <div class="col-md-6">
+                                <strong>Recurso Solicitado:</strong><br>
+                                <code class="text-gold">{{=request.env.request_uri or 'N/A'}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Fecha/Hora:</strong><br>
+                                <code class="text-gold">{{=request.now.strftime('%Y-%m-%d %H:%M:%S')}}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Required Permissions -->
+                <div class="card bg-dark-custom border-info mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-key"></i> Permisos Requeridos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">Para acceder a este recurso necesita uno de los siguientes roles:</p>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="fas fa-user-tie fa-2x text-danger mb-2"></i>
+                                    <br><strong>Administrador</strong>
+                                    <br><small class="text-muted">Acceso completo al sistema</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="fas fa-user-cog fa-2x text-warning mb-2"></i>
+                                    <br><strong>Operador</strong>
+                                    <br><small class="text-muted">Operaciones bancarias</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="fas fa-user fa-2x text-info mb-2"></i>
+                                    <br><strong>Cliente</strong>
+                                    <br><small class="text-muted">Operaciones propias</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    {{if not auth.user:}}
+                        <a href="{{=URL('default', 'user', args='login')}}" class="btn btn-primary btn-lg mr-3">
+                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                        </a>
+                    {{else:}}
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-primary btn-lg mr-3">
+                            <i class="fas fa-tachometer-alt"></i> Ir al Dashboard
+                        </a>
+                    {{pass}}
+                    
+                    <a href="{{=URL('default', 'index')}}" class="btn btn-secondary btn-lg mr-3">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                    
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Volver Atrás
+                    </button>
+                </div>
+                
+                <!-- Help Section -->
+                <div class="card bg-dark-custom border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-question-circle"></i> ¿Necesita Ayuda?
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-user-plus text-success"></i> Solicitar Acceso</h6>
+                                <p class="small">
+                                    Contacte al administrador del sistema para solicitar los permisos necesarios.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-life-ring text-success"></i> Soporte Técnico</h6>
+                                <p class="small">
+                                    Email: admin@banco.com<br>
+                                    Teléfono: +58-212-555-0123
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-icon {
+    animation: shake 1s infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.display-1 {
+    font-size: 6rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.border {
+    border-color: var(--color-menu) !important;
+}
+
+.border:hover {
+    border-color: var(--color-acento) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+</style>
+
+<script>
+// Log del error 403 para auditoría
+if (typeof console !== 'undefined') {
+    console.warn('Error 403 - Acceso denegado:', window.location.href);
+}
+
+// Registrar intento de acceso no autorizado
+fetch('/api/log_unauthorized_access', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        url: window.location.href,
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        referrer: document.referrer
+    })
+}).catch(function(error) {
+    console.warn('No se pudo registrar intento de acceso:', error);
+});
+
+// Verificar si el usuario ha obtenido permisos cada 60 segundos
+{{if auth.user:}}
+setInterval(function() {
+    fetch('/api/check_permissions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: window.location.pathname
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.has_permission) {
+            // Usuario ahora tiene permisos, mostrar opción de recargar
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <strong>¡Permisos Actualizados!</strong> Ahora tiene acceso a este recurso.
+                <button type="button" class="btn btn-sm btn-success ml-2" onclick="location.reload()">
+                    <i class="fas fa-redo"></i> Recargar Página
+                </button>
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            `;
+            document.querySelector('.container-fluid').prepend(alertDiv);
+        }
+    })
+    .catch(function() {
+        // Error verificando permisos
+    });
+}, 60000);
+{{pass}}
+</script>

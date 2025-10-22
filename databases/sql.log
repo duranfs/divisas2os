@@ -1,0 +1,213 @@
+timestamp: 2025-10-21T12:07:37.932151
+CREATE TABLE "auth_user"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "first_name" CHAR(128),
+    "last_name" CHAR(128),
+    "email" CHAR(512),
+    "password" CHAR(512),
+    "registration_key" CHAR(512),
+    "reset_password_key" CHAR(512),
+    "registration_id" CHAR(512),
+    "telefono" CHAR(20),
+    "direccion" TEXT,
+    "fecha_nacimiento" DATE,
+    "estado" CHAR(512)
+);
+success!
+timestamp: 2025-10-21T12:07:37.954709
+CREATE TABLE "auth_group"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "role" CHAR(512),
+    "description" TEXT
+);
+success!
+timestamp: 2025-10-21T12:07:37.972723
+CREATE TABLE "auth_membership"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE ON UPDATE CASCADE  
+);
+success!
+timestamp: 2025-10-21T12:07:37.989294
+CREATE TABLE "auth_permission"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "name" CHAR(512),
+    "table_name" CHAR(512),
+    "record_id" INTEGER
+);
+success!
+timestamp: 2025-10-21T12:07:38.003317
+CREATE TABLE "auth_event"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "time_stamp" TIMESTAMP,
+    "client_ip" CHAR(512),
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "origin" CHAR(512),
+    "description" TEXT
+);
+success!
+timestamp: 2025-10-21T12:07:38.019869
+CREATE TABLE "auth_cas"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "created_on" TIMESTAMP,
+    "service" CHAR(512),
+    "ticket" CHAR(512),
+    "renew" CHAR(1)
+);
+success!
+timestamp: 2025-10-21T14:27:36.561885
+CREATE TABLE "logs_auditoria"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "usuario_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "accion" CHAR(100),
+    "modulo" CHAR(50),
+    "tabla_afectada" CHAR(50),
+    "registro_id" INTEGER,
+    "datos_anteriores" TEXT,
+    "datos_nuevos" TEXT,
+    "ip_address" CHAR(45),
+    "user_agent" TEXT,
+    "fecha_accion" TIMESTAMP,
+    "resultado" CHAR(20),
+    "mensaje_error" TEXT,
+    "session_id" CHAR(100)
+);
+success!
+timestamp: 2025-10-21T14:38:35.546957
+CREATE TABLE "scheduler_task"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "application_name" CHAR(512),
+    "task_name" CHAR(512),
+    "group_name" CHAR(512),
+    "status" CHAR(512),
+    "broadcast" CHAR(1),
+    "function_name" CHAR(512),
+    "uuid" CHAR(255) UNIQUE,
+    "args" TEXT,
+    "vars" TEXT,
+    "enabled" CHAR(1),
+    "start_time" TIMESTAMP,
+    "next_run_time" TIMESTAMP,
+    "stop_time" TIMESTAMP,
+    "repeats" INTEGER,
+    "retry_failed" INTEGER,
+    "period" INTEGER,
+    "prevent_drift" CHAR(1),
+    "cronline" CHAR(512),
+    "timeout" INTEGER,
+    "sync_output" INTEGER,
+    "times_run" INTEGER,
+    "times_failed" INTEGER,
+    "last_run_time" TIMESTAMP,
+    "assigned_worker_name" CHAR(512)
+);
+success!
+timestamp: 2025-10-21T14:38:35.561976
+CREATE TABLE "scheduler_run"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "task_id" INTEGER REFERENCES "scheduler_task" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "status" CHAR(512),
+    "start_time" TIMESTAMP,
+    "stop_time" TIMESTAMP,
+    "run_output" TEXT,
+    "run_result" TEXT,
+    "traceback" TEXT,
+    "worker_name" CHAR(512)
+);
+success!
+timestamp: 2025-10-21T14:38:35.580748
+CREATE TABLE "scheduler_worker"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "worker_name" CHAR(255) UNIQUE,
+    "first_heartbeat" TIMESTAMP,
+    "last_heartbeat" TIMESTAMP,
+    "status" CHAR(512),
+    "is_ticker" CHAR(1),
+    "group_names" TEXT,
+    "worker_stats" TEXT
+);
+success!
+timestamp: 2025-10-21T14:38:35.592770
+CREATE TABLE "scheduler_task_deps"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "job_name" CHAR(512),
+    "task_parent" INTEGER,
+    "task_child" INTEGER REFERENCES "scheduler_task" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "can_visit" CHAR(1)
+);
+success!
+timestamp: 2025-10-21T14:38:35.628775
+CREATE TABLE "clientes"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE   UNIQUE,
+    "cedula" CHAR(20) UNIQUE,
+    "fecha_registro" TIMESTAMP
+);
+success!
+timestamp: 2025-10-21T14:38:35.649171
+CREATE TABLE "cuentas"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "cliente_id" INTEGER REFERENCES "clientes" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "numero_cuenta" CHAR(20) UNIQUE,
+    "tipo_cuenta" CHAR(512),
+    "saldo_ves" DOUBLE,
+    "saldo_usd" DOUBLE,
+    "saldo_eur" DOUBLE,
+    "estado" CHAR(512),
+    "fecha_creacion" TIMESTAMP
+);
+success!
+timestamp: 2025-10-21T14:38:35.660219
+CREATE TABLE "tasas_cambio"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "fecha" DATE,
+    "hora" TIME,
+    "usd_ves" DOUBLE,
+    "eur_ves" DOUBLE,
+    "fuente" CHAR(512),
+    "activa" CHAR(1)
+);
+success!
+timestamp: 2025-10-21T14:38:35.680721
+CREATE TABLE "transacciones"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "cuenta_id" INTEGER REFERENCES "cuentas" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "tipo_operacion" CHAR(512),
+    "moneda_origen" CHAR(3),
+    "moneda_destino" CHAR(3),
+    "monto_origen" DOUBLE,
+    "monto_destino" DOUBLE,
+    "tasa_aplicada" DOUBLE,
+    "comision" DOUBLE,
+    "numero_comprobante" CHAR(50) UNIQUE,
+    "estado" CHAR(512),
+    "fecha_transaccion" TIMESTAMP,
+    "observaciones" TEXT
+);
+success!
+timestamp: 2025-10-21T14:38:35.699451
+CREATE TABLE "movimientos_cuenta"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "cuenta_id" INTEGER REFERENCES "cuentas" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "tipo_movimiento" CHAR(512),
+    "moneda" CHAR(3),
+    "monto" DOUBLE,
+    "saldo_anterior" DOUBLE,
+    "saldo_nuevo" DOUBLE,
+    "descripcion" TEXT,
+    "transaccion_relacionada" INTEGER REFERENCES "transacciones" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "fecha_movimiento" TIMESTAMP,
+    "usuario_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  
+);
+success!
+timestamp: 2025-10-21T14:38:35.712770
+CREATE TABLE "configuracion"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "clave" CHAR(50) UNIQUE,
+    "valor" TEXT,
+    "descripcion" TEXT,
+    "fecha_actualizacion" TIMESTAMP
+);
+success!

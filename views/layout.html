@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'es'}}"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <!-- Always force latest IE rendering engine -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+    <!-- Mobile Viewport Fix -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{=response.title or 'Sistema de Divisas Bancario'}}</title>
+    <meta name="application-name" content="Sistema de Divisas Bancario">
+    <meta name="description" content="Sistema bancario para compra y venta de divisas con tasas oficiales del BCV">
+    <meta name="keywords" content="divisas, banco, cambio, USD, EUR, VES, BCV">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap4.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/sistema-divisas.css')}}"/>
+    
+    <!-- Favicons -->
+    <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
+    
+    <!-- JavaScript -->
+    <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
+    {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+    {{block head}}{{end}}
+  </head>
+  <body>
+    <!-- Flash Messages -->
+    {{if response.flash:}}
+    <div class="alert alert-info alert-dismissible fade show" role="alert" style="margin: 0; border-radius: 0;">
+      <i class="fas fa-info-circle me-2"></i>{{=response.flash}}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {{pass}}
+    
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg">
+       <div class="container-fluid">
+         <a href="{{=URL('default','index')}}" class="navbar-brand">
+           <i class="fas fa-university me-2"></i>Sistema de Divisas Bancario
+         </a>
+         
+         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+           <span class="navbar-toggler-icon"></span>
+         </button>
+         
+         <div class="collapse navbar-collapse" id="navbarNav">
+           <!-- Main Navigation Menu -->
+           {{if auth.is_logged_in():}}
+           <ul class="navbar-nav me-auto">
+             <li class="nav-item">
+               <a class="nav-link" href="{{=URL('default','dashboard')}}">
+                 <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+               </a>
+             </li>
+             
+             {{cliente = db(db.clientes.user_id == auth.user.id).select().first() if auth.user else None}}
+             {{if cliente or auth.has_membership('administrador') or auth.has_membership('operador'):}}
+             <!-- Menu de divisas para clientes y administradores -->
+             <li class="nav-item dropdown">
+               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                 <i class="fas fa-exchange-alt me-1"></i>Divisas
+               </a>
+               <div class="dropdown-menu">
+                 <a class="dropdown-item" href="{{=URL('divisas','comprar')}}">
+                   <i class="fas fa-shopping-cart me-2"></i>Comprar Divisas
+                 </a>
+                 <a class="dropdown-item" href="{{=URL('divisas','vender')}}">
+                   <i class="fas fa-hand-holding-usd me-2"></i>Vender Divisas
+                 </a>
+                 <a class="dropdown-item" href="{{=URL('divisas','historial_transacciones')}}">
+                   <i class="fas fa-history me-2"></i>Historial
+                 </a>
+               </div>
+             </li>
+             {{pass}}
+             
+             {{if cliente:}}
+             <!-- Menu específico para clientes -->
+             <li class="nav-item dropdown">
+               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                 <i class="fas fa-university me-1"></i>Cuentas
+               </a>
+               <div class="dropdown-menu">
+                 <a class="dropdown-item" href="{{=URL('cuentas','consultar')}}">
+                   <i class="fas fa-search me-2"></i>Consultar Saldos
+                 </a>
+                 <a class="dropdown-item" href="{{=URL('cuentas','movimientos')}}">
+                   <i class="fas fa-list me-2"></i>Movimientos
+                 </a>
+               </div>
+             </li>
+             {{pass}}
+             
+             {{if auth.has_membership('administrador') or auth.has_membership('operador'):}}
+             <!-- Menu para administradores -->
+             <li class="nav-item dropdown">
+               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                 <i class="fas fa-users me-1"></i>Gestión
+               </a>
+               <div class="dropdown-menu">
+                 <a class="dropdown-item" href="{{=URL('clientes','listar')}}">
+                   <i class="fas fa-users me-2"></i>Clientes
+                 </a>
+                 <a class="dropdown-item" href="{{=URL('cuentas','listar_todas')}}">
+                   <i class="fas fa-university me-2"></i>Cuentas
+                 </a>
+                 <a class="dropdown-item" href="{{=URL('reportes','index')}}">
+                   <i class="fas fa-chart-bar me-2"></i>Reportes
+                 </a>
+               </div>
+             </li>
+             
+             <li class="nav-item">
+               <a class="nav-link" href="{{=URL('api','index')}}">
+                 <i class="fas fa-chart-line me-1"></i>Tasas BCV
+               </a>
+             </li>
+             {{pass}}
+           </ul>
+           {{pass}}
+           
+           <!-- User Menu -->
+           <ul class="navbar-nav ms-auto">
+             {{if auth.is_logged_in():}}
+             <!-- Botón directo de cerrar sesión -->
+             <li class="nav-item">
+               <a class="nav-link btn btn-outline-danger btn-sm me-2" href="{{=URL('default','user/logout')}}" 
+                  onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+                 <i class="fas fa-sign-out-alt me-1"></i>Salir
+               </a>
+             </li>
+             
+             <li class="nav-item dropdown">
+               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                 <i class="fas fa-user me-1"></i>{{=auth.user.first_name or 'Usuario'}}
+               </a>
+               <div class="dropdown-menu dropdown-menu-end">
+                 <a class="dropdown-item" href="{{=URL('default','user/profile')}}">
+                   <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                 </a>
+                 {{if cliente:}}
+                 <a class="dropdown-item" href="{{=URL('clientes','perfil')}}">
+                   <i class="fas fa-id-card me-2"></i>Datos Bancarios
+                 </a>
+                 {{pass}}
+                 <div class="dropdown-divider"></div>
+                 <a class="dropdown-item" href="{{=URL('default','user/change_password')}}">
+                   <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                 </a>
+                 <a class="dropdown-item text-danger" href="{{=URL('default','user/logout')}}"
+                    onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+                   <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                 </a>
+               </div>
+             </li>
+             {{else:}}
+             <li class="nav-item">
+               <a class="nav-link" href="{{=URL('default','user/login')}}">
+                 <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+               </a>
+             </li>
+             <li class="nav-item">
+               <a class="nav-link" href="{{=URL('default','user/register')}}">
+                 <i class="fas fa-user-plus me-1"></i>Registrarse
+               </a>
+             </li>
+             {{pass}}
+           </ul>
+         </div>
+       </div>
+    </nav>
+
+    <!-- Header Section -->
+    {{block header}}
+    {{end}}
+    
+    <!-- Main Content Area -->
+    <div class="container-fluid main-container">
+      <div class="row">
+        <!-- Sidebar Navigation (only for logged in users) -->
+        {{if auth.is_logged_in():}}
+        <div class="col-md-2 d-none d-md-block">
+          <div class="sidebar">
+            <nav class="nav flex-column">
+              <a class="nav-link" href="{{=URL('default','dashboard')}}">
+                <i class="fas fa-tachometer-alt"></i>Dashboard
+              </a>
+              
+              {{cliente = db(db.clientes.user_id == auth.user.id).select().first() if auth.user else None}}
+              {{if cliente or auth.has_membership('administrador') or auth.has_membership('operador'):}}
+              <!-- Enlaces de divisas para clientes y administradores -->
+              <div class="nav-section">
+                <h6 class="nav-header text-orange mt-3 mb-2">
+                  <i class="fas fa-exchange-alt me-2"></i>Operaciones
+                </h6>
+                <a class="nav-link" href="{{=URL('divisas','comprar')}}">
+                  <i class="fas fa-shopping-cart"></i>Comprar Divisas
+                </a>
+                <a class="nav-link" href="{{=URL('divisas','vender')}}">
+                  <i class="fas fa-hand-holding-usd"></i>Vender Divisas
+                </a>
+                <a class="nav-link" href="{{=URL('divisas','historial_transacciones')}}">
+                  <i class="fas fa-history"></i>Historial
+                </a>
+              </div>
+              {{pass}}
+              
+              {{if cliente:}}
+              <!-- Enlaces específicos para clientes -->
+              <div class="nav-section">
+                <h6 class="nav-header text-orange mt-3 mb-2">
+                  <i class="fas fa-university me-2"></i>Cuentas
+                </h6>
+                <a class="nav-link" href="{{=URL('cuentas','consultar')}}">
+                  <i class="fas fa-search"></i>Consultar Saldos
+                </a>
+                <a class="nav-link" href="{{=URL('cuentas','movimientos')}}">
+                  <i class="fas fa-list"></i>Movimientos
+                </a>
+              </div>
+              {{pass}}
+              
+              {{if auth.has_membership('administrador') or auth.has_membership('operador'):}}
+              <!-- Enlaces para administradores -->
+              <div class="nav-section">
+                <h6 class="nav-header text-orange mt-3 mb-2">
+                  <i class="fas fa-cogs me-2"></i>Administración
+                </h6>
+                <a class="nav-link" href="{{=URL('clientes','listar')}}">
+                  <i class="fas fa-users"></i>Gestión de Clientes
+                </a>
+                <a class="nav-link" href="{{=URL('cuentas','listar_todas')}}">
+                  <i class="fas fa-university"></i>Todas las Cuentas
+                </a>
+                <a class="nav-link" href="{{=URL('reportes','index')}}">
+                  <i class="fas fa-chart-bar"></i>Reportes
+                </a>
+                <a class="nav-link" href="{{=URL('api','index')}}">
+                  <i class="fas fa-chart-line"></i>Tasas BCV
+                </a>
+              </div>
+              {{pass}}
+              
+              <div class="nav-section">
+                <h6 class="nav-header text-orange mt-3 mb-2">
+                  <i class="fas fa-user me-2"></i>Mi Cuenta
+                </h6>
+                <a class="nav-link" href="{{=URL('default','user/profile')}}">
+                  <i class="fas fa-user-edit"></i>Mi Perfil
+                </a>
+                {{if cliente:}}
+                <a class="nav-link" href="{{=URL('clientes','perfil')}}">
+                  <i class="fas fa-id-card"></i>Datos Bancarios
+                </a>
+                {{pass}}
+                <a class="nav-link" href="{{=URL('default','user/change_password')}}">
+                  <i class="fas fa-key"></i>Cambiar Contraseña
+                </a>
+              </div>
+              
+              <!-- Botón de Cerrar Sesión destacado -->
+              <div class="nav-section mt-4">
+                <a class="nav-link btn btn-danger text-white text-center" 
+                   href="{{=URL('default','user/logout')}}"
+                   onclick="return confirm('¿Está seguro que desea cerrar sesión?')"
+                   style="margin: 10px; border-radius: 8px; font-weight: bold;">
+                  <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                </a>
+              </div>
+            </nav>
+          </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-10">
+          {{include '_breadcrumbs.html'}}
+          {{include}}
+        </div>
+        {{else:}}
+        <!-- Full width for non-logged users -->
+        <div class="col-12">
+          {{include '_breadcrumbs.html'}}
+          {{include}}
+        </div>
+        {{pass}}
+      </div>
+      
+      {{=response.toolbar() if response.show_toolbar else ''}}
+    </div>
+
+    {{block footer}}
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="copyright">
+              <i class="fas fa-copyright me-1"></i>{{=request.now.year}} Sistema de Divisas Bancario
+            </div>
+            <small class="text-muted">
+              Tasas oficiales del Banco Central de Venezuela
+            </small>
+          </div>
+          <div class="col-md-6 text-end">
+            <div class="powered-by">
+              <small>
+                Desarrollado con <a href="http://www.web2py.com/" target="_blank">web2py</a>
+              </small>
+            </div>
+            <div class="mt-1">
+              <small class="text-muted">
+                <i class="fas fa-shield-alt me-1"></i>Transacciones seguras y confiables
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    {{end}}
+    
+    <!-- JavaScript -->
+    <script src="{{=URL('static','js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{=URL('static','js/web2py-bootstrap4.js')}}"></script>
+    <script src="{{=URL('static','js/navegacion.js')}}"></script>
+    
+    <!-- Custom JavaScript for Sistema de Divisas -->
+    <script>
+      // Auto-hide flash messages after 5 seconds
+      document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+          setTimeout(function() {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+          }, 5000);
+        });
+        
+        // Add active class to current navigation item
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(function(link) {
+          if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
+          }
+        });
+        
+        // Add fade-in animation to main content
+        const mainContent = document.querySelector('.main-container');
+        if (mainContent) {
+          mainContent.classList.add('fade-in-up');
+        }
+      });
+      
+      // Function to update dashboard data periodically
+      function updateDashboardData() {
+        if (typeof updateTasas === 'function') {
+          updateTasas();
+        }
+      }
+      
+      // Update dashboard every 5 minutes
+      setInterval(updateDashboardData, 300000);
+    </script>
+    
+    {{block page_js}}{{end page_js}}
+    
+    {{if response.google_analytics_id:}}
+    <!-- Analytics -->
+    <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+    <script type="text/javascript">
+      analytics.initialize({
+      'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
+      });
+    </script>
+    {{pass}}
+  </body>
+</html>

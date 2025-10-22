@@ -1,0 +1,292 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-chart-bar"></i> Módulo de Reportes y Consultas
+            </h2>
+        </div>
+    </div>
+
+    <!-- Dashboard de Estadísticas -->
+    {{if estadisticas and 'error' not in estadisticas:}}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=estadisticas['transacciones_hoy']}}</h4>
+                            <p class="mb-0">Transacciones Hoy</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=estadisticas['transacciones_mes']}}</h4>
+                            <p class="mb-0">Transacciones del Mes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-month fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{="{:,.2f}".format(estadisticas['comisiones_mes'])}}</h4>
+                            <p class="mb-0">Comisiones del Mes (VES)</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=estadisticas['total_clientes']}}</h4>
+                            <p class="mb-0">Total Clientes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Opciones de Consulta y Reportes -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Consultas de Historial
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Consulte el historial de transacciones con filtros avanzados.</p>
+                    
+                    <div class="list-group list-group-flush">
+                        <a href="{{=URL('reportes', 'historial_transacciones')}}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-list"></i> Historial de Transacciones
+                            <small class="text-muted d-block">Consulte todas las transacciones con filtros por fecha, tipo y moneda</small>
+                        </a>
+                        
+                        {{if auth.has_membership('administrador'):}}
+                        <a href="{{=URL('reportes', 'reportes_administrativos')}}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line"></i> Reportes Administrativos
+                            <small class="text-muted d-block">Genere reportes diarios, semanales y mensuales</small>
+                        </a>
+                        {{pass}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header" style="background-color: #FF8C00; color: white;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download"></i> Exportación de Datos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Exporte sus datos en diferentes formatos para análisis externo.</p>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-pdf text-danger"></i> Exportar a PDF
+                                    <small class="text-muted d-block">Genere reportes en formato PDF</small>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm" onclick="mostrarModalExportPDF()">
+                                    <i class="fas fa-download"></i> PDF
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {{if auth.has_membership('administrador'):}}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-excel text-success"></i> Exportar a Excel
+                                    <small class="text-muted d-block">Genere reportes en formato Excel</small>
+                                </div>
+                                <button class="btn btn-outline-success btn-sm" onclick="mostrarModalExportExcel()">
+                                    <i class="fas fa-download"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                        {{pass}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del Sistema -->
+    {{if estadisticas:}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        Última actualización: {{=estadisticas.get('fecha_consulta', 'No disponible')}}
+                        {{if estadisticas.get('cuentas_activas'):}}
+                        | Cuentas activas: {{=estadisticas['cuentas_activas']}}
+                        {{pass}}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+</div>
+
+<!-- Modal para Exportar PDF -->
+<div class="modal fade" id="modalExportPDF" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-pdf text-danger"></i> Exportar a PDF
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form action="{{=URL('reportes', 'exportar_pdf')}}" method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tipo_reporte_pdf">Tipo de Reporte:</label>
+                        <select class="form-control" id="tipo_reporte_pdf" name="tipo_reporte" required>
+                            <option value="transacciones">Historial de Transacciones</option>
+                            {{if auth.has_membership('administrador'):}}
+                            <option value="reporte_diario">Reporte Diario Administrativo</option>
+                            {{pass}}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_desde_pdf">Fecha Desde:</label>
+                        <input type="date" class="form-control" id="fecha_desde_pdf" name="fecha_desde">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_hasta_pdf">Fecha Hasta:</label>
+                        <input type="date" class="form-control" id="fecha_hasta_pdf" name="fecha_hasta">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-download"></i> Generar PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{if auth.has_membership('administrador'):}}
+<!-- Modal para Exportar Excel -->
+<div class="modal fade" id="modalExportExcel" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-excel text-success"></i> Exportar a Excel
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form action="{{=URL('reportes', 'exportar_excel')}}" method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tipo_reporte_excel">Tipo de Reporte:</label>
+                        <select class="form-control" id="tipo_reporte_excel" name="tipo_reporte" required>
+                            <option value="transacciones">Historial de Transacciones</option>
+                            <option value="reporte_diario">Reporte Diario Administrativo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_desde_excel">Fecha Desde:</label>
+                        <input type="date" class="form-control" id="fecha_desde_excel" name="fecha_desde">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_hasta_excel">Fecha Hasta:</label>
+                        <input type="date" class="form-control" id="fecha_hasta_excel" name="fecha_hasta">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-download"></i> Generar Excel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{pass}}
+
+<script>
+function mostrarModalExportPDF() {
+    $('#modalExportPDF').modal('show');
+}
+
+function mostrarModalExportExcel() {
+    $('#modalExportExcel').modal('show');
+}
+
+// Establecer fecha por defecto (último mes)
+document.addEventListener('DOMContentLoaded', function() {
+    const hoy = new Date();
+    const haceUnMes = new Date();
+    haceUnMes.setMonth(hoy.getMonth() - 1);
+    
+    const fechaHoy = hoy.toISOString().split('T')[0];
+    const fechaHaceUnMes = haceUnMes.toISOString().split('T')[0];
+    
+    // PDF
+    document.getElementById('fecha_desde_pdf').value = fechaHaceUnMes;
+    document.getElementById('fecha_hasta_pdf').value = fechaHoy;
+    
+    // Excel (si existe)
+    const fechaDesdeExcel = document.getElementById('fecha_desde_excel');
+    const fechaHastaExcel = document.getElementById('fecha_hasta_excel');
+    if (fechaDesdeExcel && fechaHastaExcel) {
+        fechaDesdeExcel.value = fechaHaceUnMes;
+        fechaHastaExcel.value = fechaHoy;
+    }
+});
+</script>

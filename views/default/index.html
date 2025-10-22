@@ -1,0 +1,312 @@
+{{extend 'layout.html'}}
+
+{{if not auth.is_logged_in():}}
+<!-- Página de bienvenida para usuarios no autenticados -->
+<div class="dashboard-header text-center">
+  <h1><i class="fas fa-university me-3"></i>Sistema de Divisas Bancario</h1>
+  <p class="lead">Compra y venta de divisas con tasas oficiales del Banco Central de Venezuela</p>
+</div>
+
+<div class="row">
+  <!-- Widget de Tasas Actuales -->
+  <div class="col-lg-6 mb-4">
+    <div class="widget-tasas">
+      <h4><i class="fas fa-chart-line me-2"></i>Tasas Actuales BCV</h4>
+      {{if tasas:}}
+      <div class="tasa-item">
+        <span class="tasa-moneda">USD / VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas.usd_ves)) if tasas.usd_ves else 'N/A'}}</span>
+      </div>
+      <div class="tasa-item">
+        <span class="tasa-moneda">EUR / VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas.eur_ves)) if tasas.eur_ves else 'N/A'}}</span>
+      </div>
+      <div class="tasa-actualizacion">
+        <i class="fas fa-clock me-1"></i>
+        Última actualización: {{=tasas.fecha.strftime('%d/%m/%Y %H:%M') if tasas else 'No disponible'}}
+      </div>
+      {{else:}}
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        No hay tasas disponibles en este momento
+      </div>
+      {{pass}}
+    </div>
+  </div>
+  
+  <!-- Información del Sistema -->
+  <div class="col-lg-6 mb-4">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-info-circle me-2"></i>Acerca del Sistema</h5>
+      </div>
+      <div class="card-body">
+        <p>Nuestro sistema le permite:</p>
+        <ul class="list-unstyled">
+          <li><i class="fas fa-check text-success me-2"></i>Comprar y vender USD y EUR</li>
+          <li><i class="fas fa-check text-success me-2"></i>Tasas oficiales del BCV en tiempo real</li>
+          <li><i class="fas fa-check text-success me-2"></i>Transacciones seguras y confiables</li>
+          <li><i class="fas fa-check text-success me-2"></i>Historial completo de operaciones</li>
+          <li><i class="fas fa-check text-success me-2"></i>Múltiples cuentas por cliente</li>
+        </ul>
+        
+        <div class="mt-4">
+          <a href="{{=URL('default','user/login')}}" class="btn btn-primary me-2">
+            <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+          </a>
+          <a href="{{=URL('default','user/register')}}" class="btn btn-warning">
+            <i class="fas fa-user-plus me-1"></i>Registrarse
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{else:}}
+<!-- Dashboard para usuarios autenticados -->
+{{if tipo_dashboard == 'cliente':}}
+<!-- Dashboard de Cliente -->
+<div class="dashboard-header">
+  <h1><i class="fas fa-tachometer-alt me-3"></i>Mi Dashboard</h1>
+  <p class="lead">Bienvenido, {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
+</div>
+
+<!-- Resumen de Cuentas -->
+<div class="row mb-4">
+  <div class="col-md-4 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-coins me-2"></i>Saldo VES</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{="{:,.2f}".format(float(total_ves))}}<span class="saldo-currency">VES</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-dollar-sign me-2"></i>Saldo USD</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{="{:,.2f}".format(float(total_usd))}}<span class="saldo-currency">USD</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-euro-sign me-2"></i>Saldo EUR</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{="{:,.2f}".format(float(total_eur))}}<span class="saldo-currency">EUR</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Widget de Tasas -->
+  <div class="col-lg-4 mb-4">
+    <div class="widget-tasas">
+      <h5><i class="fas fa-chart-line me-2"></i>Tasas Actuales</h5>
+      {{if tasas_actuales:}}
+      <div class="tasa-item">
+        <span class="tasa-moneda">USD / VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.usd_ves))}}</span>
+      </div>
+      <div class="tasa-item">
+        <span class="tasa-moneda">EUR / VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.eur_ves))}}</span>
+      </div>
+      <div class="tasa-actualizacion">
+        <i class="fas fa-clock me-1"></i>{{=tasas_actuales.fecha.strftime('%d/%m/%Y %H:%M')}}
+      </div>
+      {{else:}}
+      <div class="alert alert-warning">No hay tasas disponibles</div>
+      {{pass}}
+    </div>
+  </div>
+  
+  <!-- Últimas Transacciones -->
+  <div class="col-lg-8 mb-4">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-history me-2"></i>Últimas Transacciones</h5>
+      </div>
+      <div class="card-body">
+        {{if ultimas_transacciones:}}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Monedas</th>
+                <th>Monto</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for transaccion in ultimas_transacciones:}}
+              <tr>
+                <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y')}}</td>
+                <td>
+                  <span class="badge bg-{{='success' if transaccion.tipo_operacion == 'compra' else 'warning'}}">
+                    {{=transaccion.tipo_operacion.title()}}
+                  </span>
+                </td>
+                <td>{{=transaccion.moneda_origen}} → {{=transaccion.moneda_destino}}</td>
+                <td>{{="{:,.2f}".format(float(transaccion.monto_origen))}} {{=transaccion.moneda_origen}}</td>
+                <td>
+                  <span class="badge bg-{{='success' if transaccion.estado == 'completada' else 'secondary'}}">
+                    {{=transaccion.estado.title()}}
+                  </span>
+                </td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center mt-3">
+          <a href="{{=URL('divisas','historial_transacciones')}}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-list me-1"></i>Ver Historial Completo
+          </a>
+        </div>
+        {{else:}}
+        <div class="text-center text-muted">
+          <i class="fas fa-inbox fa-3x mb-3"></i>
+          <p>No hay transacciones recientes</p>
+          <a href="{{=URL('divisas','comprar')}}" class="btn btn-primary">
+            <i class="fas fa-shopping-cart me-1"></i>Realizar Primera Transacción
+          </a>
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="accesos-rapidos">
+  <h4 class="text-gold mb-4"><i class="fas fa-bolt me-2"></i>Accesos Rápidos</h4>
+  <div class="row">
+    {{for acceso in accesos_rapidos:}}
+    <div class="col-lg-3 col-md-6 mb-3">
+      <a href="{{=acceso['url']}}" class="acceso-rapido">
+        <i class="{{=acceso['icono']}}"></i>
+        <h5>{{=acceso['titulo']}}</h5>
+        <p>{{=acceso['descripcion']}}</p>
+      </a>
+    </div>
+    {{pass}}
+  </div>
+</div>
+
+{{elif tipo_dashboard == 'administrativo':}}
+<!-- Dashboard Administrativo -->
+<div class="dashboard-header">
+  <h1><i class="fas fa-chart-bar me-3"></i>Panel Administrativo</h1>
+  <p class="lead">Resumen del sistema - {{=request.now.strftime('%d de %B de %Y')}}</p>
+</div>
+
+<!-- Estadísticas del Día -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-exchange-alt me-2"></i>Transacciones Hoy</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{=transacciones_hoy}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-users me-2"></i>Clientes Activos</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{=clientes_activos}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-university me-2"></i>Cuentas Activas</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{=cuentas_activas}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="widget-tasas">
+      <h6><i class="fas fa-chart-line me-2"></i>Tasas BCV</h6>
+      {{if tasas_actuales:}}
+      <div class="tasa-item">
+        <span class="tasa-moneda">USD</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.usd_ves))}}</span>
+      </div>
+      <div class="tasa-item">
+        <span class="tasa-moneda">EUR</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.eur_ves))}}</span>
+      </div>
+      {{else:}}
+      <div class="alert alert-warning">No disponible</div>
+      {{pass}}
+    </div>
+  </div>
+</div>
+
+<!-- Accesos Rápidos Administrativos -->
+<div class="accesos-rapidos">
+  <h4 class="text-gold mb-4"><i class="fas fa-cogs me-2"></i>Herramientas Administrativas</h4>
+  <div class="row">
+    {{for acceso in accesos_rapidos:}}
+    <div class="col-lg-3 col-md-6 mb-3">
+      <a href="{{=acceso['url']}}" class="acceso-rapido">
+        <i class="{{=acceso['icono']}}"></i>
+        <h5>{{=acceso['titulo']}}</h5>
+        <p>{{=acceso['descripcion']}}</p>
+      </a>
+    </div>
+    {{pass}}
+  </div>
+</div>
+
+{{else:}}
+<!-- Dashboard Básico -->
+<div class="dashboard-header text-center">
+  <h1><i class="fas fa-user-clock me-3"></i>Completar Registro</h1>
+  <p class="lead">{{=mensaje}}</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-user-plus me-2"></i>Siguiente Paso</h5>
+      </div>
+      <div class="card-body text-center">
+        <p>Para acceder a todas las funcionalidades del sistema, complete su registro como cliente bancario.</p>
+        <a href="{{=URL('clientes','registrar')}}" class="btn btn-primary">
+          <i class="fas fa-user-plus me-1"></i>Completar Registro
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{{pass}}
+{{pass}}
+
+
+

@@ -1,0 +1,22 @@
+<!-- Breadcrumbs Component -->
+{{if response.breadcrumbs and len(response.breadcrumbs) > 1:}}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    {{for breadcrumb in response.breadcrumbs:}}
+    {{if breadcrumb['activo']:}}
+    <li class="breadcrumb-item active" aria-current="page">
+      <i class="fas fa-chevron-right me-2"></i>{{=breadcrumb['titulo']}}
+    </li>
+    {{else:}}
+    <li class="breadcrumb-item">
+      {{if breadcrumb['url']:}}
+      <a href="{{=breadcrumb['url']}}">{{=breadcrumb['titulo']}}</a>
+      {{else:}}
+      {{=breadcrumb['titulo']}}
+      {{pass}}
+    </li>
+    {{pass}}
+    {{pass}}
+  </ol>
+</nav>
+{{pass}}

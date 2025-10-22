@@ -1,0 +1,305 @@
+{{extend 'layout.html'}}
+
+{{block head}}
+<style>
+:root {
+    --color-fondo: #000000;
+    --color-menu: #FF8C00;
+    --color-acento: #FFD700;
+    --color-texto: #FFFFFF;
+    --color-texto-secundario: #CCCCCC;
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+.card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    color: var(--color-texto);
+}
+
+.card-header {
+    background-color: var(--color-menu);
+    color: var(--color-fondo);
+    font-weight: bold;
+}
+
+.btn-outline-warning {
+    color: var(--color-acento);
+    border-color: var(--color-acento);
+}
+
+.table-dark {
+    background-color: #1a1a1a;
+}
+
+.table-dark th {
+    background-color: var(--color-menu);
+    color: var(--color-fondo);
+}
+
+.text-warning {
+    color: var(--color-acento) !important;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--color-acento);
+}
+
+.stat-label {
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+}
+</style>
+{{end}}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fa fa-eye"></i> Detalles de la Cuenta</h2>
+                <a href="{{=URL('cuentas', 'index')}}" class="btn btn-outline-warning">
+                    <i class="fa fa-arrow-left"></i> Volver a Mis Cuentas
+                </a>
+            </div>
+        </div>
+    </div>    
+<!-- Información Principal de la Cuenta -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-bank"></i> Información de la Cuenta
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="text-warning">{{=cuenta.numero_cuenta}}</h4>
+                            <p><strong>Tipo:</strong> <span class="badge badge-info">{{=cuenta.tipo_cuenta.title()}}</span></p>
+                            <p><strong>Estado:</strong> 
+                                {{if cuenta.estado == 'activa':}}
+                                    <span class="badge badge-success">Activa</span>
+                                {{elif cuenta.estado == 'inactiva':}}
+                                    <span class="badge badge-warning">Inactiva</span>
+                                {{else:}}
+                                    <span class="badge badge-danger">Bloqueada</span>
+                                {{pass}}
+                            </p>
+                            <p><strong>Fecha de Creación:</strong> {{=cuenta.fecha_creacion.strftime('%d/%m/%Y %H:%M')}}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Titular:</strong> {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
+                            <p><strong>Cédula:</strong> {{=cliente.cedula}}</p>
+                            <p><strong>Email:</strong> {{=auth.user.email}}</p>
+                            <p><strong>Teléfono:</strong> {{=auth.user.telefono or 'No registrado'}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saldos Actuales -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-number">{{="{:,.2f}".format(cuenta.saldo_ves or 0)}}</div>
+                <div class="stat-label">Bolívares (VES)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-number">{{="{:,.2f}".format(cuenta.saldo_usd or 0)}}</div>
+                <div class="stat-label">Dólares (USD)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-number">{{="{:,.2f}".format(cuenta.saldo_eur or 0)}}</div>
+                <div class="stat-label">Euros (EUR)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del Mes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-bar-chart"></i> Estadísticas del Mes Actual
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{=estadisticas_mes['total_transacciones']}}</div>
+                                <div class="stat-label">Total Transacciones</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{=estadisticas_mes['compras']}}</div>
+                                <div class="stat-label">Compras</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{=estadisticas_mes['ventas']}}</div>
+                                <div class="stat-label">Ventas</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{="{:,.0f}".format(estadisticas_mes['monto_total_ves'])}}</div>
+                                <div class="stat-label">Monto Total VES</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Transacciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-clock-o"></i> Últimas Transacciones
+                    <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-sm btn-outline-warning float-right">
+                        Ver Todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {{if ultimas_transacciones:}}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Origen</th>
+                                    <th>Destino</th>
+                                    <th>Tasa</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for transaccion in ultimas_transacciones:}}
+                                <tr>
+                                    <td>{{=transaccion.fecha_transaccion.strftime('%d/%m %H:%M')}}</td>
+                                    <td>
+                                        {{if transaccion.tipo_operacion == 'compra':}}
+                                            <span class="badge badge-success">Compra</span>
+                                        {{else:}}
+                                            <span class="badge badge-info">Venta</span>
+                                        {{pass}}
+                                    </td>
+                                    <td class="text-right">
+                                        {{="{:,.2f}".format(transaccion.monto_origen)}} {{=transaccion.moneda_origen}}
+                                    </td>
+                                    <td class="text-right">
+                                        {{="{:,.2f}".format(transaccion.monto_destino)}} {{=transaccion.moneda_destino}}
+                                    </td>
+                                    <td class="text-right">
+                                        {{="{:,.4f}".format(transaccion.tasa_aplicada)}}
+                                    </td>
+                                    <td>
+                                        {{if transaccion.estado == 'completada':}}
+                                            <span class="badge badge-success">OK</span>
+                                        {{else:}}
+                                            <span class="badge badge-warning">{{=transaccion.estado.title()}}</span>
+                                        {{pass}}
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else:}}
+                    <div class="text-center py-4">
+                        <i class="fa fa-history fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No hay transacciones registradas en esta cuenta</p>
+                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary">
+                            <i class="fa fa-shopping-cart"></i> Realizar Primera Transacción
+                        </a>
+                    </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Disponibles -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-cogs"></i> Acciones Disponibles
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2">
+                            <a href="{{=URL('cuentas', 'consultar', args=[cuenta.id])}}" class="btn btn-outline-warning btn-block">
+                                <i class="fa fa-search"></i><br>
+                                <small>Consultar Saldos</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-warning btn-block">
+                                <i class="fa fa-history"></i><br>
+                                <small>Ver Movimientos</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-outline-warning btn-block">
+                                <i class="fa fa-shopping-cart"></i><br>
+                                <small>Comprar Divisas</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{=URL('divisas', 'vender')}}" class="btn btn-outline-warning btn-block">
+                                <i class="fa fa-money"></i><br>
+                                <small>Vender Divisas</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{=URL('divisas', 'tasas')}}" class="btn btn-outline-warning btn-block">
+                                <i class="fa fa-line-chart"></i><br>
+                                <small>Ver Tasas</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{=URL('reportes', 'transacciones')}}" class="btn btn-outline-warning btn-block">
+                                <i class="fa fa-file-text"></i><br>
+                                <small>Generar Reporte</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

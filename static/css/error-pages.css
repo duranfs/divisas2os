@@ -1,0 +1,542 @@
+/* 
+ * Estilos para Páginas de Error Personalizadas
+ * Sistema de Divisas Bancario
+ */
+
+/* Variables CSS para consistencia */
+:root {
+    --error-bg: #000000;
+    --error-text: #ffffff;
+    --error-text-muted: #cccccc;
+    --error-border: #333333;
+    --error-400: #ffc107;
+    --error-401: #dc3545;
+    --error-403: #fd7e14;
+    --error-404: #ff8c00;
+    --error-500: #dc3545;
+    --error-503: #ffc107;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+}
+
+/* Estilos base para páginas de error */
+.error-page {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Iconos de error animados */
+.error-icon {
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.error-icon i {
+    filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.3));
+}
+
+/* Animaciones específicas por tipo de error */
+.error-400 .error-icon {
+    animation: shake 0.5s infinite alternate;
+}
+
+.error-401 .error-icon {
+    animation: fadeInOut 2s infinite;
+}
+
+.error-403 .error-icon {
+    animation: shake 1s infinite;
+}
+
+.error-404 .error-icon {
+    animation: bounce 2s infinite;
+}
+
+.error-500 .error-icon {
+    animation: pulse 2s infinite;
+}
+
+.error-503 .error-icon {
+    animation: rotate 3s linear infinite;
+}
+
+/* Definición de animaciones */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-30px);
+    }
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Códigos de error grandes */
+.display-1 {
+    font-size: 6rem;
+    font-weight: 900;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin: 1rem 0;
+}
+
+.text-orange { color: var(--error-404) !important; }
+.text-gold { color: #ffd700 !important; }
+.text-danger { color: var(--danger-color) !important; }
+.text-warning { color: var(--warning-color) !important; }
+
+/* Cards personalizadas para errores */
+.card.bg-dark-custom {
+    background-color: #1a1a1a !important;
+    border: 1px solid var(--error-border);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.card.bg-dark-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+
+/* Bordes coloridos para diferentes tipos de error */
+.border-orange { border-color: var(--error-404) !important; }
+.border-gold { border-color: #ffd700 !important; }
+.border-danger { border-color: var(--danger-color) !important; }
+.border-warning { border-color: var(--warning-color) !important; }
+.border-info { border-color: var(--info-color) !important; }
+.border-success { border-color: var(--success-color) !important; }
+.border-primary { border-color: #007bff !important; }
+
+/* Headers de cards con colores */
+.card-header.bg-info { background-color: var(--info-color) !important; }
+.card-header.bg-success { background-color: var(--success-color) !important; }
+.card-header.bg-warning { background-color: var(--warning-color) !important; color: #000 !important; }
+.card-header.bg-danger { background-color: var(--danger-color) !important; }
+.card-header.bg-primary { background-color: #007bff !important; }
+
+/* Botones personalizados */
+.btn {
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-color: #007bff;
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #6c757d, #545b62);
+    border-color: #6c757d;
+}
+
+.btn-success {
+    background: linear-gradient(45deg, var(--success-color), #1e7e34);
+    border-color: var(--success-color);
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, var(--warning-color), #e0a800);
+    border-color: var(--warning-color);
+    color: #000 !important;
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, var(--danger-color), #c82333);
+    border-color: var(--danger-color);
+}
+
+.btn-outline-primary,
+.btn-outline-success,
+.btn-outline-info {
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Badges personalizados */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
+}
+
+.badge-success { background-color: var(--success-color) !important; }
+.badge-warning { background-color: var(--warning-color) !important; color: #000 !important; }
+.badge-danger { background-color: var(--danger-color) !important; }
+.badge-info { background-color: var(--info-color) !important; }
+
+/* Progress bars personalizadas */
+.progress {
+    background-color: #333;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.progress-bar {
+    border-radius: 15px;
+    transition: width 0.6s ease;
+}
+
+.progress-bar-striped {
+    background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+}
+
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% { background-position: 1rem 0; }
+    100% { background-position: 0 0; }
+}
+
+/* Código y texto monospace */
+code {
+    background-color: #2d2d2d;
+    color: var(--error-text);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    border: 1px solid #444;
+}
+
+pre {
+    background-color: #1a1a1a;
+    color: var(--error-text);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+}
+
+/* Listas personalizadas */
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+ul li:before {
+    content: "▶";
+    position: absolute;
+    left: 0;
+    color: var(--error-404);
+    font-weight: bold;
+}
+
+/* Alertas personalizadas */
+.alert {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    font-weight: 500;
+}
+
+.alert-success {
+    background: linear-gradient(45deg, var(--success-color), #1e7e34);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(45deg, var(--warning-color), #e0a800);
+    color: #000;
+}
+
+.alert-danger {
+    background: linear-gradient(45deg, var(--danger-color), #c82333);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(45deg, var(--info-color), #138496);
+    color: white;
+}
+
+/* Efectos hover para elementos interactivos */
+.card:hover,
+.border:hover {
+    border-color: var(--error-404) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .display-1 {
+        font-size: 4rem;
+    }
+    
+    .error-icon i {
+        font-size: 5rem !important;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .card-body .row {
+        margin-bottom: 1rem;
+    }
+    
+    .col-md-6,
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .display-1 {
+        font-size: 3rem;
+    }
+    
+    .error-icon i {
+        font-size: 4rem !important;
+    }
+    
+    .container-fluid {
+        padding: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn.mr-3 {
+        margin-right: 0 !important;
+    }
+}
+
+/* Efectos especiales para elementos críticos */
+.critical-error {
+    animation: criticalPulse 1s infinite;
+}
+
+@keyframes criticalPulse {
+    0%, 100% {
+        box-shadow: 0 0 5px var(--danger-color);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--danger-color), 0 0 30px var(--danger-color);
+    }
+}
+
+/* Spinner personalizado */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tooltips personalizados */
+[data-toggle="tooltip"] {
+    cursor: help;
+}
+
+/* Scrollbar personalizado para elementos con overflow */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d2d2d;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--error-404);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffa500;
+}
+
+/* Efectos de entrada para elementos */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para elementos de estado del sistema */
+.system-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.system-status:hover {
+    transform: scale(1.05);
+}
+
+.status-operational {
+    background: linear-gradient(45deg, var(--success-color), #1e7e34);
+    color: white;
+}
+
+.status-maintenance {
+    background: linear-gradient(45deg, var(--warning-color), #e0a800);
+    color: #000;
+}
+
+.status-error {
+    background: linear-gradient(45deg, var(--danger-color), #c82333);
+    color: white;
+}
+
+/* Elementos de tiempo real */
+.real-time-update {
+    animation: pulse 2s infinite;
+}
+
+/* Estilos para notificaciones flotantes */
+.floating-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 350px;
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Estilos para elementos de ayuda */
+.help-section {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--error-404);
+}
+
+.help-section h6 {
+    color: var(--error-404);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Estilos para información técnica */
+.technical-info {
+    font-family: 'Courier New', Courier, monospace;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #c9d1d9;
+}
+
+.technical-info .highlight {
+    color: #ffa657;
+    font-weight: bold;
+}
+
+/* Estilos para elementos de contacto */
+.contact-info {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.contact-info a {
+    color: #fbbf24;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.contact-info a:hover {
+    color: #f59e0b;
+    text-decoration: underline;
+}

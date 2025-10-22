@@ -1,0 +1,253 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-cogs"></i> Panel de Administración
+            </h2>
+        </div>
+    </div>
+    
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=total_clientes}}</h4>
+                            <p class="mb-0">Clientes Registrados</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=total_cuentas}}</h4>
+                            <p class="mb-0">Cuentas Activas</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-university fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=total_transacciones}}</h4>
+                            <p class="mb-0">Transacciones Totales</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{=transacciones_hoy}}</h4>
+                            <p class="mb-0">Transacciones Hoy</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-day fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Accesos Rápidos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tachometer-alt"></i> Accesos Rápidos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{=URL('admin', 'logs_auditoria')}}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-clipboard-list"></i><br>
+                                Logs de Auditoría
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{=URL('admin', 'gestionar_usuarios')}}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-user-cog"></i><br>
+                                Gestionar Usuarios
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{=URL('admin', 'estadisticas_auditoria')}}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-chart-bar"></i><br>
+                                Estadísticas
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{=URL('admin', 'configuracion')}}" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-cog"></i><br>
+                                Configuración
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Últimas Transacciones -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Últimas Transacciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{if ultimas_transacciones:}}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Comprobante</th>
+                                        <th>Tipo</th>
+                                        <th>Monto</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{for transaccion in ultimas_transacciones:}}
+                                    <tr>
+                                        <td>{{=transaccion.numero_comprobante}}</td>
+                                        <td>
+                                            <span class="badge badge-{{='success' if transaccion.tipo_operacion == 'compra' else 'info'}}">
+                                                {{=transaccion.tipo_operacion.title()}}
+                                            </span>
+                                        </td>
+                                        <td>{{="{:,.2f}".format(float(transaccion.monto_origen))}} {{=transaccion.moneda_origen}}</td>
+                                        <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M')}}</td>
+                                    </tr>
+                                    {{pass}}
+                                </tbody>
+                            </table>
+                        </div>
+                    {{else:}}
+                        <p class="text-muted">No hay transacciones recientes</p>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Logs de Auditoría Recientes -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> Actividad Reciente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{if logs_recientes:}}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Acción</th>
+                                        <th>Módulo</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{for log in logs_recientes:}}
+                                    <tr>
+                                        <td>
+                                            {{if log.usuario_id:}}
+                                                {{usuario = db.auth_user(log.usuario_id)}}
+                                                {{=usuario.first_name if usuario else 'N/A'}}
+                                            {{else:}}
+                                                Sistema
+                                            {{pass}}
+                                        </td>
+                                        <td>{{=log.accion.replace('_', ' ').title()}}</td>
+                                        <td>{{=log.modulo.title()}}</td>
+                                        <td>{{=log.fecha_accion.strftime('%d/%m %H:%M')}}</td>
+                                        <td>
+                                            <span class="badge badge-{{='success' if log.resultado == 'exitoso' else 'danger'}}">
+                                                {{=log.resultado.title()}}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {{pass}}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{=URL('admin', 'logs_auditoria')}}" class="btn btn-sm btn-outline-primary">
+                                Ver Todos los Logs
+                            </a>
+                        </div>
+                    {{else:}}
+                        <p class="text-muted">No hay actividad reciente</p>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    background-color: var(--color-menu);
+    color: white;
+    border-bottom: none;
+}
+
+.btn-block {
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>

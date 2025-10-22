@@ -1,0 +1,153 @@
+{{extend 'layout.html'}}
+
+{{block head}}
+<style>
+:root {
+    --color-fondo: #000000;
+    --color-menu: #FF8C00;
+    --color-acento: #FFD700;
+    --color-texto: #FFFFFF;
+    --color-texto-secundario: #CCCCCC;
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+.card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    color: var(--color-texto);
+}
+
+.card-header {
+    background-color: var(--color-menu);
+    color: var(--color-fondo);
+    font-weight: bold;
+}
+
+.form-control {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: var(--color-texto);
+}
+
+.form-control:focus {
+    background-color: #2a2a2a;
+    border-color: var(--color-acento);
+    color: var(--color-texto);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--color-menu);
+    border-color: var(--color-menu);
+}
+
+.btn-primary:hover {
+    background-color: #e67e00;
+    border-color: #e67e00;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.text-warning {
+    color: var(--color-acento) !important;
+}
+
+.alert-info {
+    background-color: rgba(255, 140, 0, 0.1);
+    border-color: var(--color-menu);
+    color: var(--color-texto);
+}
+</style>
+{{end}}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-plus-circle"></i> Crear Nueva Cuenta Bancaria
+                </div>
+                <div class="card-body">
+                    <!-- Información del Cliente -->
+                    <div class="alert alert-info mb-4">
+                        <h5><i class="fa fa-user"></i> Información del Cliente</h5>
+                        <p class="mb-1"><strong>Nombre:</strong> {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{=auth.user.email}}</p>
+                        <p class="mb-0"><strong>Cédula:</strong> {{=cliente.cedula}}</p>
+                    </div>
+
+                    <!-- Formulario de Creación -->
+                    {{=form}}
+
+                    <!-- Información Adicional -->
+                    <div class="mt-4">
+                        <h5 class="text-warning"><i class="fa fa-info-circle"></i> Información Importante</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fa fa-check text-success"></i> El número de cuenta será generado automáticamente</li>
+                            <li><i class="fa fa-check text-success"></i> La cuenta se creará con saldo inicial de 0 en todas las monedas</li>
+                            <li><i class="fa fa-check text-success"></i> Podrás realizar depósitos y transacciones inmediatamente</li>
+                            <li><i class="fa fa-check text-success"></i> Todas las operaciones quedan registradas en el historial</li>
+                        </ul>
+                    </div>
+
+                    <!-- Tipos de Cuenta -->
+                    <div class="mt-4">
+                        <h5 class="text-warning"><i class="fa fa-bank"></i> Tipos de Cuenta</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-dark">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-warning">Cuenta Corriente</h6>
+                                        <p class="card-text small">
+                                            Ideal para transacciones frecuentes de divisas. 
+                                            Sin límite de operaciones mensuales.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-warning">Cuenta de Ahorro</h6>
+                                        <p class="card-text small">
+                                            Perfecta para mantener divisas a largo plazo. 
+                                            Operaciones ilimitadas.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="mt-4 text-center">
+                        <a href="{{=URL('cuentas', 'index')}}" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Volver a Mis Cuentas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Personalizar el formulario
+    $('input[type="submit"]').addClass('btn btn-primary btn-lg');
+    $('input[type="submit"]').html('<i class="fa fa-save"></i> Crear Cuenta');
+    
+    // Agregar iconos a los labels
+    $('label[for="cuentas_tipo_cuenta"]').prepend('<i class="fa fa-bank"></i> ');
+    
+    // Mejorar el select
+    $('#cuentas_tipo_cuenta').addClass('form-control');
+});
+</script>

@@ -1,0 +1,498 @@
+{{extend 'layout.html'}}
+
+<style>
+/* ESTILOS ESPECÍFICOS SOLO PARA ESTA PÁGINA */
+.divisas-page {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+/* Títulos en fondo negro */
+.divisas-page h1, .divisas-page h2, .divisas-page h3, 
+.divisas-page h4, .divisas-page h5, .divisas-page h6 { 
+    color: #FFFFFF !important; 
+    font-weight: bold !important; 
+}
+
+.divisas-page .lead { 
+    color: #CCCCCC !important; 
+}
+
+/* Breadcrumbs */
+.divisas-page .breadcrumb-item { 
+    color: #CCCCCC !important; 
+}
+.divisas-page .breadcrumb-item a { 
+    color: #FF8C00 !important; 
+}
+.divisas-page .breadcrumb-item.active { 
+    color: #FFD700 !important; 
+}
+
+/* Tarjetas con fondo blanco y texto negro */
+.divisas-page .card { 
+    background-color: #FFFFFF !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+.divisas-page .card-body { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+.divisas-page .card-body * { 
+    color: #000000 !important; 
+}
+
+/* Headers de tarjetas mantienen su color */
+.divisas-page .card-header.bg-success { 
+    background-color: #28a745 !important; 
+    color: #FFFFFF !important; 
+}
+
+/* Labels y formularios */
+.divisas-page label, .divisas-page .form-label { 
+    color: #000000 !important; 
+    font-weight: bold !important; 
+}
+
+.divisas-page .form-control { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+.divisas-page .form-control:focus { 
+    border-color: #FFD700 !important; 
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important; 
+}
+
+.divisas-page .form-control::placeholder { 
+    color: #666666 !important; 
+}
+
+/* Input groups */
+.divisas-page .input-group-text { 
+    background-color: #FF8C00 !important; 
+    color: #000000 !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+/* Enlaces dentro de tarjetas */
+.divisas-page .card a { 
+    color: #007bff !important; 
+}
+
+/* Botones */
+.divisas-page .btn { 
+    font-weight: bold !important; 
+}
+
+.divisas-page .btn-success { 
+    background-color: #28a745 !important; 
+    color: #FFFFFF !important; 
+}
+
+.divisas-page .btn-secondary { 
+    background-color: #6c757d !important; 
+    color: #FFFFFF !important; 
+}
+
+/* Alertas */
+.divisas-page .alert { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+    border: 2px solid #007bff !important; 
+}
+
+/* Texto de ayuda */
+.divisas-page .form-text, .divisas-page .small { 
+    color: #666666 !important; 
+}
+
+/* Checkboxes */
+.divisas-page .form-check-label { 
+    color: #000000 !important; 
+}
+
+/* Modales */
+.modal-content { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+.modal-header { 
+    background-color: #FF8C00 !important; 
+    color: #FFFFFF !important; 
+}
+
+.modal-body * { 
+    color: #000000 !important; 
+}
+
+/* Elementos específicos de la calculadora */
+.divisas-page .info-tasa { 
+    background-color: #f8f9fa !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+.divisas-page .validacion-fondos { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+.divisas-page .calculando-indicator { 
+    background-color: #fff3cd !important; 
+    color: #856404 !important; 
+    border: 2px solid #ffc107 !important; 
+}
+</style>
+
+<div class="divisas-page">
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{=URL('divisas', 'index')}}">Divisas</a></li>
+                    <li class="breadcrumb-item active">Comprar Divisas</li>
+                </ol>
+            </nav>
+            
+            <h2><i class="fas fa-shopping-cart"></i> Comprar Divisas</h2>
+            <p class="lead">Cambie sus bolívares por dólares o euros</p>
+        </div>
+    </div>
+
+    {{if response.flash:}}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Formulario de Compra -->
+            <form method="post" id="form-compra-divisas">
+                <input type="hidden" name="confirmar_compra" value="1">
+                
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calculator"></i> Calculadora de Compra
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Selector de Cuenta -->
+                        <div class="form-group">
+                            <label for="cuenta_id">Cuenta a Debitar:</label>
+                            <select name="cuenta_id" id="cuenta_id" class="form-control cuenta-selector" required>
+                                <option value="">Seleccione una cuenta</option>
+                                {{for cuenta in cuentas:}}
+                                <option value="{{=cuenta.id}}" data-saldo-ves="{{=cuenta.saldo_ves}}">
+                                    {{=cuenta.numero_cuenta}} - Saldo VES: {{="{:,.2f}".format(float(cuenta.saldo_ves))}}
+                                </option>
+                                {{pass}}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Monto en VES -->
+                                <div class="form-group">
+                                    <label for="monto_origen">Monto en Bolívares (VES):</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">VES</span>
+                                        </div>
+                                        <input type="number" name="monto_origen" id="monto_origen" 
+                                               class="form-control monto-origen" 
+                                               placeholder="0.00" step="0.01" min="0.01" required>
+                                    </div>
+                                    <small class="form-text text-muted">Monto mínimo: 1.00 VES</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Moneda Destino -->
+                                <div class="form-group">
+                                    <label for="moneda_destino">Divisa a Comprar:</label>
+                                    <select name="moneda_destino" id="moneda_destino" class="form-control moneda-destino" required>
+                                        <option value="">Seleccione divisa</option>
+                                        <option value="USD">Dólares Estadounidenses (USD)</option>
+                                        <option value="EUR">Euros (EUR)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos ocultos para el tipo de operación -->
+                        <input type="hidden" class="tipo-operacion" value="compra">
+                        <input type="hidden" class="moneda-origen" value="VES">
+
+                        <!-- Indicador de cálculo -->
+                        <div class="calculando-indicator text-center" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Calculando conversión...
+                        </div>
+
+                        <!-- Error de calculadora -->
+                        <div class="alert alert-danger error-calculadora" style="display: none;"></div>
+
+                        <!-- Información de la conversión -->
+                        <div class="info-tasa" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-info-circle"></i> Detalles de la Operación</h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Recibirá:</strong><br>
+                                            <span class="text-success h5">
+                                                <span class="monto-destino-display">0.00</span>
+                                                <span class="moneda-destino-display"></span>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Tasa Aplicada:</strong><br>
+                                            <span class="tasa-aplicada">0.0000</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Comisión (0.5%):</strong><br>
+                                            <span class="comision-calculada">0.00</span> VES
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Total a Debitar:</strong><br>
+                                            <span class="text-danger">
+                                                <span class="total-debitado">0.00</span> VES
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> 
+                                        Tasa actualizada: <span class="fecha-tasa">--</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validación de fondos -->
+                        <div class="validacion-fondos alert" style="display: none;">
+                            <i class="fas icono-validacion"></i>
+                            <strong class="mensaje-validacion"></strong><br>
+                            <small class="detalle-fondos"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmación -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="confirmar-terminos" required>
+                            <label class="form-check-label" for="confirmar-terminos">
+                                Confirmo que he revisado los detalles de la operación y acepto los 
+                                <a href="#" data-toggle="modal" data-target="#modal-terminos">términos y condiciones</a>
+                            </label>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-success btn-lg btn-confirmar-transaccion">
+                                <i class="fas fa-check"></i> Confirmar Compra de Divisas
+                            </button>
+                            <a href="{{=URL('divisas', 'index')}}" class="btn btn-secondary btn-lg ml-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Widget de Tasas -->
+            <div id="widget-tasas-compra" class="mb-3"></div>
+
+            <!-- Información de Ayuda -->
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-question-circle"></i> ¿Cómo funciona?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>Seleccione la cuenta de la cual se debitarán los bolívares</li>
+                        <li>Ingrese el monto en VES que desea cambiar</li>
+                        <li>Elija la divisa que desea comprar (USD o EUR)</li>
+                        <li>Revise los cálculos automáticos</li>
+                        <li>Confirme la operación</li>
+                    </ol>
+                    
+                    <hr>
+                    <h6>Importante:</h6>
+                    <ul class="small">
+                        <li>Se aplicará una comisión del 0.5%</li>
+                        <li>Las tasas se actualizan automáticamente</li>
+                        <li>La operación es irreversible una vez confirmada</li>
+                        <li>Recibirá un comprobante de la transacción</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Historial Reciente -->
+            <div class="card border-secondary mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-history"></i> Últimas Compras
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">
+                        <a href="{{=URL('divisas', 'historial_transacciones')}}">
+                            Ver historial completo <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Términos y Condiciones -->
+<div class="modal fade" id="modal-terminos" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Términos y Condiciones - Compra de Divisas</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6>Condiciones de la Operación:</h6>
+                <ul>
+                    <li>La tasa de cambio aplicada es la vigente al momento de la transacción</li>
+                    <li>Se cobrará una comisión del 0.5% sobre el monto en bolívares</li>
+                    <li>La operación es irreversible una vez procesada</li>
+                    <li>Los fondos se acreditarán inmediatamente en su cuenta</li>
+                    <li>Recibirá un comprobante electrónico de la transacción</li>
+                </ul>
+                
+                <h6>Responsabilidades del Cliente:</h6>
+                <ul>
+                    <li>Verificar que los datos ingresados sean correctos</li>
+                    <li>Mantener confidencial la información de sus cuentas</li>
+                    <li>Reportar cualquier irregularidad inmediatamente</li>
+                </ul>
+                
+                <h6>Limitaciones:</h6>
+                <ul>
+                    <li>Monto mínimo por operación: 1.00 VES</li>
+                    <li>Monto máximo diario: según límites de su cuenta</li>
+                    <li>Horario de operaciones: 24/7 (sujeto a mantenimientos programados)</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Crear widget de tasas
+    crearWidgetTasas('widget-tasas-compra');
+    
+    // Configurar calculadora para compra
+    $('.calculadora-container').remove(); // Limpiar si existe
+    $('form').addClass('calculadora-container');
+    
+    // Inicializar calculadora
+    if (typeof inicializarCalculadora === 'function') {
+        inicializarCalculadora();
+    }
+    
+    // Configurar tipo de operación para compra
+    $('.moneda-origen').val('VES');
+    $('.tipo-operacion').val('compra');
+    
+    // Simplificar la validación - solo requerir términos aceptados
+    $('#confirmar-terminos').change(function() {
+        const terminosAceptados = $(this).is(':checked');
+        $('.btn-confirmar-transaccion').prop('disabled', !terminosAceptados);
+    });
+    
+    // Actualizar display del monto destino
+    $(document).on('input', '.monto-origen', function() {
+        setTimeout(() => {
+            const montoDestino = $('.monto-destino').val();
+            const monedaDestino = $('.moneda-destino').val();
+            $('.monto-destino-display').text(montoDestino || '0.00');
+            $('.moneda-destino-display').text(monedaDestino || '');
+        }, 500);
+    });
+    
+    $(document).on('change', '.moneda-destino', function() {
+        $('.moneda-destino-display').text($(this).val() || '');
+    });
+    
+    // Validación del formulario antes del envío
+    $('#form-compra-divisas').submit(function(e) {
+        const terminosAceptados = $('#confirmar-terminos').is(':checked');
+        const monto = $('.monto-origen').val();
+        const cuenta = $('.cuenta-selector').val();
+        const moneda = $('.moneda-destino').val();
+        
+        // Validaciones básicas
+        if (!terminosAceptados) {
+            e.preventDefault();
+            alert('Debe aceptar los términos y condiciones.');
+            return false;
+        }
+        
+        if (!monto || parseFloat(monto) <= 0) {
+            e.preventDefault();
+            alert('Debe ingresar un monto válido.');
+            return false;
+        }
+        
+        if (!cuenta) {
+            e.preventDefault();
+            alert('Debe seleccionar una cuenta.');
+            return false;
+        }
+        
+        if (!moneda) {
+            e.preventDefault();
+            alert('Debe seleccionar la divisa a comprar.');
+            return false;
+        }
+        
+        // Confirmación final
+        const confirmacion = confirm(
+            `¿Confirma la compra de ${moneda} por ${monto} VES?`
+        );
+        
+        if (!confirmacion) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Deshabilitar botón para evitar doble envío
+        $('.btn-confirmar-transaccion').prop('disabled', true).html(
+            '<i class="fas fa-spinner fa-spin"></i> Procesando...'
+        );
+        
+        return true;
+    });
+});
+</script>
+</div>

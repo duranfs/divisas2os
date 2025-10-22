@@ -1,0 +1,131 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">
+          <h3 class="card-title mb-0">
+            <i class="fas fa-users-cog"></i> Administración de Usuarios (Desarrollo)
+          </h3>
+        </div>
+        
+        <div class="card-body">
+          
+          {{if response.flash:}}
+          <div class="alert alert-warning">
+            {{=response.flash}}
+          </div>
+          {{pass}}
+          
+          {{if session.flash:}}
+          <div class="alert alert-success">
+            {{=session.flash}}
+          </div>
+          {{pass}}
+          
+          <!-- Crear primer administrador -->
+          <div class="mb-4">
+            <h4>Crear Primer Administrador</h4>
+            <p class="text-muted">Si es la primera vez que usas el sistema, crea un administrador:</p>
+            <a href="{{=URL('admin_usuarios', vars={'crear_admin': True})}}" 
+               class="btn btn-primary" 
+               onclick="return confirm('¿Crear el primer administrador del sistema?')">
+              <i class="fas fa-user-shield"></i> Crear Primer Administrador
+            </a>
+          </div>
+          
+          <hr>
+          
+          <!-- Usuarios pendientes de aprobación -->
+          <div class="mb-4">
+            <h4>Usuarios Pendientes de Aprobación</h4>
+            {{if usuarios_pendientes:}}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{for usuario in usuarios_pendientes:}}
+                  <tr>
+                    <td>{{=usuario[0]}}</td>
+                    <td>{{=usuario[1]}}</td>
+                    <td>{{=usuario[2]}}</td>
+                    <td>{{=usuario[3]}}</td>
+                    <td>
+                      <a href="{{=URL('admin_usuarios', vars={'aprobar': True, 'email': usuario[1]})}}" 
+                         class="btn btn-success btn-sm"
+                         onclick="return confirm('¿Aprobar usuario {{=usuario[1]}}?')">
+                        <i class="fas fa-check"></i> Aprobar
+                      </a>
+                    </td>
+                  </tr>
+                  {{pass}}
+                </tbody>
+              </table>
+            </div>
+            {{else:}}
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> No hay usuarios pendientes de aprobación.
+            </div>
+            {{pass}}
+          </div>
+          
+          <hr>
+          
+          <!-- Todos los usuarios -->
+          <div class="mb-4">
+            <h4>Todos los Usuarios</h4>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{for usuario in todos_usuarios:}}
+                  <tr>
+                    <td>{{=usuario.id}}</td>
+                    <td>{{=usuario.email}}</td>
+                    <td>{{=usuario.first_name}}</td>
+                    <td>{{=usuario.last_name}}</td>
+                    <td>
+                      {{if usuario.registration_key:}}
+                        <span class="badge bg-warning">Pendiente</span>
+                      {{else:}}
+                        <span class="badge bg-success">Aprobado</span>
+                      {{pass}}
+                    </td>
+                  </tr>
+                  {{pass}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle"></i> Información</h5>
+            <ul>
+              <li><strong>Registro desactivado:</strong> Los nuevos usuarios ya no necesitarán aprobación</li>
+              <li><strong>Primer administrador:</strong> El primer usuario se convertirá automáticamente en administrador</li>
+              <li><strong>Usuarios pendientes:</strong> Puedes aprobar manualmente los usuarios que ya se registraron</li>
+            </ul>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

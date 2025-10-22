@@ -1,0 +1,397 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-gold">
+                    <i class="fas fa-bug"></i> Logs de Errores del Sistema
+                </h2>
+                <div>
+                    <a href="{{=URL('admin', 'reporte_errores')}}" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> Reporte de Errores
+                    </a>
+                    <a href="{{=URL('admin', 'configurar_alertas_errores')}}" class="btn btn-warning">
+                        <i class="fas fa-bell"></i> Configurar Alertas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Errores -->
+    {{if error_stats:}}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark-custom border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h4 class="text-danger">{{=error_stats.get('unresolved_count', 0)}}</h4>
+                    <p class="text-muted mb-0">Errores Sin Resolver</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark-custom border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-day fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">{{=error_stats.get('period_days', 0)}}</h4>
+                    <p class="text-muted mb-0">Días Analizados</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-dark-custom border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Errores por Tipo</h5>
+                </div>
+                <div class="card-body">
+                    {{if error_stats.get('error_counts'):}}
+                        {{for error_type, count in error_stats['error_counts'][:5]:}}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-gold">{{=error_type}}</span>
+                            <span class="badge badge-info">{{=count}}</span>
+                        </div>
+                        {{pass}}
+                    {{else:}}
+                        <p class="text-muted mb-0">No hay datos de errores disponibles</p>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Filtros -->
+    <div class="card bg-dark-custom border-secondary mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-filter"></i> Filtros de Búsqueda
+                <button class="btn btn-sm btn-outline-secondary float-right" type="button" data-toggle="collapse" data-target="#filtros">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </h5>
+        </div>
+        <div class="collapse" id="filtros">
+            <div class="card-body">
+                <form method="GET" action="{{=URL('admin', 'logs_errores')}}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_inicio">Fecha Inicio:</label>
+                                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                                       value="{{=filters.get('fecha_inicio', '')}}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_fin">Fecha Fin:</label>
+                                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" 
+                                       value="{{=filters.get('fecha_fin', '')}}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="tipo_error">Tipo de Error:</label>
+                                <select class="form-control" id="tipo_error" name="tipo_error">
+                                    <option value="">Todos los tipos</option>
+                                    {{for error_type in error_types:}}
+                                    <option value="{{=error_type.error_type}}" 
+                                            {{='selected' if filters.get('tipo_error') == error_type.error_type else ''}}>
+                                        {{=error_type.error_type}}
+                                    </option>
+                                    {{pass}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="usuario_id">Usuario:</label>
+                                <select class="form-control" id="usuario_id" name="usuario_id">
+                                    <option value="">Todos los usuarios</option>
+                                    {{for user in users:}}
+                                    <option value="{{=user.id}}" 
+                                            {{='selected' if filters.get('usuario_id') == str(user.id) else ''}}>
+                                        {{=user.first_name}} {{=user.last_name}} ({{=user.email}})
+                                    </option>
+                                    {{pass}}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <a href="{{=URL('admin', 'logs_errores')}}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Limpiar Filtros
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Errores -->
+    <div class="card bg-dark-custom">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Lista de Errores 
+                <span class="badge badge-secondary">{{=total_errors}} total</span>
+            </h5>
+            <div>
+                <button class="btn btn-sm btn-danger" onclick="confirmarLimpiezaLogs()">
+                    <i class="fas fa-trash"></i> Limpiar Logs Antiguos
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {{if errors:}}
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Fecha/Hora</th>
+                            <th>Tipo</th>
+                            <th>Mensaje</th>
+                            <th>Usuario</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{for error in errors:}}
+                        <tr class="{{='table-danger' if not error.resolved else ''}}">
+                            <td>
+                                <small>{{=error.timestamp.strftime('%Y-%m-%d %H:%M:%S')}}</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{='danger' if error.error_type in ['DatabaseError', 'SecurityError'] else 'warning'}}">
+                                    {{=error.error_type}}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{=error.error_message[:100]}}{{='...' if len(error.error_message) > 100 else ''}}
+                                </div>
+                            </td>
+                            <td>
+                                {{if error.user_id:}}
+                                    {{user = db.auth_user(error.user_id)}}
+                                    {{if user:}}
+                                        <small>{{=user.first_name}} {{=user.last_name}}</small>
+                                    {{else:}}
+                                        <small class="text-muted">Usuario eliminado</small>
+                                    {{pass}}
+                                {{else:}}
+                                    <small class="text-muted">Sistema</small>
+                                {{pass}}
+                            </td>
+                            <td>
+                                {{if error.resolved:}}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check"></i> Resuelto
+                                    </span>
+                                {{else:}}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-exclamation"></i> Pendiente
+                                    </span>
+                                {{pass}}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{=URL('admin', 'detalle_error', args=[error.id])}}" 
+                                       class="btn btn-info btn-sm" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {{if not error.resolved:}}
+                                    <button class="btn btn-success btn-sm" 
+                                            onclick="resolverError({{=error.id}})" title="Marcar como Resuelto">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    {{pass}}
+                                </div>
+                            </td>
+                        </tr>
+                        {{pass}}
+                    </tbody>
+                </table>
+            </div>
+            {{else:}}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No se encontraron errores</h5>
+                <p class="text-muted">No hay errores que coincidan con los filtros aplicados.</p>
+            </div>
+            {{pass}}
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    {{if total_pages > 1:}}
+    <nav aria-label="Paginación de errores" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {{if current_page > 1:}}
+            <li class="page-item">
+                <a class="page-link" href="{{=URL('admin', 'logs_errores', vars=dict(request.vars, page=current_page-1))}}">
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </a>
+            </li>
+            {{pass}}
+            
+            {{for page_num in range(max(1, current_page-2), min(total_pages+1, current_page+3)):}}
+            <li class="page-item {{='active' if page_num == current_page else ''}}">
+                <a class="page-link" href="{{=URL('admin', 'logs_errores', vars=dict(request.vars, page=page_num))}}">
+                    {{=page_num}}
+                </a>
+            </li>
+            {{pass}}
+            
+            {{if current_page < total_pages:}}
+            <li class="page-item">
+                <a class="page-link" href="{{=URL('admin', 'logs_errores', vars=dict(request.vars, page=current_page+1))}}">
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {{pass}}
+        </ul>
+    </nav>
+    {{pass}}
+</div>
+
+<!-- Modal para Resolver Error -->
+<div class="modal fade" id="resolverErrorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark-custom">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-gold">
+                    <i class="fas fa-check-circle"></i> Resolver Error
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="resolverErrorForm" method="POST" action="{{=URL('admin', 'resolver_error')}}">
+                <div class="modal-body">
+                    <input type="hidden" id="error_id" name="error_id">
+                    <div class="form-group">
+                        <label for="resolution_notes">Notas de Resolución:</label>
+                        <textarea class="form-control" id="resolution_notes" name="resolution_notes" 
+                                  rows="4" placeholder="Describa cómo se resolvió el error..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Marcar como Resuelto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Limpiar Logs -->
+<div class="modal fade" id="limpiarLogsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark-custom">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Limpiar Logs Antiguos
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="limpiarLogsForm" method="POST" action="{{=URL('admin', 'limpiar_logs_antiguos')}}">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Advertencia:</strong> Esta acción eliminará permanentemente los logs de errores 
+                        resueltos más antiguos que el período especificado.
+                    </div>
+                    <div class="form-group">
+                        <label for="dias_retencion">Días de Retención:</label>
+                        <input type="number" class="form-control" id="dias_retencion" name="dias_retencion" 
+                               value="90" min="30" max="365">
+                        <small class="form-text text-muted">
+                            Se eliminarán los errores resueltos más antiguos que este número de días.
+                        </small>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="confirmar" name="confirmar" value="true" required>
+                        <label class="form-check-label" for="confirmar">
+                            Confirmo que deseo eliminar los logs antiguos
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar Logs Antiguos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function resolverError(errorId) {
+    document.getElementById('error_id').value = errorId;
+    $('#resolverErrorModal').modal('show');
+}
+
+function confirmarLimpiezaLogs() {
+    $('#limpiarLogsModal').modal('show');
+}
+
+// Auto-refresh cada 5 minutos para errores nuevos
+setInterval(function() {
+    // Solo si no hay filtros aplicados
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('fecha_inicio') && !urlParams.has('tipo_error') && !urlParams.has('usuario_id')) {
+        location.reload();
+    }
+}, 300000);
+
+// Highlight de errores críticos
+$(document).ready(function() {
+    $('.table-danger').each(function() {
+        const errorType = $(this).find('.badge').text().trim();
+        if (['DatabaseError', 'SecurityError', 'AuthenticationError'].includes(errorType)) {
+            $(this).addClass('critical-error');
+        }
+    });
+});
+</script>
+
+<style>
+.critical-error {
+    animation: criticalPulse 2s infinite;
+}
+
+@keyframes criticalPulse {
+    0%, 100% {
+        box-shadow: 0 0 5px #dc3545;
+    }
+    50% {
+        box-shadow: 0 0 15px #dc3545, 0 0 25px #dc3545;
+    }
+}
+
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+</style>

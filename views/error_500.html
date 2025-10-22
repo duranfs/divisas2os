@@ -1,0 +1,221 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="error-icon mb-4">
+                    <i class="fas fa-exclamation-circle" style="font-size: 8rem; color: var(--color-danger);"></i>
+                </div>
+                
+                <!-- Error Code -->
+                <h1 class="display-1 text-danger font-weight-bold">500</h1>
+                
+                <!-- Error Message -->
+                <h2 class="text-gold mb-4">Error Interno del Servidor</h2>
+                
+                <p class="lead text-muted mb-4">
+                    Ha ocurrido un error interno en el servidor. Nuestro equipo técnico ha sido notificado automáticamente.
+                </p>
+                
+                <!-- Error Details (Solo para administradores) -->
+                {{if auth.has_membership('administrador'):}}
+                <div class="card bg-dark-custom border-danger mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">
+                            <i class="fas fa-bug"></i> Información Técnica (Solo Administradores)
+                        </h5>
+                        <div class="row text-left">
+                            <div class="col-md-6">
+                                <strong>Ticket de Error:</strong><br>
+                                <code class="text-gold">{{=request.env.get('ticket', 'N/A')}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Timestamp:</strong><br>
+                                <code class="text-gold">{{=request.now.strftime('%Y-%m-%d %H:%M:%S')}}</code>
+                            </div>
+                        </div>
+                        <div class="row text-left mt-3">
+                            <div class="col-md-6">
+                                <strong>URL:</strong><br>
+                                <code class="text-gold">{{=request.env.request_uri or 'N/A'}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Usuario:</strong><br>
+                                <code class="text-gold">{{=auth.user.email if auth.user else 'Anónimo'}}</code>
+                            </div>
+                        </div>
+                        {{if request.env.get('web2py_error'):}}
+                        <div class="mt-3">
+                            <strong>Error:</strong><br>
+                            <pre class="bg-dark text-light p-2 rounded"><code>{{=request.env.web2py_error}}</code></pre>
+                        </div>
+                        {{pass}}
+                    </div>
+                </div>
+                {{pass}}
+                
+                <!-- Status Information -->
+                <div class="card bg-dark-custom border-warning mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fas fa-info-circle"></i> Estado del Sistema
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-database fa-2x text-success mb-2"></i>
+                                    <br><small>Base de Datos</small>
+                                    <br><span class="badge badge-success">Operativa</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-exchange-alt fa-2x text-warning mb-2"></i>
+                                    <br><small>API Tasas</small>
+                                    <br><span class="badge badge-warning">Verificando</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                                    <br><small>Seguridad</small>
+                                    <br><span class="badge badge-success">Activa</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    <a href="{{=URL('default', 'index')}}" class="btn btn-primary btn-lg mr-3">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                    <button onclick="location.reload()" class="btn btn-warning btn-lg mr-3">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                    <button onclick="history.back()" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Volver Atrás
+                    </button>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="card bg-dark-custom border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-headset"></i> Soporte Técnico
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            Si el problema persiste, contacte al soporte técnico:
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <i class="fas fa-envelope text-info"></i>
+                                <strong>Email:</strong> soporte@banco.com
+                            </div>
+                            <div class="col-md-6">
+                                <i class="fas fa-phone text-info"></i>
+                                <strong>Teléfono:</strong> +58-212-555-0123
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Horario de atención: Lunes a Viernes 8:00 AM - 6:00 PM
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.display-1 {
+    font-size: 6rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.badge {
+    font-size: 0.8rem;
+}
+
+pre {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+}
+</style>
+
+<script>
+// Log del error 500 para auditoría
+if (typeof console !== 'undefined') {
+    console.error('Error 500 - Error interno del servidor');
+    
+    // Enviar información del error al servidor para logging
+    fetch('/api/log_error_client', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            error_type: '500',
+            url: window.location.href,
+            user_agent: navigator.userAgent,
+            timestamp: new Date().toISOString(),
+            referrer: document.referrer
+        })
+    }).catch(function(error) {
+        console.warn('No se pudo enviar log de error:', error);
+    });
+}
+
+// Verificar estado del sistema cada 30 segundos
+setInterval(function() {
+    fetch('/api/health_check')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                // Sistema recuperado, mostrar opción de recargar
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <strong>¡Sistema Recuperado!</strong> El servidor está funcionando nuevamente.
+                    <button type="button" class="btn btn-sm btn-success ml-2" onclick="location.reload()">
+                        <i class="fas fa-redo"></i> Recargar Página
+                    </button>
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                `;
+                document.querySelector('.container-fluid').prepend(alertDiv);
+            }
+        })
+        .catch(function() {
+            // Sistema aún con problemas
+        });
+}, 30000);
+</script>

@@ -1,0 +1,192 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="error-icon mb-4">
+                    <i class="fas fa-user-times" style="font-size: 8rem; color: var(--color-danger);"></i>
+                </div>
+                
+                <!-- Error Code -->
+                <h1 class="display-1 text-danger font-weight-bold">401</h1>
+                
+                <!-- Error Message -->
+                <h2 class="text-gold mb-4">No Autorizado</h2>
+                
+                <p class="lead text-muted mb-4">
+                    Debe iniciar sesión para acceder a este recurso.
+                </p>
+                
+                <!-- Authentication Status -->
+                <div class="card bg-dark-custom border-danger mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">
+                            <i class="fas fa-shield-alt"></i> Estado de Autenticación
+                        </h5>
+                        <div class="row text-left">
+                            <div class="col-md-6">
+                                <strong>Estado Actual:</strong><br>
+                                <code class="text-gold">
+                                    {{if auth.user:}}
+                                        Sesión Expirada
+                                    {{else:}}
+                                        No Autenticado
+                                    {{pass}}
+                                </code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Recurso Solicitado:</strong><br>
+                                <code class="text-gold">{{=request.env.request_uri or 'N/A'}}</code>
+                            </div>
+                        </div>
+                        <div class="row text-left mt-3">
+                            <div class="col-md-6">
+                                <strong>Fecha/Hora:</strong><br>
+                                <code class="text-gold">{{=request.now.strftime('%Y-%m-%d %H:%M:%S')}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>IP Cliente:</strong><br>
+                                <code class="text-gold">{{=request.env.remote_addr or 'N/A'}}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Login Options -->
+                <div class="card bg-dark-custom border-primary mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sign-in-alt"></i> Opciones de Acceso
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="fas fa-user fa-2x text-primary mb-2"></i>
+                                    <br><strong>Clientes Existentes</strong>
+                                    <br><small class="text-muted">Inicie sesión con su cuenta</small>
+                                    <br>
+                                    <a href="{{=URL('default', 'user', args='login')}}" class="btn btn-primary btn-sm mt-2">
+                                        Iniciar Sesión
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center p-3 border rounded">
+                                    <i class="fas fa-user-plus fa-2x text-success mb-2"></i>
+                                    <br><strong>Nuevos Usuarios</strong>
+                                    <br><small class="text-muted">Cree una cuenta nueva</small>
+                                    <br>
+                                    <a href="{{=URL('default', 'user', args='register')}}" class="btn btn-success btn-sm mt-2">
+                                        Registrarse
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    <a href="{{=URL('default', 'user', args='login')}}" class="btn btn-primary btn-lg mr-3">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </a>
+                    <a href="{{=URL('default', 'index')}}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                </div>
+                
+                <!-- Security Information -->
+                <div class="card bg-dark-custom border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-shield-alt"></i> Información de Seguridad
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-clock text-warning"></i> Sesiones</h6>
+                                <p class="small">
+                                    Las sesiones expiran por seguridad después de 1 hora de inactividad.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-key text-warning"></i> Contraseñas</h6>
+                                <p class="small">
+                                    ¿Olvidó su contraseña? 
+                                    <a href="{{=URL('default', 'user', args='request_reset_password')}}" class="text-gold">
+                                        Recuperar aquí
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-icon {
+    animation: fadeInOut 2s infinite;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.display-1 {
+    font-size: 6rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.border:hover {
+    border-color: var(--color-acento) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+</style>
+
+<script>
+// Log del error 401 para auditoría
+if (typeof console !== 'undefined') {
+    console.warn('Error 401 - No autorizado:', window.location.href);
+}
+
+// Registrar intento de acceso no autorizado
+fetch('/api/log_unauthorized_access', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        error_type: '401',
+        url: window.location.href,
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        referrer: document.referrer
+    })
+}).catch(function(error) {
+    console.warn('No se pudo registrar intento de acceso:', error);
+});
+
+// Auto-redirect a login después de 10 segundos si no hay interacción
+let loginRedirectTimer = setTimeout(function() {
+    window.location.href = '{{=URL("default", "user", args="login")}}';
+}, 10000);
+
+// Cancelar auto-redirect si hay interacción
+document.addEventListener('click', function() {
+    clearTimeout(loginRedirectTimer);
+});
+
+document.addEventListener('keypress', function() {
+    clearTimeout(loginRedirectTimer);
+});
+</script>

@@ -1,0 +1,217 @@
+{{extend 'layout.html'}}
+
+<style>
+/* SOLUCIÓN INTELIGENTE DE VISIBILIDAD */
+body { background-color: #000000 !important; }
+
+/* Texto negro en fondos blancos */
+.card, .card *, .card-body, .card-body * { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+/* Texto blanco en fondos oscuros */
+.container-fluid > * { color: #FFFFFF !important; }
+h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; font-weight: bold !important; }
+.lead { color: #CCCCCC !important; }
+
+/* Headers de tarjetas */
+.card-header { color: #FFFFFF !important; }
+.card-header.bg-warning { background-color: #ffc107 !important; color: #000000 !important; }
+.card-header.bg-primary { background-color: #007bff !important; color: #FFFFFF !important; }
+
+/* Enlaces */
+a { color: #FF8C00 !important; }
+.card a { color: #007bff !important; }
+
+/* Botones */
+.btn { color: #FFFFFF !important; font-weight: bold !important; }
+.btn-success { background-color: #28a745 !important; }
+.btn-info { background-color: #17a2b8 !important; }
+.btn-outline-secondary { 
+    background-color: transparent !important; 
+    color: #6c757d !important; 
+    border: 2px solid #6c757d !important; 
+}
+
+/* Alertas */
+.alert { background-color: #FFFFFF !important; color: #000000 !important; }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-exchange-alt"></i> Sistema de Divisas</h2>
+            <p class="lead">Compra y venta de divisas con tasas oficiales del BCV</p>
+        </div>
+    </div>
+
+    <!-- Widget de Tasas Actuales -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div id="widget-tasas-principales"></div>
+        </div>
+        <div class="col-md-6">
+            {{if auth.user:}}
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user"></i> Acceso Rápido
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-success btn-block">
+                                    <i class="fas fa-shopping-cart"></i><br>
+                                    Comprar Divisas
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{=URL('divisas', 'vender')}}" class="btn btn-info btn-block">
+                                    <i class="fas fa-hand-holding-usd"></i><br>
+                                    Vender Divisas
+                                </a>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-outline-secondary btn-block">
+                                    <i class="fas fa-history"></i><br>
+                                    Historial
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{=URL('cuentas', 'consultar')}}" class="btn btn-outline-secondary btn-block">
+                                    <i class="fas fa-wallet"></i><br>
+                                    Mis Cuentas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {{else:}}
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sign-in-alt"></i> Acceso al Sistema
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Para realizar transacciones de divisas debe iniciar sesión.</p>
+                        <a href="{{=URL('default', 'user', args=['login'])}}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                        </a>
+                        <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus"></i> Registrarse
+                        </a>
+                    </div>
+                </div>
+            {{pass}}
+        </div>
+    </div>
+
+    {{if auth.user and cuentas:}}
+    <!-- Resumen de Cuentas del Cliente -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-wallet"></i> Resumen de Cuentas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {{for cuenta in cuentas:}}
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-secondary">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{=cuenta.numero_cuenta}}</h6>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <strong>VES</strong><br>
+                                            <span class="text-success">{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</span>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong>USD</strong><br>
+                                            <span class="text-primary">{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</span>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong>EUR</strong><br>
+                                            <span class="text-info">{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{pass}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Información del Sistema -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> Información del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>¿Cómo funciona?</h6>
+                    <ul>
+                        <li><strong>Compra de Divisas:</strong> Cambie sus bolívares (VES) por dólares (USD) o euros (EUR)</li>
+                        <li><strong>Venta de Divisas:</strong> Convierta sus dólares o euros a bolívares</li>
+                        <li><strong>Tasas Oficiales:</strong> Utilizamos las tasas oficiales del Banco Central de Venezuela</li>
+                        <li><strong>Comisiones:</strong> Se aplica una comisión del 0.5% por operación</li>
+                        <li><strong>Tiempo Real:</strong> Las tasas se actualizan automáticamente cada hora</li>
+                    </ul>
+                    
+                    <h6>Requisitos:</h6>
+                    <ul>
+                        <li>Tener una cuenta registrada y verificada</li>
+                        <li>Contar con al menos una cuenta bancaria activa</li>
+                        <li>Fondos suficientes para la operación deseada</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-headset"></i> Soporte
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>¿Necesita ayuda con sus transacciones?</p>
+                    <p><strong>Horario de Atención:</strong><br>
+                    Lunes a Viernes: 8:00 AM - 6:00 PM<br>
+                    Sábados: 8:00 AM - 12:00 PM</p>
+                    
+                    <p><strong>Contacto:</strong><br>
+                    <i class="fas fa-phone"></i> 0212-555-0123<br>
+                    <i class="fas fa-envelope"></i> soporte@banco.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Crear widget de tasas
+    crearWidgetTasas('widget-tasas-principales');
+    
+    // Inicializar calculadora si está disponible
+    if (typeof inicializarCalculadora === 'function') {
+        inicializarCalculadora();
+    }
+});
+</script>

@@ -1,0 +1,306 @@
+{{extend 'layout.html'}}
+
+{{block head}}
+<style>
+:root {
+    --color-fondo: #000000;
+    --color-menu: #FF8C00;
+    --color-acento: #FFD700;
+    --color-texto: #FFFFFF;
+    --color-texto-secundario: #CCCCCC;
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+.card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    color: var(--color-texto);
+}
+
+.card-header {
+    background-color: var(--color-menu);
+    color: var(--color-fondo);
+    font-weight: bold;
+}
+
+.form-control {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: var(--color-texto);
+}
+
+.form-control:focus {
+    background-color: #2a2a2a;
+    border-color: var(--color-acento);
+    color: var(--color-texto);
+}
+
+.btn-primary {
+    background-color: var(--color-menu);
+    border-color: var(--color-menu);
+}
+
+.btn-outline-warning {
+    color: var(--color-acento);
+    border-color: var(--color-acento);
+}
+
+.table-dark {
+    background-color: #1a1a1a;
+}
+
+.table-dark th {
+    background-color: var(--color-menu);
+    color: var(--color-fondo);
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+}
+
+.text-warning {
+    color: var(--color-acento) !important;
+}
+</style>
+{{end}}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fa fa-history"></i> Historial de Movimientos</h2>
+                <a href="{{=URL('cuentas', 'consultar', args=[cuenta.id])}}" class="btn btn-outline-warning">
+                    <i class="fa fa-arrow-left"></i> Volver a Consulta
+                </a>
+            </div>
+        </div>
+    </div>    <!
+-- Información de la Cuenta -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-bank"></i> Cuenta: {{=cuenta.numero_cuenta}}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Tipo:</strong> {{=cuenta.tipo_cuenta.title()}}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>VES:</strong> {{="{:,.2f}".format(cuenta.saldo_ves or 0)}} Bs.
+                        </div>
+                        <div class="col-md-3">
+                            <strong>USD:</strong> {{="{:,.2f}".format(cuenta.saldo_usd or 0)}} $
+                        </div>
+                        <div class="col-md-3">
+                            <strong>EUR:</strong> {{="{:,.2f}".format(cuenta.saldo_eur or 0)}} €
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-filter"></i> Filtros de Búsqueda
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="fecha_desde">Fecha Desde:</label>
+                                <input type="date" name="fecha_desde" id="fecha_desde" 
+                                       class="form-control" value="{{=fecha_desde or ''}}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="fecha_hasta">Fecha Hasta:</label>
+                                <input type="date" name="fecha_hasta" id="fecha_hasta" 
+                                       class="form-control" value="{{=fecha_hasta or ''}}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="tipo_operacion">Tipo:</label>
+                                <select name="tipo_operacion" id="tipo_operacion" class="form-control">
+                                    <option value="todos" {{='selected' if tipo_operacion == 'todos' else ''}}>Todos</option>
+                                    <option value="compra" {{='selected' if tipo_operacion == 'compra' else ''}}>Compra</option>
+                                    <option value="venta" {{='selected' if tipo_operacion == 'venta' else ''}}>Venta</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="moneda">Moneda:</label>
+                                <select name="moneda" id="moneda" class="form-control">
+                                    <option value="todas" {{='selected' if moneda == 'todas' else ''}}>Todas</option>
+                                    <option value="VES" {{='selected' if moneda == 'VES' else ''}}>VES</option>
+                                    <option value="USD" {{='selected' if moneda == 'USD' else ''}}>USD</option>
+                                    <option value="EUR" {{='selected' if moneda == 'EUR' else ''}}>EUR</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fa fa-search"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-list"></i> Transacciones 
+                    <span class="badge badge-info">{{=total_transacciones}} registros</span>
+                    {{if page > 1 or total_pages > 1:}}
+                        <small class="float-right">Página {{=page}} de {{=total_pages}}</small>
+                    {{pass}}
+                </div>
+                <div class="card-body">
+                    {{if transacciones:}}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Comprobante</th>
+                                    <th>Tipo</th>
+                                    <th>Origen</th>
+                                    <th>Destino</th>
+                                    <th>Tasa</th>
+                                    <th>Estado</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for transaccion in transacciones:}}
+                                <tr>
+                                    <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M')}}</td>
+                                    <td>
+                                        <small class="text-warning">{{=transaccion.numero_comprobante}}</small>
+                                    </td>
+                                    <td>
+                                        {{if transaccion.tipo_operacion == 'compra':}}
+                                            <span class="badge badge-success">Compra</span>
+                                        {{else:}}
+                                            <span class="badge badge-info">Venta</span>
+                                        {{pass}}
+                                    </td>
+                                    <td class="text-right">
+                                        {{="{:,.2f}".format(transaccion.monto_origen)}} {{=transaccion.moneda_origen}}
+                                    </td>
+                                    <td class="text-right">
+                                        {{="{:,.2f}".format(transaccion.monto_destino)}} {{=transaccion.moneda_destino}}
+                                    </td>
+                                    <td class="text-right">
+                                        {{="{:,.4f}".format(transaccion.tasa_aplicada)}}
+                                    </td>
+                                    <td>
+                                        {{if transaccion.estado == 'completada':}}
+                                            <span class="badge badge-success">Completada</span>
+                                        {{elif transaccion.estado == 'pendiente':}}
+                                            <span class="badge badge-warning">Pendiente</span>
+                                        {{elif transaccion.estado == 'cancelada':}}
+                                            <span class="badge badge-secondary">Cancelada</span>
+                                        {{else:}}
+                                            <span class="badge badge-danger">Fallida</span>
+                                        {{pass}}
+                                    </td>
+                                    <td>
+                                        <small>{{=transaccion.observaciones or '-'}}</small>
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {{if total_pages > 1:}}
+                    <nav aria-label="Paginación de transacciones">
+                        <ul class="pagination justify-content-center">
+                            {{if page > 1:}}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{=URL('cuentas', 'movimientos', args=[cuenta.id], vars=dict(request.vars, page=page-1))}}">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {{pass}}
+                            
+                            {{for p in range(max(1, page-2), min(total_pages+1, page+3)):}}
+                                <li class="page-item {{='active' if p == page else ''}}">
+                                    <a class="page-link" href="{{=URL('cuentas', 'movimientos', args=[cuenta.id], vars=dict(request.vars, page=p))}}">
+                                        {{=p}}
+                                    </a>
+                                </li>
+                            {{pass}}
+                            
+                            {{if page < total_pages:}}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{=URL('cuentas', 'movimientos', args=[cuenta.id], vars=dict(request.vars, page=page+1))}}">
+                                        <i class="fa fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {{pass}}
+                        </ul>
+                    </nav>
+                    {{pass}}
+
+                    {{else:}}
+                    <div class="text-center py-5">
+                        <i class="fa fa-history fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No hay transacciones</h4>
+                        <p class="text-muted">
+                            {{if fecha_desde or fecha_hasta or (tipo_operacion and tipo_operacion != 'todos') or (moneda and moneda != 'todas'):}}
+                                No se encontraron transacciones con los filtros aplicados
+                            {{else:}}
+                                Esta cuenta aún no tiene movimientos registrados
+                            {{pass}}
+                        </p>
+                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary">
+                            <i class="fa fa-shopping-cart"></i> Realizar Primera Transacción
+                        </a>
+                    </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.pagination .page-link {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: var(--color-texto);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--color-menu);
+    border-color: var(--color-menu);
+    color: var(--color-fondo);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--color-acento);
+    border-color: var(--color-acento);
+    color: var(--color-fondo);
+}
+</style>

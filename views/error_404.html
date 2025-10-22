@@ -1,0 +1,147 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="error-icon mb-4">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 8rem; color: var(--color-acento);"></i>
+                </div>
+                
+                <!-- Error Code -->
+                <h1 class="display-1 text-orange font-weight-bold">404</h1>
+                
+                <!-- Error Message -->
+                <h2 class="text-gold mb-4">Página No Encontrada</h2>
+                
+                <p class="lead text-muted mb-4">
+                    Lo sentimos, la página que está buscando no existe o ha sido movida.
+                </p>
+                
+                <!-- Error Details -->
+                <div class="card bg-dark-custom border-orange mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-orange">
+                            <i class="fas fa-info-circle"></i> Detalles del Error
+                        </h5>
+                        <div class="row text-left">
+                            <div class="col-md-6">
+                                <strong>URL Solicitada:</strong><br>
+                                <code class="text-gold">{{=request.env.request_uri or 'N/A'}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Método:</strong><br>
+                                <code class="text-gold">{{=request.env.request_method or 'N/A'}}</code>
+                            </div>
+                        </div>
+                        <div class="row text-left mt-3">
+                            <div class="col-md-6">
+                                <strong>Fecha/Hora:</strong><br>
+                                <code class="text-gold">{{=request.now.strftime('%Y-%m-%d %H:%M:%S')}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>IP Cliente:</strong><br>
+                                <code class="text-gold">{{=request.env.remote_addr or 'N/A'}}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    <a href="{{=URL('default', 'index')}}" class="btn btn-primary btn-lg mr-3">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                    <button onclick="history.back()" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Volver Atrás
+                    </button>
+                </div>
+                
+                <!-- Helpful Links -->
+                <div class="card bg-dark-custom border-gold">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-compass"></i> Enlaces Útiles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-primary btn-block">
+                                    <i class="fas fa-tachometer-alt"></i><br>
+                                    Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{=URL('divisas', 'index')}}" class="btn btn-outline-success btn-block">
+                                    <i class="fas fa-exchange-alt"></i><br>
+                                    Divisas
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{=URL('cuentas', 'index')}}" class="btn btn-outline-info btn-block">
+                                    <i class="fas fa-university"></i><br>
+                                    Cuentas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-icon {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-30px);
+    }
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+.display-1 {
+    font-size: 6rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+</style>
+
+<script>
+// Log del error 404 para auditoría
+if (typeof console !== 'undefined') {
+    console.warn('Error 404 - Página no encontrada:', window.location.href);
+}
+
+// Auto-redirect después de 30 segundos si no hay interacción
+let redirectTimer = setTimeout(function() {
+    if (confirm('¿Desea ser redirigido al inicio?')) {
+        window.location.href = '{{=URL("default", "index")}}';
+    }
+}, 30000);
+
+// Cancelar auto-redirect si hay interacción
+document.addEventListener('click', function() {
+    clearTimeout(redirectTimer);
+});
+
+document.addEventListener('keypress', function() {
+    clearTimeout(redirectTimer);
+});
+</script>

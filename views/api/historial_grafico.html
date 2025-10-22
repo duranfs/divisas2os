@@ -1,0 +1,507 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-chart-area"></i> 
+                Historial Gráfico de Tasas de Cambio
+            </h2>
+        </div>
+    </div>
+
+    <!-- Controles de Filtro -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter"></i> 
+                        Filtros de Consulta
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="periodo">Período:</label>
+                            <select class="form-control" id="periodo">
+                                <option value="7">Últimos 7 días</option>
+                                <option value="30" selected>Últimos 30 días</option>
+                                <option value="90">Últimos 90 días</option>
+                                <option value="custom">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" id="fecha-desde-container" style="display: none;">
+                            <label for="fecha_desde_grafico">Desde:</label>
+                            <input type="date" class="form-control" id="fecha_desde_grafico">
+                        </div>
+                        <div class="col-md-3" id="fecha-hasta-container" style="display: none;">
+                            <label for="fecha_hasta_grafico">Hasta:</label>
+                            <input type="date" class="form-control" id="fecha_hasta_grafico">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="moneda">Moneda:</label>
+                            <select class="form-control" id="moneda">
+                                <option value="ambas" selected>Ambas (USD y EUR)</option>
+                                <option value="usd">Solo USD/VES</option>
+                                <option value="eur">Solo EUR/VES</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>&nbsp;</label>
+                            <button id="btn-generar-grafico" class="btn btn-warning btn-block">
+                                <i class="fas fa-chart-line"></i> 
+                                Generar Gráfico
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área del Gráfico -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-area"></i> 
+                        Evolución de Tasas de Cambio
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="contenedor-grafico" style="height: 400px;">
+                        <div class="text-center mt-5">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Seleccione los filtros y haga clic en "Generar Gráfico" para visualizar los datos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Resumidas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-dark border-success">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-dollar-sign"></i> 
+                        Estadísticas USD/VES
+                    </h6>
+                </div>
+                <div class="card-body" id="stats-usd">
+                    <p class="text-muted">Genere un gráfico para ver estadísticas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-dark border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-euro-sign"></i> 
+                        Estadísticas EUR/VES
+                    </h6>
+                </div>
+                <div class="card-body" id="stats-eur">
+                    <p class="text-muted">Genere un gráfico para ver estadísticas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Datos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-table"></i> 
+                        Datos Tabulares
+                        <button class="btn btn-sm btn-outline-light float-right" id="btn-exportar-csv">
+                            <i class="fas fa-download"></i> 
+                            Exportar CSV
+                        </button>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="tabla-datos">
+                        <p class="text-muted">Los datos aparecerán aquí después de generar el gráfico</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+
+<script>
+let graficoActual = null;
+let datosActuales = [];
+
+$(document).ready(function() {
+    // Event handlers
+    $('#periodo').change(function() {
+        if ($(this).val() === 'custom') {
+            $('#fecha-desde-container, #fecha-hasta-container').show();
+            // Establecer fechas por defecto
+            var hoy = new Date().toISOString().split('T')[0];
+            var hace30dias = new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
+            $('#fecha_desde_grafico').val(hace30dias);
+            $('#fecha_hasta_grafico').val(hoy);
+        } else {
+            $('#fecha-desde-container, #fecha-hasta-container').hide();
+        }
+    });
+    
+    $('#btn-generar-grafico').click(function() {
+        generarGrafico();
+    });
+    
+    $('#btn-exportar-csv').click(function() {
+        exportarCSV();
+    });
+    
+    // Generar gráfico inicial con datos de los últimos 30 días
+    setTimeout(generarGrafico, 500);
+});
+
+function generarGrafico() {
+    var periodo = $('#periodo').val();
+    var moneda = $('#moneda').val();
+    var fechaDesde, fechaHasta;
+    
+    // Calcular fechas según el período seleccionado
+    if (periodo === 'custom') {
+        fechaDesde = $('#fecha_desde_grafico').val();
+        fechaHasta = $('#fecha_hasta_grafico').val();
+        
+        if (!fechaDesde || !fechaHasta) {
+            alert('Seleccione ambas fechas para el período personalizado');
+            return;
+        }
+    } else {
+        var dias = parseInt(periodo);
+        fechaHasta = new Date().toISOString().split('T')[0];
+        fechaDesde = new Date(Date.now() - dias*24*60*60*1000).toISOString().split('T')[0];
+    }
+    
+    // Mostrar indicador de carga
+    $('#contenedor-grafico').html(`
+        <div class="text-center mt-5">
+            <div class="spinner-border text-warning" role="status">
+                <span class="sr-only">Cargando datos...</span>
+            </div>
+            <p class="mt-3">Generando gráfico...</p>
+        </div>
+    `);
+    
+    $('#btn-generar-grafico').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generando...');
+    
+    // Obtener datos del servidor
+    $.ajax({
+        url: '{{=URL("api", "historial_tasas")}}',
+        method: 'GET',
+        data: { 
+            fecha_desde: fechaDesde, 
+            fecha_hasta: fechaHasta 
+        },
+        success: function(data) {
+            if (data.success && data.tasas.length > 0) {
+                datosActuales = data.tasas;
+                crearGrafico(data.tasas, moneda);
+                generarEstadisticas(data.tasas);
+                generarTabla(data.tasas);
+            } else {
+                $('#contenedor-grafico').html(`
+                    <div class="text-center mt-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <p class="text-warning">No se encontraron datos para el período seleccionado</p>
+                    </div>
+                `);
+                $('#stats-usd, #stats-eur').html('<p class="text-muted">Sin datos</p>');
+                $('#tabla-datos').html('<p class="text-muted">Sin datos para mostrar</p>');
+            }
+        },
+        error: function() {
+            $('#contenedor-grafico').html(`
+                <div class="text-center mt-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <p class="text-danger">Error cargando datos del servidor</p>
+                </div>
+            `);
+        },
+        complete: function() {
+            $('#btn-generar-grafico').prop('disabled', false).html('<i class="fas fa-chart-line"></i> Generar Gráfico');
+        }
+    });
+}
+
+function crearGrafico(datos, tipoMoneda) {
+    // Preparar datos para Chart.js
+    var labels = [];
+    var datosUSD = [];
+    var datosEUR = [];
+    
+    // Ordenar datos por fecha
+    datos.sort(function(a, b) {
+        return new Date(a.fecha + ' ' + a.hora) - new Date(b.fecha + ' ' + b.hora);
+    });
+    
+    datos.forEach(function(item) {
+        var fecha = new Date(item.fecha + ' ' + item.hora);
+        labels.push(fecha.toLocaleDateString('es-VE') + ' ' + fecha.toLocaleTimeString('es-VE', {hour: '2-digit', minute: '2-digit'}));
+        datosUSD.push(parseFloat(item.usd_ves));
+        datosEUR.push(parseFloat(item.eur_ves));
+    });
+    
+    // Configurar datasets según la moneda seleccionada
+    var datasets = [];
+    
+    if (tipoMoneda === 'ambas' || tipoMoneda === 'usd') {
+        datasets.push({
+            label: 'USD/VES',
+            data: datosUSD,
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        });
+    }
+    
+    if (tipoMoneda === 'ambas' || tipoMoneda === 'eur') {
+        datasets.push({
+            label: 'EUR/VES',
+            data: datosEUR,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        });
+    }
+    
+    // Destruir gráfico anterior si existe
+    if (graficoActual) {
+        graficoActual.destroy();
+    }
+    
+    // Crear canvas para el gráfico
+    $('#contenedor-grafico').html('<canvas id="grafico-tasas"></canvas>');
+    
+    var ctx = document.getElementById('grafico-tasas').getContext('2d');
+    
+    graficoActual = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Evolución de Tasas de Cambio',
+                    color: '#ffffff',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#ffffff',
+                        maxTicksLimit: 10
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#ffffff',
+                        callback: function(value) {
+                            return value.toFixed(4);
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            elements: {
+                point: {
+                    radius: 3,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+}
+
+function generarEstadisticas(datos) {
+    if (datos.length === 0) return;
+    
+    // Calcular estadísticas para USD
+    var valoresUSD = datos.map(item => parseFloat(item.usd_ves));
+    var statsUSD = calcularEstadisticas(valoresUSD);
+    
+    $('#stats-usd').html(`
+        <div class="row text-center">
+            <div class="col-6">
+                <h6 class="text-success">Máximo</h6>
+                <p class="mb-1">${statsUSD.max.toFixed(4)}</p>
+            </div>
+            <div class="col-6">
+                <h6 class="text-danger">Mínimo</h6>
+                <p class="mb-1">${statsUSD.min.toFixed(4)}</p>
+            </div>
+            <div class="col-6">
+                <h6 class="text-info">Promedio</h6>
+                <p class="mb-1">${statsUSD.avg.toFixed(4)}</p>
+            </div>
+            <div class="col-6">
+                <h6 class="text-warning">Variación</h6>
+                <p class="mb-1">${((statsUSD.max - statsUSD.min) / statsUSD.min * 100).toFixed(2)}%</p>
+            </div>
+        </div>
+    `);
+    
+    // Calcular estadísticas para EUR
+    var valoresEUR = datos.map(item => parseFloat(item.eur_ves));
+    var statsEUR = calcularEstadisticas(valoresEUR);
+    
+    $('#stats-eur').html(`
+        <div class="row text-center">
+            <div class="col-6">
+                <h6 class="text-success">Máximo</h6>
+                <p class="mb-1">${statsEUR.max.toFixed(4)}</p>
+            </div>
+            <div class="col-6">
+                <h6 class="text-danger">Mínimo</h6>
+                <p class="mb-1">${statsEUR.min.toFixed(4)}</p>
+            </div>
+            <div class="col-6">
+                <h6 class="text-info">Promedio</h6>
+                <p class="mb-1">${statsEUR.avg.toFixed(4)}</p>
+            </div>
+            <div class="col-6">
+                <h6 class="text-warning">Variación</h6>
+                <p class="mb-1">${((statsEUR.max - statsEUR.min) / statsEUR.min * 100).toFixed(2)}%</p>
+            </div>
+        </div>
+    `);
+}
+
+function calcularEstadisticas(valores) {
+    return {
+        max: Math.max(...valores),
+        min: Math.min(...valores),
+        avg: valores.reduce((a, b) => a + b, 0) / valores.length
+    };
+}
+
+function generarTabla(datos) {
+    if (datos.length === 0) {
+        $('#tabla-datos').html('<p class="text-muted">Sin datos para mostrar</p>');
+        return;
+    }
+    
+    var html = '<div class="table-responsive"><table class="table table-dark table-striped table-sm">';
+    html += '<thead><tr><th>Fecha</th><th>Hora</th><th>USD/VES</th><th>EUR/VES</th><th>Fuente</th><th>Estado</th></tr></thead><tbody>';
+    
+    // Ordenar por fecha descendente para mostrar los más recientes primero
+    datos.sort(function(a, b) {
+        return new Date(b.fecha + ' ' + b.hora) - new Date(a.fecha + ' ' + a.hora);
+    });
+    
+    datos.forEach(function(item) {
+        var estado = item.activa ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-secondary">Inactiva</span>';
+        
+        html += `<tr>
+            <td>${item.fecha}</td>
+            <td>${item.hora}</td>
+            <td>${parseFloat(item.usd_ves).toFixed(4)}</td>
+            <td>${parseFloat(item.eur_ves).toFixed(4)}</td>
+            <td>${item.fuente}</td>
+            <td>${estado}</td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    html += `<p class="text-muted mt-2">Total: ${datos.length} registros</p>`;
+    
+    $('#tabla-datos').html(html);
+}
+
+function exportarCSV() {
+    if (datosActuales.length === 0) {
+        alert('No hay datos para exportar');
+        return;
+    }
+    
+    var csv = 'Fecha,Hora,USD/VES,EUR/VES,Fuente,Activa\n';
+    
+    datosActuales.forEach(function(item) {
+        csv += `${item.fecha},${item.hora},${item.usd_ves},${item.eur_ves},${item.fuente},${item.activa}\n`;
+    });
+    
+    // Crear y descargar archivo
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tasas_cambio_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+
+<style>
+#contenedor-grafico {
+    position: relative;
+}
+
+.card-header h6 {
+    font-weight: 600;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+#btn-exportar-csv {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+</style>

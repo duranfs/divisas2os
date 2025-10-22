@@ -1,0 +1,361 @@
+/* =========================================================================
+   SOLUCIÓN INTELIGENTE PARA VISIBILIDAD DE TEXTO EN DIVISAS
+   ========================================================================= */
+
+/* Fondo negro - texto blanco */
+body {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+/* Elementos con fondo blanco - texto negro */
+.card,
+.card-body,
+.bg-light,
+.bg-white,
+.alert,
+.modal-content,
+.dropdown-menu,
+.form-control,
+.btn,
+.badge {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+/* Elementos con fondo oscuro - texto blanco */
+.bg-dark,
+.bg-black,
+.navbar,
+.sidebar,
+.card-header,
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-info,
+.btn-warning {
+    background-color: #333333 !important;
+    color: #FFFFFF !important;
+}
+
+/* Texto general en contenedores principales */
+.container-fluid * {
+    color: #000000 !important;
+}
+
+/* Títulos principales - adaptables al fondo */
+h1, h2, h3, h4, h5, h6 {
+    color: #000000 !important;
+    font-weight: bold !important;
+}
+
+/* En elementos con fondo oscuro */
+.bg-dark h1, .bg-dark h2, .bg-dark h3, .bg-dark h4, .bg-dark h5, .bg-dark h6,
+.navbar h1, .navbar h2, .navbar h3, .navbar h4, .navbar h5, .navbar h6,
+.sidebar h1, .sidebar h2, .sidebar h3, .sidebar h4, .sidebar h5, .sidebar h6 {
+    color: #FFFFFF !important;
+}
+
+/* Párrafos y texto general */
+p, span, div, li, td, th {
+    color: #000000 !important;
+}
+
+/* En elementos con fondo oscuro */
+.bg-dark p, .bg-dark span, .bg-dark div, .bg-dark li,
+.navbar p, .navbar span, .navbar div, .navbar li,
+.sidebar p, .sidebar span, .sidebar div, .sidebar li {
+    color: #FFFFFF !important;
+}
+
+/* Labels y etiquetas de formularios */
+label, .form-label {
+    color: #000000 !important;
+    font-weight: bold !important;
+}
+
+/* En elementos con fondo oscuro */
+.bg-dark label, .bg-dark .form-label,
+.navbar label, .navbar .form-label,
+.sidebar label, .sidebar .form-label {
+    color: #FFFFFF !important;
+}
+
+/* Enlaces */
+a {
+    color: #FF8C00 !important;
+}
+
+a:hover {
+    color: #FFD700 !important;
+}
+
+/* Texto en tarjetas - fondo blanco, texto negro */
+.card, .card * {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+.card-body, .card-body * {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+/* Headers de tarjetas con colores específicos */
+.card-header {
+    color: #FFFFFF !important;
+}
+
+.card-header.bg-success {
+    background-color: #28a745 !important;
+    color: #FFFFFF !important;
+}
+
+.card-header.bg-info {
+    background-color: #17a2b8 !important;
+    color: #FFFFFF !important;
+}
+
+.card-header.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000000 !important;
+}
+
+.card-header.bg-primary {
+    background-color: #007bff !important;
+    color: #FFFFFF !important;
+}
+
+/* Formularios - fondo blanco, texto negro */
+.form-control {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 2px solid #FF8C00 !important;
+}
+
+.form-control:focus {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
+}
+
+.form-control::placeholder {
+    color: #666666 !important;
+}
+
+/* Botones */
+.btn {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+/* Texto específico que podría estar oculto */
+.text-muted,
+.text-secondary,
+.text-dark,
+.small,
+.form-text {
+    color: #CCCCCC !important;
+}
+
+/* Breadcrumbs */
+.breadcrumb-item {
+    color: #CCCCCC !important;
+}
+
+.breadcrumb-item.active {
+    color: #FFD700 !important;
+}
+
+.breadcrumb-item a {
+    color: #FF8C00 !important;
+}
+
+/* Alertas */
+.alert {
+    color: #FFFFFF !important;
+}
+
+/* Listas */
+ol, ul {
+    color: #FFFFFF !important;
+}
+
+ol li, ul li {
+    color: #FFFFFF !important;
+}
+
+/* Elementos strong y bold */
+strong, b {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+/* Elementos específicos de divisas */
+.lead {
+    color: #CCCCCC !important;
+}
+
+/* Forzar visibilidad en elementos que podrían tener estilos inline */
+[style*="color"] {
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que los elementos de Bootstrap sean visibles */
+.container-fluid * {
+    color: #FFFFFF !important;
+}
+
+/* Excepciones para elementos que deben mantener colores específicos */
+.btn-success {
+    background-color: #28a745 !important;
+    color: #FFFFFF !important;
+}
+
+.btn-warning {
+    background-color: #ffc107 !important;
+    color: #000000 !important;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+    color: #FFFFFF !important;
+}
+
+.btn-info {
+    background-color: #17a2b8 !important;
+    color: #FFFFFF !important;
+}
+
+.btn-primary {
+    background-color: #FF8C00 !important;
+    color: #FFFFFF !important;
+}
+
+/* Input groups */
+.input-group-text {
+    background-color: #FF8C00 !important;
+    color: #000000 !important;
+    border: 2px solid #FF8C00 !important;
+}
+
+/* Dropdown menus */
+.dropdown-menu {
+    background-color: #333333 !important;
+}
+
+.dropdown-item {
+    color: #FFFFFF !important;
+}
+
+.dropdown-item:hover {
+    background-color: #FF8C00 !important;
+    color: #000000 !important;
+}
+
+/* Modales */
+.modal-content {
+    background-color: #333333 !important;
+    color: #FFFFFF !important;
+}
+
+.modal-header {
+    background-color: #FF8C00 !important;
+    color: #000000 !important;
+}
+
+.modal-body * {
+    color: #FFFFFF !important;
+}
+
+/* Tablas */
+.table {
+    color: #FFFFFF !important;
+}
+
+.table th {
+    background-color: #FF8C00 !important;
+    color: #000000 !important;
+}
+
+.table td {
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que los placeholders sean visibles */
+::placeholder {
+    color: #CCCCCC !important;
+    opacity: 1 !important;
+}
+
+::-webkit-input-placeholder {
+    color: #CCCCCC !important;
+}
+
+::-moz-placeholder {
+    color: #CCCCCC !important;
+}
+
+:-ms-input-placeholder {
+    color: #CCCCCC !important;
+}
+
+/* Forzar visibilidad en elementos específicos que podrían estar ocultos */
+.calculando-indicator {
+    color: #FFD700 !important;
+    background-color: rgba(255, 215, 0, 0.1) !important;
+}
+
+.error-calculadora {
+    color: #FFFFFF !important;
+    background-color: rgba(220, 53, 69, 0.8) !important;
+}
+
+.info-tasa {
+    background-color: rgba(51, 51, 51, 0.9) !important;
+    color: #FFFFFF !important;
+}
+
+.validacion-fondos {
+    color: #FFFFFF !important;
+}
+
+/* Elementos de la calculadora */
+.monto-destino-display,
+.moneda-destino-display,
+.tasa-aplicada,
+.comision-calculada,
+.total-debitado,
+.fecha-tasa {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+/* Saldos */
+#saldos-disponibles * {
+    color: #FFFFFF !important;
+}
+
+/* Checkboxes y radio buttons */
+.form-check-label {
+    color: #FFFFFF !important;
+}
+
+/* Navbar */
+.navbar-nav .nav-link {
+    color: #000000 !important;
+}
+
+.navbar-brand {
+    color: #000000 !important;
+}
+
+/* Sidebar */
+.sidebar .nav-link {
+    color: #CCCCCC !important;
+}
+
+.sidebar .nav-link:hover {
+    color: #FF8C00 !important;
+}

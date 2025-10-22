@@ -1,0 +1,382 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+  
+  {{if tipo_dashboard == 'administrativo':}}
+    <!-- Dashboard Administrativo -->
+    <div class="row mb-4">
+      <div class="col-10">
+        <h2 class="text-white mb-3">
+          <i class="fas fa-tachometer-alt text-warning"></i> Dashboard Administrativo
+        </h2>
+      </div>
+      <div class="col-2 text-end">
+        <a href="{{=URL('default','user/logout')}}" 
+           class="btn btn-outline-danger"
+           onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+          <i class="fas fa-sign-out-alt me-1"></i>Salir
+        </a>
+      </div>
+    </div>
+    
+    <!-- Estadísticas principales -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card bg-primary text-white">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h4>{{=transacciones_hoy}}</h4>
+                <p class="mb-0">Transacciones Hoy</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-exchange-alt fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card bg-success text-white">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h4>{{=clientes_activos}}</h4>
+                <p class="mb-0">Clientes Activos</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-users fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card bg-info text-white">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h4>{{=cuentas_activas}}</h4>
+                <p class="mb-0">Cuentas Activas</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-university fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h4>{{=len(ultimas_transacciones) if ultimas_transacciones else 0}}</h4>
+                <p class="mb-0">Transacciones Recientes</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-clock fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Volumen de transacciones -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-coins"></i> Volumen VES</h5>
+          </div>
+          <div class="card-body text-center">
+            <h3 class="text-success">{{="{:,.2f}".format(float(volumen_ves)) if volumen_ves else "0.00"}}</h3>
+            <p class="text-muted">Bolívares</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-dollar-sign"></i> Volumen USD</h5>
+          </div>
+          <div class="card-body text-center">
+            <h3 class="text-primary">{{="{:,.2f}".format(float(volumen_usd)) if volumen_usd else "0.00"}}</h3>
+            <p class="text-muted">Dólares</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-euro-sign"></i> Volumen EUR</h5>
+          </div>
+          <div class="card-body text-center">
+            <h3 class="text-info">{{="{:,.2f}".format(float(volumen_eur)) if volumen_eur else "0.00"}}</h3>
+            <p class="text-muted">Euros</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  {{elif tipo_dashboard == 'cliente':}}
+    <!-- Dashboard Cliente -->
+    <div class="row mb-4">
+      <div class="col-10">
+        <h2 class="text-white mb-3">
+          <i class="fas fa-user text-warning"></i> Mi Dashboard
+        </h2>
+        <p class="text-light">Bienvenido, {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
+      </div>
+      <div class="col-2 text-end">
+        <a href="{{=URL('default','user/logout')}}" 
+           class="btn btn-outline-danger"
+           onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+          <i class="fas fa-sign-out-alt me-1"></i>Salir
+        </a>
+      </div>
+    </div>
+    
+    <!-- Resumen de cuentas del cliente -->
+    {{if cuentas:}}
+    <div class="row mb-4">
+      {{for cuenta in cuentas:}}
+      <div class="col-md-4 mb-3">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-credit-card"></i> 
+              Cuenta {{=cuenta.tipo_cuenta.title()}}
+            </h6>
+          </div>
+          <div class="card-body">
+            <p><strong>Número:</strong> {{=cuenta.numero_cuenta}}</p>
+            <hr>
+            <div class="row text-center">
+              <div class="col-4">
+                <h6 class="text-success">VES</h6>
+                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</p>
+              </div>
+              <div class="col-4">
+                <h6 class="text-primary">USD</h6>
+                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</p>
+              </div>
+              <div class="col-4">
+                <h6 class="text-info">EUR</h6>
+                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{pass}}
+    </div>
+    {{else:}}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          No tienes cuentas registradas aún. Contacta al administrador para crear una cuenta.
+        </div>
+      </div>
+    </div>
+    {{pass}}
+    
+  {{else:}}
+    <!-- Dashboard Básico -->
+    <div class="row mb-4">
+      <div class="col-10">
+        <h2 class="text-white mb-3">
+          <i class="fas fa-home text-warning"></i> Dashboard
+        </h2>
+        <p class="text-light">Bienvenido al Sistema de Divisas Bancario</p>
+      </div>
+      <div class="col-2 text-end">
+        <a href="{{=URL('default','user/logout')}}" 
+           class="btn btn-outline-danger"
+           onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+          <i class="fas fa-sign-out-alt me-1"></i>Salir
+        </a>
+      </div>
+    </div>
+    
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>Cuenta en proceso:</strong> Tu cuenta está siendo configurada. 
+          Pronto tendrás acceso a todas las funcionalidades del sistema.
+        </div>
+      </div>
+    </div>
+  {{pass}}
+  
+  <!-- Tasas de cambio actuales (para todos los dashboards) -->
+  {{if tasas_actuales:}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-chart-line"></i> Tasas de Cambio Actuales
+          </h5>
+        </div>
+        <div class="card-body bg-light">
+          <div class="row text-center">
+            <div class="col-md-6">
+              <h4 class="text-primary">USD/VES</h4>
+              <h3 class="text-dark fw-bold">{{="{:,.4f}".format(float(tasas_actuales.usd_ves)) if tasas_actuales.usd_ves else "N/A"}}</h3>
+              <small class="text-secondary">{{=tasas_actuales.fuente if tasas_actuales else ""}}</small>
+            </div>
+            <div class="col-md-6">
+              <h4 class="text-info">EUR/VES</h4>
+              <h3 class="text-dark fw-bold">{{="{:,.4f}".format(float(tasas_actuales.eur_ves)) if tasas_actuales.eur_ves else "N/A"}}</h3>
+              <small class="text-secondary">{{=tasas_actuales.fecha if tasas_actuales else ""}}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{pass}}
+  
+  <!-- Accesos rápidos -->
+  {{if accesos_rapidos:}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-bolt"></i> Accesos Rápidos
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            {{for acceso in accesos_rapidos:}}
+            <div class="col-md-3 mb-3">
+              <a href="{{=acceso['url']}}" class="btn btn-{{=acceso['color']}} btn-lg w-100">
+                <i class="{{=acceso['icono']}} fa-2x d-block mb-2"></i>
+                <strong>{{=acceso['titulo']}}</strong>
+                <br>
+                <small>{{=acceso['descripcion']}}</small>
+              </a>
+            </div>
+            {{pass}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{pass}}
+  
+  <!-- Últimas transacciones (solo para admin) -->
+  {{if tipo_dashboard == 'administrativo' and ultimas_transacciones:}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-history"></i> Últimas Transacciones
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Comprobante</th>
+                  <th>Tipo</th>
+                  <th>Monedas</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{for transaccion in ultimas_transacciones[:5]:}}
+                <tr>
+                  <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M') if transaccion.fecha_transaccion else 'N/A'}}</td>
+                  <td>{{=transaccion.numero_comprobante}}</td>
+                  <td>
+                    <span class="badge bg-{{='success' if transaccion.tipo_operacion == 'compra' else 'warning'}}">
+                      {{=transaccion.tipo_operacion.title()}}
+                    </span>
+                  </td>
+                  <td>{{=transaccion.moneda_origen}} → {{=transaccion.moneda_destino}}</td>
+                  <td>{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else "0.00"}}</td>
+                  <td>
+                    <span class="badge bg-{{='success' if transaccion.estado == 'completada' else 'warning'}}">
+                      {{=transaccion.estado.title()}}
+                    </span>
+                  </td>
+                </tr>
+                {{pass}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{pass}}
+  
+</div>
+
+<style>
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1rem;
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.btn-lg {
+  padding: 1rem;
+  text-align: center;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.75em;
+}
+
+/* Estilos para las tasas de cambio */
+.card-body.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.card-body.bg-light h3 {
+  color: #212529 !important;
+  font-weight: bold !important;
+  text-shadow: none !important;
+}
+
+.card-body.bg-light h4 {
+  color: #495057 !important;
+  font-weight: 600 !important;
+}
+
+.card-body.bg-light small {
+  color: #6c757d !important;
+}
+
+/* Asegurar contraste en las tasas */
+.text-dark.fw-bold {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 1.8rem !important;
+}
+</style>

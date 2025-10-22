@@ -1,0 +1,1475 @@
+/* =========================================================================
+   Sistema de Divisas Bancario - Estilos Personalizados
+   Paleta de colores: Negro, Naranja, Dorado
+   ========================================================================= */
+
+:root {
+    --color-fondo: #000000;           /* Negro - Fondo principal */
+    --color-menu: #FF8C00;            /* Naranja - Menú y navegación */
+    --color-acento: #FFD700;          /* Dorado - Elementos destacados */
+    --color-texto: #FFFFFF;           /* Blanco - Texto principal */
+    --color-texto-secundario: #CCCCCC; /* Gris claro - Texto secundario */
+    --color-hover: #FF7F00;           /* Naranja más oscuro para hover */
+    --color-success: #28a745;         /* Verde para éxito */
+    --color-warning: #ffc107;         /* Amarillo para advertencias */
+    --color-danger: #dc3545;          /* Rojo para errores */
+    --color-info: #17a2b8;            /* Azul para información */
+}
+
+/* =========================================================================
+   ESTILOS GENERALES
+   ========================================================================= */
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+.main-container {
+    min-height: calc(100vh - 200px);
+    padding-top: 20px;
+}
+
+/* =========================================================================
+   NAVEGACIÓN
+   ========================================================================= */
+
+.navbar {
+    background-color: var(--color-menu) !important;
+    border-bottom: 3px solid var(--color-acento);
+    box-shadow: 0 2px 10px rgba(255, 140, 0, 0.3);
+}
+
+.navbar-brand {
+    color: var(--color-fondo) !important;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    color: var(--color-fondo) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--color-acento) !important;
+    transform: translateY(-2px);
+}
+
+.navbar-nav .nav-item.active .nav-link {
+    color: var(--color-acento) !important;
+    font-weight: bold;
+}
+
+.dropdown-menu {
+    background-color: var(--color-menu);
+    border: 1px solid var(--color-acento);
+}
+
+.dropdown-item {
+    color: var(--color-fondo) !important;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--color-acento);
+    color: var(--color-fondo) !important;
+}
+
+/* =========================================================================
+   SIDEBAR LATERAL
+   ========================================================================= */
+
+.sidebar {
+    background: linear-gradient(180deg, var(--color-fondo) 0%, #1a1a1a 100%);
+    min-height: calc(100vh - 80px);
+    padding: 20px 0;
+    border-right: 2px solid var(--color-menu);
+}
+
+.sidebar .nav-link {
+    color: var(--color-texto-secundario);
+    padding: 12px 20px;
+    margin: 5px 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 140, 0, 0.1);
+    color: var(--color-menu);
+    border-left-color: var(--color-menu);
+    transform: translateX(5px);
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255, 140, 0, 0.2);
+    color: var(--color-acento);
+    border-left-color: var(--color-acento);
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* =========================================================================
+   DASHBOARD
+   ========================================================================= */
+
+.dashboard-header {
+    background: linear-gradient(135deg, var(--color-menu) 0%, var(--color-hover) 100%);
+    color: var(--color-fondo);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 25px rgba(255, 140, 0, 0.3);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-weight: 300;
+}
+
+.dashboard-header .lead {
+    margin: 10px 0 0 0;
+    opacity: 0.9;
+}
+
+/* Tarjetas de resumen */
+.card-resumen {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid var(--color-menu);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card-resumen:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 140, 0, 0.2);
+    border-color: var(--color-acento);
+}
+
+.card-resumen .card-header {
+    background: linear-gradient(90deg, var(--color-menu) 0%, var(--color-hover) 100%);
+    color: var(--color-fondo);
+    border: none;
+    font-weight: bold;
+}
+
+.card-resumen .card-body {
+    color: var(--color-texto);
+}
+
+.saldo-amount {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--color-acento);
+}
+
+.saldo-currency {
+    font-size: 0.9rem;
+    color: var(--color-texto-secundario);
+    margin-left: 5px;
+}
+
+/* =========================================================================
+   WIDGET DE TASAS
+   ========================================================================= */
+
+.widget-tasas {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 2px solid var(--color-acento);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+}
+
+.widget-tasas h4 {
+    color: var(--color-acento);
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.tasa-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+}
+
+.tasa-item:last-child {
+    border-bottom: none;
+}
+
+.tasa-moneda {
+    font-weight: bold;
+    color: var(--color-texto);
+}
+
+.tasa-valor {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-acento);
+}
+
+.tasa-actualizacion {
+    font-size: 0.8rem;
+    color: var(--color-texto-secundario);
+    margin-top: 15px;
+    font-style: italic;
+}
+
+/* =========================================================================
+   ACCESOS RÁPIDOS
+   ========================================================================= */
+
+.accesos-rapidos {
+    margin-top: 30px;
+}
+
+.acceso-rapido {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid var(--color-menu);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--color-texto);
+    display: block;
+    height: 100%;
+}
+
+.acceso-rapido:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
+    border-color: var(--color-acento);
+    text-decoration: none;
+    color: var(--color-texto);
+}
+
+.acceso-rapido i {
+    font-size: 3rem;
+    color: var(--color-menu);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.acceso-rapido:hover i {
+    color: var(--color-acento);
+    transform: scale(1.1);
+}
+
+.acceso-rapido h5 {
+    color: var(--color-acento);
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.acceso-rapido p {
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* =========================================================================
+   FORMULARIOS
+   ========================================================================= */
+
+.form-control {
+    background-color: #2d2d2d;
+    border: 1px solid var(--color-menu);
+    color: var(--color-texto);
+    border-radius: 8px;
+}
+
+.form-control:focus {
+    background-color: #2d2d2d;
+    border-color: var(--color-acento);
+    color: var(--color-texto);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+}
+
+.form-control::placeholder {
+    color: var(--color-texto-secundario);
+}
+
+.form-label {
+    color: var(--color-texto);
+    font-weight: 500;
+}
+
+/* =========================================================================
+   BOTONES
+   ========================================================================= */
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-menu) 0%, var(--color-hover) 100%);
+    border-color: var(--color-menu);
+    color: var(--color-fondo);
+    font-weight: bold;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--color-hover) 0%, var(--color-menu) 100%);
+    border-color: var(--color-acento);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--color-success) 0%, #218838 100%);
+    border-color: var(--color-success);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--color-acento) 0%, #e0a800 100%);
+    border-color: var(--color-acento);
+    color: var(--color-fondo);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--color-danger) 0%, #c82333 100%);
+    border-color: var(--color-danger);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--color-info) 0%, #138496 100%);
+    border-color: var(--color-info);
+}
+
+/* =========================================================================
+   TABLAS
+   ========================================================================= */
+
+.table {
+    color: var(--color-texto);
+    background-color: transparent;
+}
+
+.table thead th {
+    background: linear-gradient(90deg, var(--color-menu) 0%, var(--color-hover) 100%);
+    color: var(--color-fondo);
+    border: none;
+    font-weight: bold;
+}
+
+.table tbody tr {
+    background-color: rgba(45, 45, 45, 0.5);
+    border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(255, 140, 0, 0.1);
+}
+
+.table td {
+    border: none;
+    vertical-align: middle;
+}
+
+/* =========================================================================
+   ALERTAS Y MENSAJES
+   ========================================================================= */
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(40, 167, 69, 0.1) 100%);
+    color: #d4edda;
+    border-left: 4px solid var(--color-success);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+    color: var(--color-acento);
+    border-left: 4px solid var(--color-acento);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2) 0%, rgba(220, 53, 69, 0.1) 100%);
+    color: #f8d7da;
+    border-left: 4px solid var(--color-danger);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.2) 0%, rgba(23, 162, 184, 0.1) 100%);
+    color: #d1ecf1;
+    border-left: 4px solid var(--color-info);
+}
+
+/* =========================================================================
+   BREADCRUMBS
+   ========================================================================= */
+
+.breadcrumb {
+    background: linear-gradient(90deg, rgba(255, 140, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.breadcrumb-item {
+    color: var(--color-texto-secundario);
+}
+
+.breadcrumb-item.active {
+    color: var(--color-acento);
+    font-weight: bold;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--color-menu);
+    content: ">";
+}
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+
+.footer {
+    background: linear-gradient(90deg, var(--color-fondo) 0%, #1a1a1a 100%);
+    border-top: 2px solid var(--color-menu);
+    color: var(--color-texto-secundario);
+    padding: 20px 0;
+    margin-top: 50px;
+}
+
+.footer a {
+    color: var(--color-menu);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: var(--color-acento);
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        border-right: none;
+        border-bottom: 2px solid var(--color-menu);
+    }
+    
+    .dashboard-header {
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .saldo-amount {
+        font-size: 1.5rem;
+    }
+    
+    .acceso-rapido {
+        margin-bottom: 15px;
+    }
+    
+    .widget-tasas {
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .card-resumen {
+        margin-bottom: 15px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* =========================================================================
+   ANIMACIONES
+   ========================================================================= */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* =========================================================================
+   UTILIDADES
+   ========================================================================= */
+
+.text-orange {
+    color: var(--color-menu) !important;
+}
+
+.text-gold {
+    color: var(--color-acento) !important;
+}
+
+.bg-dark-custom {
+    background-color: #1a1a1a !important;
+}
+
+.border-orange {
+    border-color: var(--color-menu) !important;
+}
+
+.border-gold {
+    border-color: var(--color-acento) !important;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-fondo);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-menu);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-acento);
+}
+
+/* =========================================================================
+   ESTILOS PARA FORMULARIOS
+   ========================================================================= */
+
+/* Formularios de autenticación */
+#web2py_user_form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#web2py_user_form label {
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+#web2py_user_form input[type="text"],
+#web2py_user_form input[type="email"],
+#web2py_user_form input[type="password"],
+#web2py_user_form input[type="date"],
+#web2py_user_form input[type="tel"],
+#web2py_user_form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#web2py_user_form input:focus,
+#web2py_user_form textarea:focus {
+    border-color: var(--color-menu);
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+    outline: 0;
+}
+
+#web2py_user_form .form-control.is-invalid {
+    border-color: var(--color-danger);
+}
+
+#web2py_user_form .invalid-feedback {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Comentarios de ayuda en formularios */
+#web2py_user_form .form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Botones de formulario */
+#web2py_user_form input[type="submit"],
+#web2py_user_form button[type="submit"] {
+    background-color: var(--color-menu);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+#web2py_user_form input[type="submit"]:hover,
+#web2py_user_form button[type="submit"]:hover {
+    background-color: var(--color-hover);
+}
+
+/* Estilos específicos para web2py forms */
+.web2py_form table {
+    width: 100%;
+}
+
+.web2py_form td {
+    padding: 0.5rem 0;
+    vertical-align: top;
+}
+
+.web2py_form .w2p_fl {
+    font-weight: 600;
+    color: var(--color-fondo);
+    padding-right: 1rem;
+    width: 30%;
+}
+
+.web2py_form .w2p_fw {
+    width: 70%;
+}
+
+.web2py_form .w2p_fc {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+/* Mensajes de error */
+.web2py_form .error {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Campos requeridos */
+.web2py_form .required {
+    color: var(--color-danger);
+}
+
+/* Mejorar la apariencia de los campos de fecha */
+input[type="date"] {
+    position: relative;
+}
+
+/* Estilos para formularios en tarjetas */
+.card .web2py_form {
+    background: transparent;
+}
+
+.card .web2py_form table {
+    background: transparent;
+}
+
+/* Responsive para formularios */
+@media (max-width: 768px) {
+    .web2py_form .w2p_fl,
+    .web2py_form .w2p_fw {
+        display: block;
+        width: 100%;
+    }
+    
+    .web2py_form .w2p_fl {
+        padding-right: 0;
+        padding-bottom: 0.25rem;
+    }
+}/* ==
+=======================================================================
+   ESTILOS ESPECÍFICOS PARA FORMULARIOS DE REGISTRO
+   ========================================================================= */
+
+/* Asegurar que las etiquetas sean visibles */
+.form-label {
+    display: block !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+}
+
+/* Iconos en las etiquetas */
+.form-label i {
+    margin-right: 0.5rem;
+    color: var(--color-menu) !important;
+}
+
+/* Campos obligatorios */
+.form-label::after {
+    content: "";
+}
+
+/* Texto de ayuda */
+.form-text {
+    color: #6c757d !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
+    display: block !important;
+}
+
+/* Campos de entrada */
+.form-control {
+    border: 2px solid #ddd !important;
+    border-radius: 0.375rem !important;
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.form-control:focus {
+    border-color: var(--color-menu) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
+    outline: 0 !important;
+}
+
+/* Botones del formulario */
+.btn-primary {
+    background-color: var(--color-menu) !important;
+    border-color: var(--color-menu) !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-hover) !important;
+    border-color: var(--color-hover) !important;
+}
+
+/* Campos inválidos */
+.form-control:invalid {
+    border-color: var(--color-danger) !important;
+}
+
+.form-control.is-invalid {
+    border-color: var(--color-danger) !important;
+}
+
+/* Mensajes de validación */
+.invalid-feedback {
+    display: block !important;
+    color: var(--color-danger) !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Asegurar que los formularios web2py también muestren etiquetas */
+.web2py_form .w2p_fl {
+    display: block !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.web2py_form .w2p_fw {
+    display: block !important;
+    width: 100% !important;
+}
+
+.web2py_form .w2p_fc {
+    display: block !important;
+    color: #6c757d !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Ocultar elementos innecesarios de web2py */
+.web2py_form .generic-button {
+    display: none !important;
+}
+
+/* Mejorar la tabla del formulario web2py */
+.web2py_form table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 1rem !important;
+}
+
+.web2py_form td {
+    padding: 0 !important;
+    vertical-align: top !important;
+}/* =========================================================================
+   ESTILOS ESPECÍFICOS PARA REGISTRO - ALTA PRIORIDAD
+   ========================================================================= */
+
+/* Etiquetas negras específicamente para el formulario de registro */
+.registro-form label,
+.registro-form .w2p_fl,
+.registro-form .form-label {
+    color: #000000 !important;
+    font-weight: 600 !important;
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+}
+
+/* Asegurar que las etiquetas del formulario de registro sean negras */
+#web2py_user_form.registro-form label,
+#web2py_user_form .registro-form label,
+.card-body .registro-form label,
+.card-body .registro-form .w2p_fl {
+    color: #000000 !important;
+}
+
+/* Forzar color negro en todas las etiquetas de registro */
+body .registro-form label,
+body .registro-form .w2p_fl,
+body .registro-form .form-label {
+    color: #000000 !important;
+}
+
+/* Iconos en las etiquetas de registro */
+.registro-form .form-label i {
+    color: #FF8C00 !important;
+    margin-right: 0.5rem;
+}
+
+/* Texto de ayuda en registro */
+.registro-form .form-text,
+.registro-form .w2p_fc {
+    color: #6c757d !important;
+    font-size: 0.875rem !important;
+}
+
+/* =========================================================================
+   ESTILOS ESPECÍFICOS PARA FORMULARIOS DE DIVISAS
+   ========================================================================= */
+
+/* Mejorar visibilidad en formularios de compra y venta de divisas */
+.card-body label,
+.card-body .form-label {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+}
+
+/* Títulos y encabezados en páginas de divisas */
+.container-fluid h2 {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+.container-fluid .lead {
+    color: #CCCCCC !important;
+}
+
+/* Texto en tarjetas de divisas */
+.card-body h6,
+.card-body strong {
+    color: #FFFFFF !important;
+}
+
+.card-body p,
+.card-body small {
+    color: #CCCCCC !important;
+}
+
+/* Texto en listas de ayuda */
+.card-body ol li,
+.card-body ul li {
+    color: #CCCCCC !important;
+}
+
+/* Texto de ayuda específico */
+.form-text,
+.small {
+    color: #CCCCCC !important;
+}
+
+/* Mejorar contraste en elementos de información */
+.info-tasa .card-body h6 {
+    color: #FFD700 !important;
+}
+
+.info-tasa .card-body strong {
+    color: #FFFFFF !important;
+}
+
+/* Validación de fondos */
+.validacion-fondos strong {
+    color: #FFFFFF !important;
+}
+
+.validacion-fondos small {
+    color: #CCCCCC !important;
+}
+
+/* Breadcrumbs */
+.breadcrumb-item a {
+    color: #FF8C00 !important;
+}
+
+.breadcrumb-item.active {
+    color: #FFD700 !important;
+}
+
+/* Enlaces en general */
+a {
+    color: #FF8C00 !important;
+}
+
+a:hover {
+    color: #FFD700 !important;
+}
+
+/* Texto en modales */
+.modal-body h6,
+.modal-body strong {
+    color: #000000 !important;
+}
+
+.modal-body ul li,
+.modal-body p {
+    color: #333333 !important;
+}
+
+/* Asegurar que los checkboxes y labels sean visibles */
+.form-check-label {
+    color: #FFFFFF !important;
+}
+
+/* Mejorar visibilidad de elementos de calculadora */
+.calculando-indicator {
+    color: #FFD700 !important;
+}
+
+.error-calculadora {
+    color: #FFFFFF !important;
+    background-color: rgba(220, 53, 69, 0.8) !important;
+}
+
+/* Texto en tarjetas de información */
+.card.border-info .card-body h6 {
+    color: #FFD700 !important;
+}
+
+.card.border-info .card-body ol li,
+.card.border-info .card-body ul li {
+    color: #CCCCCC !important;
+}
+
+/* Saldos disponibles */
+#saldos-disponibles strong {
+    color: #FFFFFF !important;
+}
+
+#saldos-disponibles small {
+    color: #CCCCCC !important;
+}
+
+/* Forzar visibilidad en todos los elementos de texto dentro de cards */
+.card .card-body * {
+    color: inherit;
+}
+
+.card .card-body {
+    color: #FFFFFF;
+}
+
+/* Específicamente para elementos que pueden estar ocultos */
+.text-muted {
+    color: #CCCCCC !important;
+}
+
+.text-secondary {
+    color: #CCCCCC !important;
+}
+
+/* Asegurar que los spans con clases específicas sean visibles */
+.monto-destino-display,
+.moneda-destino-display,
+.tasa-aplicada,
+.comision-calculada,
+.total-debitado,
+.fecha-tasa {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+/* Colores específicos para diferentes tipos de información */
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+/* =
+========================================================================
+   ESTILOS ADICIONALES PARA MEJORAR VISIBILIDAD EN DIVISAS
+   ========================================================================= */
+
+/* Forzar colores específicos para elementos críticos */
+.container-fluid .card .card-body label,
+.container-fluid .card .card-body .form-label {
+    color: #FFFFFF !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Mejorar contraste en títulos de secciones */
+.container-fluid h2,
+.container-fluid h3,
+.container-fluid h4,
+.container-fluid h5,
+.container-fluid h6 {
+    color: #FFFFFF !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Párrafos y texto descriptivo */
+.container-fluid p,
+.container-fluid .lead {
+    color: #CCCCCC !important;
+}
+
+/* Elementos de lista */
+.container-fluid ol li,
+.container-fluid ul li {
+    color: #CCCCCC !important;
+}
+
+/* Texto fuerte y énfasis */
+.container-fluid strong,
+.container-fluid b {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+/* Elementos small y de ayuda */
+.container-fluid small,
+.container-fluid .form-text {
+    color: #CCCCCC !important;
+}
+
+/* Asegurar que los inputs tengan buen contraste */
+.form-control {
+    background-color: #2d2d2d !important;
+    color: #FFFFFF !important;
+    border: 2px solid #FF8C00 !important;
+}
+
+.form-control:focus {
+    background-color: #2d2d2d !important;
+    color: #FFFFFF !important;
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25) !important;
+}
+
+.form-control::placeholder {
+    color: #CCCCCC !important;
+}
+
+/* Select options */
+.form-control option {
+    background-color: #2d2d2d !important;
+    color: #FFFFFF !important;
+}
+
+/* Input groups */
+.input-group-text {
+    background-color: #FF8C00 !important;
+    color: #000000 !important;
+    border: 2px solid #FF8C00 !important;
+    font-weight: bold !important;
+}
+
+.input-group-append .form-control {
+    border-left: none !important;
+}
+
+/* Mejorar visibilidad de elementos específicos de la calculadora */
+.info-tasa {
+    background-color: rgba(45, 45, 45, 0.9) !important;
+    border: 1px solid #FF8C00 !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+}
+
+.info-tasa h6 {
+    color: #FFD700 !important;
+    border-bottom: 1px solid #FF8C00 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+.info-tasa .row .col-md-3 strong {
+    color: #FFD700 !important;
+    display: block !important;
+    margin-bottom: 5px !important;
+}
+
+.info-tasa .row .col-md-3 span {
+    color: #FFFFFF !important;
+    font-size: 1.1rem !important;
+    font-weight: bold !important;
+}
+
+/* Validación de fondos con mejor contraste */
+.validacion-fondos {
+    border-radius: 8px !important;
+    padding: 15px !important;
+    margin-top: 15px !important;
+}
+
+.validacion-fondos.alert-success {
+    background-color: rgba(40, 167, 69, 0.2) !important;
+    border: 2px solid #28a745 !important;
+    color: #FFFFFF !important;
+}
+
+.validacion-fondos.alert-danger {
+    background-color: rgba(220, 53, 69, 0.2) !important;
+    border: 2px solid #dc3545 !important;
+    color: #FFFFFF !important;
+}
+
+.validacion-fondos.alert-warning {
+    background-color: rgba(255, 193, 7, 0.2) !important;
+    border: 2px solid #ffc107 !important;
+    color: #FFFFFF !important;
+}
+
+/* Iconos de validación */
+.icono-validacion {
+    font-size: 1.2rem !important;
+    margin-right: 8px !important;
+}
+
+/* Botones con mejor contraste */
+.btn-confirmar-transaccion {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+    padding: 12px 30px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-confirmar-transaccion:hover:not(:disabled) {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+}
+
+.btn-confirmar-transaccion:disabled {
+    background: #6c757d !important;
+    color: #FFFFFF !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+/* Checkboxes y labels de términos */
+.form-check-input {
+    margin-right: 10px !important;
+}
+
+.form-check-label {
+    color: #FFFFFF !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+}
+
+.form-check-label a {
+    color: #FF8C00 !important;
+    text-decoration: underline !important;
+}
+
+.form-check-label a:hover {
+    color: #FFD700 !important;
+}
+
+/* Tarjetas de ayuda e información */
+.card.border-info .card-header {
+    background-color: #17a2b8 !important;
+    color: #FFFFFF !important;
+    border-bottom: 2px solid #FFD700 !important;
+}
+
+.card.border-info .card-body {
+    background-color: rgba(45, 45, 45, 0.9) !important;
+    color: #CCCCCC !important;
+}
+
+.card.border-success .card-header {
+    background-color: #28a745 !important;
+    color: #FFFFFF !important;
+    border-bottom: 2px solid #FFD700 !important;
+}
+
+.card.border-success .card-body {
+    background-color: rgba(45, 45, 45, 0.9) !important;
+    color: #CCCCCC !important;
+}
+
+.card.border-secondary .card-header {
+    background-color: #6c757d !important;
+    color: #FFFFFF !important;
+    border-bottom: 2px solid #FFD700 !important;
+}
+
+.card.border-secondary .card-body {
+    background-color: rgba(45, 45, 45, 0.9) !important;
+    color: #CCCCCC !important;
+}
+
+/* Elementos específicos de saldos */
+#saldos-disponibles {
+    background-color: rgba(45, 45, 45, 0.9) !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+}
+
+#saldos-disponibles .row {
+    margin: 0 !important;
+}
+
+#saldos-disponibles .col-6 {
+    text-align: center !important;
+    padding: 10px !important;
+}
+
+#saldos-disponibles strong {
+    color: #FFD700 !important;
+    font-size: 1.1rem !important;
+    display: block !important;
+    margin-bottom: 5px !important;
+}
+
+#saldos-disponibles span {
+    color: #FFFFFF !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+}
+
+#saldos-disponibles .text-primary {
+    color: #007bff !important;
+}
+
+#saldos-disponibles .text-info {
+    color: #17a2b8 !important;
+}
+
+#saldos-disponibles .text-muted {
+    color: #CCCCCC !important;
+}
+
+/* Indicadores de carga */
+.calculando-indicator {
+    background-color: rgba(255, 215, 0, 0.1) !important;
+    border: 1px solid #FFD700 !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    color: #FFD700 !important;
+    font-weight: bold !important;
+}
+
+.calculando-indicator i {
+    color: #FFD700 !important;
+    margin-right: 10px !important;
+}
+
+/* Asegurar que todos los elementos dentro de container-fluid sean visibles */
+.container-fluid * {
+    color: inherit;
+}
+
+/* Override para elementos que podrían tener colores específicos */
+.container-fluid .text-dark {
+    color: #FFFFFF !important;
+}
+
+.container-fluid .text-black {
+    color: #FFFFFF !important;
+}
+
+/* Mejorar la visibilidad de elementos de Bootstrap que podrían estar ocultos */
+.container-fluid .badge {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+.container-fluid .alert {
+    color: #FFFFFF !important;
+}
+
+.container-fluid .alert strong {
+    color: #FFFFFF !important;
+}/* =====
+====================================================================
+   ESTILOS PARA BOTÓN DE CERRAR SESIÓN
+   ========================================================================= */
+
+/* Botón de cerrar sesión en navbar */
+.navbar .btn-outline-danger {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background-color: transparent !important;
+    font-weight: bold !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    transition: all 0.3s ease !important;
+}
+
+.navbar .btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Botón de cerrar sesión en sidebar */
+.sidebar .btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    display: block !important;
+    text-align: center !important;
+    box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3) !important;
+}
+
+.sidebar .btn-danger:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4) !important;
+    text-decoration: none !important;
+    color: #FFFFFF !important;
+}
+
+/* Botón de cerrar sesión en dashboard */
+.container-fluid .btn-outline-danger {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    font-weight: bold !important;
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+.container-fluid .btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+}
+
+/* Dropdown item de cerrar sesión */
+.dropdown-item.text-danger {
+    color: #dc3545 !important;
+    font-weight: bold !important;
+}
+
+.dropdown-item.text-danger:hover {
+    background-color: #dc3545 !important;
+    color: #FFFFFF !important;
+}
+
+/* Responsive para botones de cerrar sesión */
+@media (max-width: 768px) {
+    .navbar .btn-outline-danger {
+        font-size: 0.9rem !important;
+        padding: 4px 8px !important;
+    }
+    
+    .container-fluid .btn-outline-danger {
+        font-size: 0.9rem !important;
+        padding: 6px 12px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar .btn-outline-danger span {
+        display: none !important;
+    }
+    
+    .container-fluid .btn-outline-danger span {
+        display: none !important;
+    }
+}
+
+/* Animación de pulso para llamar la atención */
+@keyframes logout-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+.sidebar .btn-danger:focus {
+    animation: logout-pulse 2s infinite;
+}

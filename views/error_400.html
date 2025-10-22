@@ -1,0 +1,146 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="error-icon mb-4">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 8rem; color: var(--color-warning);"></i>
+                </div>
+                
+                <!-- Error Code -->
+                <h1 class="display-1 text-warning font-weight-bold">400</h1>
+                
+                <!-- Error Message -->
+                <h2 class="text-gold mb-4">Solicitud Incorrecta</h2>
+                
+                <p class="lead text-muted mb-4">
+                    La solicitud enviada no pudo ser procesada debido a un error en el formato o contenido.
+                </p>
+                
+                <!-- Error Details -->
+                <div class="card bg-dark-custom border-warning mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fas fa-info-circle"></i> Información del Error
+                        </h5>
+                        <div class="row text-left">
+                            <div class="col-md-6">
+                                <strong>Tipo de Error:</strong><br>
+                                <code class="text-gold">Solicitud Malformada</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Código HTTP:</strong><br>
+                                <code class="text-gold">400 - Bad Request</code>
+                            </div>
+                        </div>
+                        <div class="row text-left mt-3">
+                            <div class="col-md-6">
+                                <strong>Fecha/Hora:</strong><br>
+                                <code class="text-gold">{{=request.now.strftime('%Y-%m-%d %H:%M:%S')}}</code>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>URL:</strong><br>
+                                <code class="text-gold">{{=request.env.request_uri or 'N/A'}}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Possible Causes -->
+                <div class="card bg-dark-custom border-info mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-search"></i> Posibles Causas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="text-left">
+                            <li>Datos de formulario incompletos o inválidos</li>
+                            <li>Formato de fecha o número incorrecto</li>
+                            <li>Campos requeridos faltantes</li>
+                            <li>Caracteres especiales no permitidos</li>
+                            <li>Tamaño de archivo excedido</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    <button onclick="history.back()" class="btn btn-primary btn-lg mr-3">
+                        <i class="fas fa-arrow-left"></i> Volver e Intentar de Nuevo
+                    </button>
+                    <a href="{{=URL('default', 'index')}}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                </div>
+                
+                <!-- Help Section -->
+                <div class="card bg-dark-custom border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-lightbulb"></i> Sugerencias
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-check-circle text-success"></i> Verificar Datos</h6>
+                                <p class="small">
+                                    Asegúrese de completar todos los campos requeridos con el formato correcto.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-redo text-success"></i> Intentar Nuevamente</h6>
+                                <p class="small">
+                                    Regrese a la página anterior y revise la información ingresada.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-icon {
+    animation: shake 0.5s infinite alternate;
+}
+
+@keyframes shake {
+    0% { transform: translateX(-5px); }
+    100% { transform: translateX(5px); }
+}
+
+.display-1 {
+    font-size: 6rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+</style>
+
+<script>
+// Log del error 400 para auditoría
+if (typeof console !== 'undefined') {
+    console.warn('Error 400 - Solicitud incorrecta:', window.location.href);
+}
+
+// Enviar información del error al servidor
+fetch('/api/log_error_client', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        error_type: '400',
+        url: window.location.href,
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        referrer: document.referrer
+    })
+}).catch(function(error) {
+    console.warn('No se pudo enviar log de error:', error);
+});
+</script>

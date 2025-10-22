@@ -1,0 +1,562 @@
+{{extend 'layout.html'}}
+
+<style>
+/* ESTILOS ESPECÍFICOS SOLO PARA ESTA PÁGINA */
+.divisas-page {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+/* Títulos en fondo negro */
+.divisas-page h1, .divisas-page h2, .divisas-page h3, 
+.divisas-page h4, .divisas-page h5, .divisas-page h6 { 
+    color: #FFFFFF !important; 
+    font-weight: bold !important; 
+}
+
+.divisas-page .lead { 
+    color: #CCCCCC !important; 
+}
+
+/* Breadcrumbs */
+.divisas-page .breadcrumb-item { 
+    color: #CCCCCC !important; 
+}
+.divisas-page .breadcrumb-item a { 
+    color: #FF8C00 !important; 
+}
+.divisas-page .breadcrumb-item.active { 
+    color: #FFD700 !important; 
+}
+
+/* Tarjetas con fondo blanco y texto negro */
+.divisas-page .card { 
+    background-color: #FFFFFF !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+.divisas-page .card-body { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+.divisas-page .card-body * { 
+    color: #000000 !important; 
+}
+
+/* Headers de tarjetas mantienen su color */
+.divisas-page .card-header.bg-info { 
+    background-color: #17a2b8 !important; 
+    color: #FFFFFF !important; 
+}
+
+/* Labels y formularios */
+.divisas-page label, .divisas-page .form-label { 
+    color: #000000 !important; 
+    font-weight: bold !important; 
+}
+
+.divisas-page .form-control { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+.divisas-page .form-control:focus { 
+    border-color: #FFD700 !important; 
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important; 
+}
+
+.divisas-page .form-control::placeholder { 
+    color: #666666 !important; 
+}
+
+/* Input groups */
+.divisas-page .input-group-text { 
+    background-color: #FF8C00 !important; 
+    color: #000000 !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+/* Enlaces dentro de tarjetas */
+.divisas-page .card a { 
+    color: #007bff !important; 
+}
+
+/* Botones */
+.divisas-page .btn { 
+    font-weight: bold !important; 
+}
+
+.divisas-page .btn-info { 
+    background-color: #17a2b8 !important; 
+    color: #FFFFFF !important; 
+}
+
+.divisas-page .btn-secondary { 
+    background-color: #6c757d !important; 
+    color: #FFFFFF !important; 
+}
+
+/* Alertas */
+.divisas-page .alert { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+    border: 2px solid #007bff !important; 
+}
+
+/* Texto de ayuda */
+.divisas-page .form-text, .divisas-page .small { 
+    color: #666666 !important; 
+}
+
+/* Checkboxes */
+.divisas-page .form-check-label { 
+    color: #000000 !important; 
+}
+
+/* Modales */
+.modal-content { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+.modal-header { 
+    background-color: #FF8C00 !important; 
+    color: #FFFFFF !important; 
+}
+
+.modal-body * { 
+    color: #000000 !important; 
+}
+
+/* Elementos específicos de la calculadora */
+.divisas-page .info-tasa { 
+    background-color: #f8f9fa !important; 
+    border: 2px solid #FF8C00 !important; 
+}
+
+.divisas-page .validacion-fondos { 
+    background-color: #FFFFFF !important; 
+    color: #000000 !important; 
+}
+
+.divisas-page .calculando-indicator { 
+    background-color: #fff3cd !important; 
+    color: #856404 !important; 
+    border: 2px solid #ffc107 !important; 
+}
+
+/* Saldos disponibles */
+.divisas-page #saldos-disponibles { 
+    background-color: #f8f9fa !important; 
+    color: #000000 !important; 
+    border: 2px solid #28a745 !important; 
+}
+</style>
+
+<div class="divisas-page">
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{=URL('divisas', 'index')}}">Divisas</a></li>
+                    <li class="breadcrumb-item active">Vender Divisas</li>
+                </ol>
+            </nav>
+            
+            <h2><i class="fas fa-hand-holding-usd"></i> Vender Divisas</h2>
+            <p class="lead">Convierta sus dólares o euros a bolívares</p>
+        </div>
+    </div>
+
+    {{if response.flash:}}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Formulario de Venta -->
+            <form method="post" id="form-venta-divisas">
+                <input type="hidden" name="confirmar_venta" value="1">
+                
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calculator"></i> Calculadora de Venta
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Selector de Cuenta -->
+                        <div class="form-group">
+                            <label for="cuenta_id">Cuenta a Usar:</label>
+                            <select name="cuenta_id" id="cuenta_id" class="form-control cuenta-selector" required>
+                                <option value="">Seleccione una cuenta</option>
+                                {{for cuenta in cuentas:}}
+                                <option value="{{=cuenta.id}}" 
+                                        data-saldo-usd="{{=cuenta.saldo_usd}}"
+                                        data-saldo-eur="{{=cuenta.saldo_eur}}">
+                                    {{=cuenta.numero_cuenta}} - USD: {{="{:,.2f}".format(float(cuenta.saldo_usd))}} | EUR: {{="{:,.2f}".format(float(cuenta.saldo_eur))}}
+                                </option>
+                                {{pass}}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Divisa a Vender -->
+                                <div class="form-group">
+                                    <label for="moneda_origen">Divisa a Vender:</label>
+                                    <select name="moneda_origen" id="moneda_origen" class="form-control moneda-origen" required>
+                                        <option value="">Seleccione divisa</option>
+                                        <option value="USD">Dólares Estadounidenses (USD)</option>
+                                        <option value="EUR">Euros (EUR)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Monto a Vender -->
+                                <div class="form-group">
+                                    <label for="monto_origen">Monto a Vender:</label>
+                                    <div class="input-group">
+                                        <input type="number" name="monto_origen" id="monto_origen" 
+                                               class="form-control monto-origen" 
+                                               placeholder="0.00" step="0.01" min="0.01" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text moneda-origen-display">--</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">Monto mínimo: 0.01</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos ocultos para el tipo de operación -->
+                        <input type="hidden" class="tipo-operacion" value="venta">
+                        <input type="hidden" class="moneda-destino" value="VES">
+
+                        <!-- Indicador de cálculo -->
+                        <div class="calculando-indicator text-center" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Calculando conversión...
+                        </div>
+
+                        <!-- Error de calculadora -->
+                        <div class="alert alert-danger error-calculadora" style="display: none;"></div>
+
+                        <!-- Información de la conversión -->
+                        <div class="info-tasa" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-info-circle"></i> Detalles de la Operación</h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Recibirá en VES:</strong><br>
+                                            <span class="text-success h5">
+                                                <span class="monto-destino-display">0.00</span> VES
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Tasa Aplicada:</strong><br>
+                                            <span class="tasa-aplicada">0.0000</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Comisión (0.5%):</strong><br>
+                                            <span class="comision-calculada">0.00</span> VES
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Valor Bruto:</strong><br>
+                                            <span class="valor-bruto">0.00</span> VES
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> 
+                                        Tasa actualizada: <span class="fecha-tasa">--</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validación de fondos -->
+                        <div class="validacion-fondos alert" style="display: none;">
+                            <i class="fas icono-validacion"></i>
+                            <strong class="mensaje-validacion"></strong><br>
+                            <small class="detalle-fondos"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmación -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="confirmar-terminos" required>
+                            <label class="form-check-label" for="confirmar-terminos">
+                                Confirmo que he revisado los detalles de la operación y acepto los 
+                                <a href="#" data-toggle="modal" data-target="#modal-terminos">términos y condiciones</a>
+                            </label>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-info btn-lg btn-confirmar-transaccion">
+                                <i class="fas fa-check"></i> Confirmar Venta de Divisas
+                            </button>
+                            <a href="{{=URL('divisas', 'index')}}" class="btn btn-secondary btn-lg ml-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Widget de Tasas -->
+            <div id="widget-tasas-venta" class="mb-3"></div>
+
+            <!-- Información de Ayuda -->
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-question-circle"></i> ¿Cómo funciona?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>Seleccione la cuenta que contiene las divisas</li>
+                        <li>Elija la divisa que desea vender (USD o EUR)</li>
+                        <li>Ingrese el monto que desea vender</li>
+                        <li>Revise los cálculos automáticos</li>
+                        <li>Confirme la operación</li>
+                    </ol>
+                    
+                    <hr>
+                    <h6>Importante:</h6>
+                    <ul class="small">
+                        <li>Se aplicará una comisión del 0.5% sobre el monto en VES</li>
+                        <li>Las tasas se actualizan automáticamente</li>
+                        <li>La operación es irreversible una vez confirmada</li>
+                        <li>Los bolívares se acreditarán inmediatamente</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Saldos Disponibles -->
+            <div class="card border-success mt-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-wallet"></i> Saldos Disponibles
+                    </h6>
+                </div>
+                <div class="card-body" id="saldos-disponibles">
+                    <p class="text-muted small">Seleccione una cuenta para ver los saldos</p>
+                </div>
+            </div>
+
+            <!-- Historial Reciente -->
+            <div class="card border-secondary mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-history"></i> Últimas Ventas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">
+                        <a href="{{=URL('divisas', 'historial_transacciones')}}">
+                            Ver historial completo <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Términos y Condiciones -->
+<div class="modal fade" id="modal-terminos" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Términos y Condiciones - Venta de Divisas</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6>Condiciones de la Operación:</h6>
+                <ul>
+                    <li>La tasa de cambio aplicada es la vigente al momento de la transacción</li>
+                    <li>Se cobrará una comisión del 0.5% sobre el monto convertido en bolívares</li>
+                    <li>La operación es irreversible una vez procesada</li>
+                    <li>Los bolívares se acreditarán inmediatamente en su cuenta</li>
+                    <li>Recibirá un comprobante electrónico de la transacción</li>
+                </ul>
+                
+                <h6>Responsabilidades del Cliente:</h6>
+                <ul>
+                    <li>Verificar que los datos ingresados sean correctos</li>
+                    <li>Asegurarse de tener fondos suficientes en la divisa seleccionada</li>
+                    <li>Mantener confidencial la información de sus cuentas</li>
+                    <li>Reportar cualquier irregularidad inmediatamente</li>
+                </ul>
+                
+                <h6>Limitaciones:</h6>
+                <ul>
+                    <li>Monto mínimo por operación: 0.01 USD/EUR</li>
+                    <li>Monto máximo diario: según límites de su cuenta</li>
+                    <li>Horario de operaciones: 24/7 (sujeto a mantenimientos programados)</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Crear widget de tasas
+    crearWidgetTasas('widget-tasas-venta');
+    
+    // Configurar calculadora para venta
+    $('.calculadora-container').remove(); // Limpiar si existe
+    $('form').addClass('calculadora-container');
+    
+    // Inicializar calculadora
+    if (typeof inicializarCalculadora === 'function') {
+        inicializarCalculadora();
+    }
+    
+    // Configurar tipo de operación para venta
+    $('.moneda-destino').val('VES');
+    $('.tipo-operacion').val('venta');
+    
+    // Manejar cambio en moneda origen
+    $('#moneda_origen').change(function() {
+        const moneda = $(this).val();
+        $('.moneda-origen-display').text(moneda || '--');
+        
+        // Actualizar saldos disponibles
+        actualizarSaldosDisponibles();
+    });
+    
+    // Manejar cambio en cuenta
+    $('#cuenta_id').change(function() {
+        actualizarSaldosDisponibles();
+    });
+    
+    function actualizarSaldosDisponibles() {
+        const cuentaSeleccionada = $('#cuenta_id option:selected');
+        const monedaOrigen = $('#moneda_origen').val();
+        
+        if (cuentaSeleccionada.val() && monedaOrigen) {
+            const saldoUsd = parseFloat(cuentaSeleccionada.data('saldo-usd')) || 0;
+            const saldoEur = parseFloat(cuentaSeleccionada.data('saldo-eur')) || 0;
+            
+            let html = '<div class="row text-center">';
+            html += '<div class="col-6">';
+            html += '<strong>USD</strong><br>';
+            html += `<span class="text-${monedaOrigen === 'USD' ? 'primary' : 'muted'}">${saldoUsd.toLocaleString('es-VE', {minimumFractionDigits: 2})}</span>`;
+            html += '</div>';
+            html += '<div class="col-6">';
+            html += '<strong>EUR</strong><br>';
+            html += `<span class="text-${monedaOrigen === 'EUR' ? 'info' : 'muted'}">${saldoEur.toLocaleString('es-VE', {minimumFractionDigits: 2})}</span>`;
+            html += '</div>';
+            html += '</div>';
+            
+            if (monedaOrigen) {
+                const saldoDisponible = monedaOrigen === 'USD' ? saldoUsd : saldoEur;
+                html += '<hr><small class="text-muted">';
+                html += `Saldo disponible en ${monedaOrigen}: <strong>${saldoDisponible.toLocaleString('es-VE', {minimumFractionDigits: 2})}</strong>`;
+                html += '</small>';
+            }
+            
+            $('#saldos-disponibles').html(html);
+        } else {
+            $('#saldos-disponibles').html('<p class="text-muted small">Seleccione una cuenta y divisa para ver los saldos</p>');
+        }
+    }
+    
+    // Simplificar la validación - solo requerir términos aceptados
+    $('#confirmar-terminos').change(function() {
+        const terminosAceptados = $(this).is(':checked');
+        $('.btn-confirmar-transaccion').prop('disabled', !terminosAceptados);
+    });
+    
+    // Actualizar display del monto destino
+    $(document).on('input', '.monto-origen', function() {
+        setTimeout(() => {
+            const montoDestino = $('.monto-destino').val();
+            $('.monto-destino-display').text(montoDestino || '0.00');
+            
+            // Calcular valor bruto (antes de comisión)
+            const comision = parseFloat($('.comision-calculada').text()) || 0;
+            const montoNeto = parseFloat(montoDestino) || 0;
+            const valorBruto = montoNeto + comision;
+            $('.valor-bruto').text(valorBruto.toLocaleString('es-VE', {minimumFractionDigits: 2}));
+        }, 500);
+    });
+    
+    // Validación del formulario antes del envío
+    $('#form-venta-divisas').submit(function(e) {
+        const terminosAceptados = $('#confirmar-terminos').is(':checked');
+        const monto = $('.monto-origen').val();
+        const cuenta = $('.cuenta-selector').val();
+        const moneda = $('.moneda-origen').val();
+        
+        // Validaciones básicas
+        if (!terminosAceptados) {
+            e.preventDefault();
+            alert('Debe aceptar los términos y condiciones.');
+            return false;
+        }
+        
+        if (!monto || parseFloat(monto) <= 0) {
+            e.preventDefault();
+            alert('Debe ingresar un monto válido.');
+            return false;
+        }
+        
+        if (!cuenta) {
+            e.preventDefault();
+            alert('Debe seleccionar una cuenta.');
+            return false;
+        }
+        
+        if (!moneda) {
+            e.preventDefault();
+            alert('Debe seleccionar la divisa a vender.');
+            return false;
+        }
+        
+        // Confirmación final
+        const confirmacion = confirm(
+            `¿Confirma la venta de ${monto} ${moneda}?`
+        );
+        
+        if (!confirmacion) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Deshabilitar botón para evitar doble envío
+        $('.btn-confirmar-transaccion').prop('disabled', true).html(
+            '<i class="fas fa-spinner fa-spin"></i> Procesando...'
+        );
+        
+        return true;
+    });
+});
+</script>
