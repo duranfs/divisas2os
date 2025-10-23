@@ -738,22 +738,26 @@ def comprobante():
             response.flash = "Acceso no autorizado"
             redirect(URL('divisas', 'index'))
         
-        transaccion = db(
-            (db.transacciones.id == transaccion_id) &
-            (db.transacciones.cuenta_id == db.cuentas.id) &
-            (db.cuentas.cliente_id == cliente.id)
-        ).select(
-            db.transacciones.ALL,
-            db.cuentas.numero_cuenta,
-            join=db.cuentas.on(db.transacciones.cuenta_id == db.cuentas.id)
-        ).first()
+        # Obtener la transacción
+        transaccion = db(db.transacciones.id == transaccion_id).select().first()
         
         if not transaccion:
             response.flash = "Transacción no encontrada"
             redirect(URL('divisas', 'index'))
         
+        # Verificar que la cuenta pertenece al cliente
+        cuenta = db(
+            (db.cuentas.id == transaccion.cuenta_id) &
+            (db.cuentas.cliente_id == cliente.id)
+        ).select().first()
+        
+        if not cuenta:
+            response.flash = "Acceso no autorizado a esta transacción"
+            redirect(URL('divisas', 'index'))
+        
         return dict(
             transaccion=transaccion,
+            cuenta=cuenta,
             cliente=cliente
         )
         

@@ -20,7 +20,7 @@
                     <h4 class="card-title mb-0">
                         <i class="fas fa-check-circle"></i> Comprobante de Transacción
                     </h4>
-                    <p class="mb-0">{{=transaccion.transacciones.tipo_operacion.upper()}} DE DIVISAS</p>
+                    <p class="mb-0">{{=transaccion.tipo_operacion.upper()}} DE DIVISAS</p>
                 </div>
                 
                 <div class="card-body">
@@ -43,31 +43,33 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Cuenta:</strong></td>
-                                    <td>{{=transaccion.cuentas.numero_cuenta}}</td>
+                                    <td>{{=cuenta.numero_cuenta}}</td>
                                 </tr>
                             </table>
                         </div>
                         <div class="col-md-6">
-                            <h6><i class="fas fa-info-circle"></i> Información de la Transacción</h6>
+                            <h6><i class="fas fa-receipt"></i> Detalles de la Transacción</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
                                     <td><strong>Comprobante:</strong></td>
-                                    <td class="text-primary"><strong>{{=transaccion.transacciones.numero_comprobante}}</strong></td>
+                                    <td class="text-primary"><strong>{{=transaccion.numero_comprobante}}</strong></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Fecha:</strong></td>
-                                    <td>{{=transaccion.transacciones.fecha_transaccion.strftime("%d/%m/%Y")}}</td>
+                                    <td>{{=transaccion.fecha_transaccion.strftime("%d/%m/%Y") if transaccion.fecha_transaccion else 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Hora:</strong></td>
-                                    <td>{{=transaccion.transacciones.fecha_transaccion.strftime("%H:%M:%S")}}</td>
+                                    <td>{{=transaccion.fecha_transaccion.strftime("%H:%M:%S") if transaccion.fecha_transaccion else 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Estado:</strong></td>
                                     <td>
-                                        <span class="badge badge-{{='success' if transaccion.transacciones.estado == 'completada' else 'warning'}}">
-                                            {{=transaccion.transacciones.estado.upper()}}
-                                        </span>
+                                        {{if transaccion.estado == 'completada':}}
+                                        <span class="badge badge-success">COMPLETADA</span>
+                                        {{else:}}
+                                        <span class="badge badge-warning">{{=transaccion.estado.upper() if transaccion.estado else 'PENDIENTE'}}</span>
+                                        {{pass}}
                                     </td>
                                 </tr>
                             </table>
@@ -75,19 +77,18 @@
                     </div>
 
                     <!-- Detalles de la Operación -->
-                    <div class="card bg-light mb-4">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-calculator"></i> Detalles de la Operación</h6>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title text-center">
-                                <i class="fas fa-exchange-alt"></i> Detalles de la Operación
-                            </h5>
-                            
                             <div class="row text-center">
                                 <div class="col-md-4">
                                     <div class="border-right">
-                                        <h6>Monto {{=transaccion.transacciones.tipo_operacion == 'compra' and 'Debitado' or 'Vendido'}}</h6>
+                                        <h6>Monto {{=transaccion.tipo_operacion == 'compra' and 'Debitado' or 'Vendido'}}</h6>
                                         <h4 class="text-danger">
-                                            {{="{:,.2f}".format(float(transaccion.transacciones.monto_origen))}} 
-                                            {{=transaccion.transacciones.moneda_origen}}
+                                            {{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else '0.00'}} 
+                                            {{=transaccion.moneda_origen}}
                                         </h4>
                                     </div>
                                 </div>
@@ -95,155 +96,107 @@
                                     <div class="border-right">
                                         <h6>Tasa Aplicada</h6>
                                         <h4 class="text-info">
-                                            {{="{:,.4f}".format(float(transaccion.transacciones.tasa_aplicada))}}
+                                            {{="{:,.4f}".format(float(transaccion.tasa_aplicada)) if transaccion.tasa_aplicada else '0.0000'}}
                                         </h4>
                                         <small class="text-muted">
-                                            {{=transaccion.transacciones.moneda_origen}}/{{=transaccion.transacciones.moneda_destino}}
+                                            {{=transaccion.moneda_origen}}/{{=transaccion.moneda_destino}}
                                         </small>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <h6>Monto {{=transaccion.transacciones.tipo_operacion == 'compra' and 'Recibido' or 'Acreditado'}}</h6>
+                                    <h6>Monto {{=transaccion.tipo_operacion == 'compra' and 'Recibido' or 'Acreditado'}}</h6>
                                     <h4 class="text-success">
-                                        {{="{:,.2f}".format(float(transaccion.transacciones.monto_destino))}} 
-                                        {{=transaccion.transacciones.moneda_destino}}
+                                        {{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else '0.00'}} 
+                                        {{=transaccion.moneda_destino}}
                                     </h4>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Resumen Financiero -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card border-info">
-                                <div class="card-header bg-info text-white">
-                                    <h6 class="mb-0"><i class="fas fa-calculator"></i> Cálculos</h6>
-                                </div>
-                                <div class="card-body">
-                                    {{if transaccion.transacciones.tipo_operacion == 'compra':}}
-                                        <table class="table table-sm">
-                                            <tr>
-                                                <td>Monto base:</td>
-                                                <td class="text-right">{{="{:,.2f}".format(float(transaccion.transacciones.monto_origen))}} VES</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Comisión (0.5%):</td>
-                                                <td class="text-right">{{="{:,.2f}".format(float(transaccion.transacciones.comision))}} VES</td>
-                                            </tr>
-                                            <tr class="table-active">
-                                                <td><strong>Total debitado:</strong></td>
-                                                <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_origen) + float(transaccion.transacciones.comision))}} VES</strong></td>
-                                            </tr>
-                                            <tr class="table-success">
-                                                <td><strong>Recibido:</strong></td>
-                                                <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_destino))}} {{=transaccion.transacciones.moneda_destino}}</strong></td>
-                                            </tr>
-                                        </table>
-                                    {{else:}}
-                                        {{
-                                        valor_bruto = float(transaccion.transacciones.monto_destino) + float(transaccion.transacciones.comision)
-                                        }}
-                                        <table class="table table-sm">
-                                            <tr>
-                                                <td>Valor bruto:</td>
-                                                <td class="text-right">{{="{:,.2f}".format(valor_bruto)}} VES</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Comisión (0.5%):</td>
-                                                <td class="text-right">{{="{:,.2f}".format(float(transaccion.transacciones.comision))}} VES</td>
-                                            </tr>
-                                            <tr class="table-success">
-                                                <td><strong>Neto acreditado:</strong></td>
-                                                <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_destino))}} VES</strong></td>
-                                            </tr>
-                                            <tr class="table-active">
-                                                <td><strong>Divisa vendida:</strong></td>
-                                                <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_origen))}} {{=transaccion.transacciones.moneda_origen}}</strong></td>
-                                            </tr>
-                                        </table>
-                                    {{pass}}
-                                </div>
-                            </div>
+                    <!-- Desglose de Comisiones -->
+                    <div class="card bg-light mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-percent"></i> Desglose de Comisiones</h6>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card border-secondary">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-sticky-note"></i> Observaciones</h6>
-                                </div>
-                                <div class="card-body">
-                                    <p>{{=transaccion.transacciones.observaciones or 'Sin observaciones adicionales'}}</p>
-                                    
-                                    <hr>
-                                    <h6>Información Adicional:</h6>
-                                    <ul class="small">
-                                        <li>Transacción procesada exitosamente</li>
-                                        <li>Los fondos han sido actualizados en su cuenta</li>
-                                        <li>Este comprobante es válido como respaldo de la operación</li>
-                                        <li>Para consultas, conserve el número de comprobante</li>
-                                    </ul>
-                                </div>
-                            </div>
+                        <div class="card-body">
+                            {{if transaccion.tipo_operacion == 'compra':}}
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Monto base:</td>
+                                        <td class="text-right">{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else '0.00'}} VES</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Comisión (0.5%):</td>
+                                        <td class="text-right">{{="{:,.2f}".format(float(transaccion.comision)) if transaccion.comision else '0.00'}} VES</td>
+                                    </tr>
+                                    <tr class="table-active">
+                                        <td><strong>Total debitado:</strong></td>
+                                        <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.monto_origen) + float(transaccion.comision)) if transaccion.monto_origen and transaccion.comision else '0.00'}} VES</strong></td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td><strong>Recibido:</strong></td>
+                                        <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else '0.00'}} {{=transaccion.moneda_destino}}</strong></td>
+                                    </tr>
+                                </table>
+                            {{else:}}
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Monto vendido:</td>
+                                        <td class="text-right">{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else '0.00'}} {{=transaccion.moneda_origen}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Monto bruto en VES:</td>
+                                        <td class="text-right">{{="{:,.2f}".format(float(transaccion.monto_destino) + float(transaccion.comision)) if transaccion.monto_destino and transaccion.comision else '0.00'}} VES</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Comisión (0.5%):</td>
+                                        <td class="text-right">{{="{:,.2f}".format(float(transaccion.comision)) if transaccion.comision else '0.00'}} VES</td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td><strong>Total acreditado:</strong></td>
+                                        <td class="text-right"><strong>{{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else '0.00'}} VES</strong></td>
+                                    </tr>
+                                </table>
+                            {{pass}}
                         </div>
                     </div>
 
-                    <!-- Código QR y Verificación -->
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6><i class="fas fa-shield-alt"></i> Verificación de Autenticidad</h6>
-                                    <p class="mb-2">
-                                        <strong>Hash de Verificación:</strong> 
-                                        <code>{{=hash(str(transaccion.transacciones.id) + transaccion.transacciones.numero_comprobante)[:16]}}</code>
-                                    </p>
-                                    <small class="text-muted">
-                                        Este comprobante puede ser verificado en nuestras oficinas o a través de nuestro sistema en línea
-                                    </small>
-                                </div>
-                            </div>
+                    <!-- Observaciones -->
+                    {{if transaccion.observaciones:}}
+                    <div class="card bg-light mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-sticky-note"></i> Observaciones</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">{{=transaccion.observaciones}}</p>
                         </div>
                     </div>
+                    {{pass}}
 
                     <!-- Botones de Acción -->
-                    <div class="text-center">
-                        <button onclick="imprimirComprobante()" class="btn btn-primary">
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary" onclick="window.print()">
                             <i class="fas fa-print"></i> Imprimir Comprobante
                         </button>
-                        <button onclick="descargarPDF()" class="btn btn-secondary">
-                            <i class="fas fa-file-pdf"></i> Descargar PDF
+                        <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Historial
+                        </a>
+                        <button type="button" class="btn btn-info" onclick="copiarComprobante('{{=transaccion.numero_comprobante}}')">
+                            <i class="fas fa-copy"></i> Copiar Número
                         </button>
-                        <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-outline-secondary">
-                            <i class="fas fa-history"></i> Ver Historial
-                        </a>
-                        <a href="{{=URL('divisas', 'index')}}" class="btn btn-outline-primary">
-                            <i class="fas fa-home"></i> Volver al Inicio
-                        </a>
                     </div>
-                </div>
-
-                <!-- Footer del Comprobante -->
-                <div class="card-footer text-center text-muted">
-                    <small>
-                        <i class="fas fa-building"></i> Sistema de Divisas Bancario | 
-                        <i class="fas fa-phone"></i> 0212-555-0123 | 
-                        <i class="fas fa-envelope"></i> soporte@banco.com
-                    </small>
-                    <br>
-                    <small>
-                        Comprobante generado el {{=datetime.datetime.now().strftime("%d/%m/%Y a las %H:%M:%S")}}
-                    </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Estilos para impresión -->
 <style>
 @media print {
-    .breadcrumb, .btn, .card-footer {
-        display: none !important;
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
     }
     
     .card {
@@ -252,9 +205,17 @@
     }
     
     .card-header {
-        background-color: #000 !important;
-        color: #fff !important;
-        -webkit-print-color-adjust: exact;
+        background-color: #f8f9fa !important;
+        color: #000 !important;
+        border-bottom: 2px solid #000 !important;
+    }
+    
+    .btn {
+        display: none !important;
+    }
+    
+    .breadcrumb {
+        display: none !important;
     }
     
     .text-primary, .text-success, .text-info, .text-danger {
@@ -263,37 +224,24 @@
     
     .bg-light {
         background-color: #f8f9fa !important;
-        -webkit-print-color-adjust: exact;
+        color: #000 !important;
     }
     
-    .border-right {
-        border-right: 1px solid #000 !important;
+    .table {
+        color: #000 !important;
     }
     
-    body {
-        font-size: 12px;
+    .badge {
+        border: 1px solid #000 !important;
     }
 }
 </style>
 
 <script>
-function imprimirComprobante() {
-    window.print();
-}
-
-function descargarPDF() {
-    // Esta función requeriría implementación adicional con una librería como jsPDF
-    // Por ahora, mostrar mensaje informativo
-    alert('Función de descarga PDF en desarrollo. Por favor, use la opción de imprimir y seleccione "Guardar como PDF" en su navegador.');
-}
-
-// Función para copiar número de comprobante
-function copiarComprobante() {
-    const numeroComprobante = '{{=transaccion.transacciones.numero_comprobante}}';
-    
+function copiarComprobante(numeroComprobante) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(numeroComprobante).then(function() {
-            alert('Número de comprobante copiado al portapapeles');
+            alert('Número de comprobante copiado: ' + numeroComprobante);
         });
     } else {
         // Fallback para navegadores más antiguos
@@ -303,19 +251,7 @@ function copiarComprobante() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('Número de comprobante copiado al portapapeles');
+        alert('Número de comprobante copiado: ' + numeroComprobante);
     }
 }
-
-// Agregar funcionalidad de clic al número de comprobante
-$(document).ready(function() {
-    $('.text-primary').click(function() {
-        if ($(this).text().includes('{{=transaccion.transacciones.numero_comprobante}}')) {
-            copiarComprobante();
-        }
-    });
-    
-    // Tooltip para el número de comprobante
-    $('.text-primary').attr('title', 'Haga clic para copiar').css('cursor', 'pointer');
-});
 </script>
