@@ -13,7 +13,7 @@
 - **Bootstrap 3** para diseño responsive
 - **CSS personalizado** con paleta de colores específica:
   - Fondo: Negro (#000000)
-  - Menú: Naranja (#FF8C00)  
+  - Menú: Naranja suave (#FFA366)  
   - Acento: Dorado (#FFD700)
 - **JavaScript/jQuery** para interactividad
 

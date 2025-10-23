@@ -405,6 +405,17 @@ def log_auditoria(accion, modulo, tabla_afectada=None, registro_id=None,
         if not usuario_id:
             usuario_id = auth.user_id
         
+        # Convertir registro_id a entero si es necesario
+        if registro_id is not None:
+            try:
+                if hasattr(registro_id, 'id'):
+                    registro_id = registro_id.id
+                elif hasattr(registro_id, '_id'):
+                    registro_id = registro_id._id
+                registro_id = int(str(registro_id).strip()) if registro_id else None
+            except:
+                registro_id = None
+        
         # Obtener información de la sesión
         ip_address = request.env.remote_addr or 'unknown'
         user_agent = request.env.http_user_agent or ''
@@ -437,6 +448,16 @@ def log_transaccion(tipo_operacion, cuenta_id, monto_origen, moneda_origen,
                    numero_comprobante, resultado='exitoso', mensaje_error=None):
     """Registra específicamente transacciones de divisas"""
     
+    # Convertir cuenta_id a entero si es necesario
+    try:
+        if hasattr(cuenta_id, 'id'):
+            cuenta_id = cuenta_id.id
+        elif hasattr(cuenta_id, '_id'):
+            cuenta_id = cuenta_id._id
+        cuenta_id = int(str(cuenta_id).strip()) if cuenta_id else None
+    except:
+        cuenta_id = None
+    
     datos_transaccion = {
         'tipo_operacion': tipo_operacion,
         'cuenta_id': cuenta_id,
@@ -461,6 +482,16 @@ def log_transaccion(tipo_operacion, cuenta_id, monto_origen, moneda_origen,
 
 def log_cambio_saldo(cuenta_id, moneda, saldo_anterior, saldo_nuevo, motivo):
     """Registra cambios en saldos de cuentas"""
+    
+    # Convertir cuenta_id a entero si es necesario
+    try:
+        if hasattr(cuenta_id, 'id'):
+            cuenta_id = cuenta_id.id
+        elif hasattr(cuenta_id, '_id'):
+            cuenta_id = cuenta_id._id
+        cuenta_id = int(str(cuenta_id).strip()) if cuenta_id else None
+    except:
+        cuenta_id = None
     
     datos_cambio = {
         'cuenta_id': cuenta_id,
@@ -827,16 +858,16 @@ db.define_table('configuracion',
 # -------------------------------------------------------------------------
 
 # Configurar callbacks de auditoría para las tablas
-db.clientes._after_insert.append(lambda fields, id: audit_callback_insert(db.clientes, fields))
-db.clientes._after_update.append(lambda fields, id: audit_callback_update(db.clientes, fields, id))
+db.clientes._after_insert.append(lambda fields, id: audit_callback_insert_safe(db.clientes, fields, id))
+db.clientes._after_update.append(lambda fields, id: audit_callback_update_safe(db.clientes, fields, id))
 db.clientes._before_delete.append(lambda record_id: audit_callback_delete(db.clientes, record_id))
 
-db.cuentas._after_insert.append(lambda fields, id: audit_callback_insert(db.cuentas, fields))
-db.cuentas._after_update.append(lambda fields, id: audit_callback_update(db.cuentas, fields, id))
+db.cuentas._after_insert.append(lambda fields, id: audit_callback_insert_safe(db.cuentas, fields, id))
+db.cuentas._after_update.append(lambda fields, id: audit_callback_update_safe(db.cuentas, fields, id))
 db.cuentas._before_delete.append(lambda record_id: audit_callback_delete(db.cuentas, record_id))
 
-db.transacciones._after_insert.append(lambda fields, id: audit_callback_insert(db.transacciones, fields))
-db.transacciones._after_update.append(lambda fields, id: audit_callback_update(db.transacciones, fields, id))
+db.transacciones._after_insert.append(lambda fields, id: audit_callback_insert_safe(db.transacciones, fields, id))
+db.transacciones._after_update.append(lambda fields, id: audit_callback_update_safe(db.transacciones, fields, id))
 db.transacciones._before_delete.append(lambda record_id: audit_callback_delete(db.transacciones, record_id))
 
 # Callbacks de auditoría para tasas_cambio (con conversión de ID)
@@ -844,8 +875,8 @@ db.tasas_cambio._after_insert.append(lambda fields, id: audit_callback_insert_sa
 db.tasas_cambio._after_update.append(lambda fields, id: audit_callback_update_safe(db.tasas_cambio, fields, id))
 db.tasas_cambio._before_delete.append(lambda record_id: audit_callback_delete(db.tasas_cambio, record_id))
 
-db.configuracion._after_insert.append(lambda fields, id: audit_callback_insert(db.configuracion, fields))
-db.configuracion._after_update.append(lambda fields, id: audit_callback_update(db.configuracion, fields, id))
+db.configuracion._after_insert.append(lambda fields, id: audit_callback_insert_safe(db.configuracion, fields, id))
+db.configuracion._after_update.append(lambda fields, id: audit_callback_update_safe(db.configuracion, fields, id))
 db.configuracion._before_delete.append(lambda record_id: audit_callback_delete(db.configuracion, record_id))
 
 # -------------------------------------------------------------------------

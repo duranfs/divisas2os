@@ -2,76 +2,76 @@
 
 {{block head}}
 <style>
-:root {
-    --color-fondo: #000000;
-    --color-menu: #FF8C00;
-    --color-acento: #FFD700;
-    --color-texto: #FFFFFF;
-    --color-texto-secundario: #CCCCCC;
-}
+    :root {
+        --color-fondo: #000000;
+        --color-menu: #e96812d5;
+        --color-acento: #FFD700;
+        --color-texto: #FFFFFF;
+        --color-texto-secundario: #CCCCCC;
+    }
 
-body {
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-}
+    body {
+        background-color: var(--color-fondo);
+        color: var(--color-texto);
+    }
 
-.card {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    color: var(--color-texto);
-}
+    .card {
+        background-color: #1a1a1a;
+        border: 1px solid #333;
+        color: var(--color-texto);
+    }
 
-.card-header {
-    background-color: var(--color-menu);
-    color: var(--color-fondo);
-    font-weight: bold;
-}
+    .card-header {
+        background-color: var(--color-menu);
+        color: var(--color-fondo);
+        font-weight: bold;
+    }
 
-.btn-outline-warning {
-    color: var(--color-acento);
-    border-color: var(--color-acento);
-}
+    .btn-outline-warning {
+        color: var(--color-acento);
+        border-color: var(--color-acento);
+    }
 
-.table-dark {
-    background-color: #1a1a1a;
-}
+    .table-dark {
+        background-color: #1a1a1a;
+    }
 
-.table-dark th {
-    background-color: var(--color-menu);
-    color: var(--color-fondo);
-}
+    .table-dark th {
+        background-color: var(--color-menu);
+        color: var(--color-fondo);
+    }
 
-.text-warning {
-    color: var(--color-acento) !important;
-}
+    .text-warning {
+        color: var(--color-acento) !important;
+    }
 
-.badge-success {
-    background-color: #28a745;
-}
+    .badge-success {
+        background-color: #28a745;
+    }
 
-.badge-info {
-    background-color: #17a2b8;
-}
+    .badge-info {
+        background-color: #17a2b8;
+    }
 
-.stat-card {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-    border: 1px solid #444;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 20px;
-}
+    .stat-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border: 1px solid #444;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
 
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--color-acento);
-}
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--color-acento);
+    }
 
-.stat-label {
-    color: var(--color-texto-secundario);
-    font-size: 0.9rem;
-}
+    .stat-label {
+        color: var(--color-texto-secundario);
+        font-size: 0.9rem;
+    }
 </style>
 {{end}}
 
@@ -85,8 +85,8 @@ body {
                 </a>
             </div>
         </div>
-    </div>    
-<!-- Información Principal de la Cuenta -->
+    </div>
+    <!-- Información Principal de la Cuenta -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -97,17 +97,19 @@ body {
                     <div class="row">
                         <div class="col-md-6">
                             <h4 class="text-warning">{{=cuenta.numero_cuenta}}</h4>
-                            <p><strong>Tipo:</strong> <span class="badge badge-info">{{=cuenta.tipo_cuenta.title()}}</span></p>
-                            <p><strong>Estado:</strong> 
+                            <p><strong>Tipo:</strong> <span
+                                    class="badge badge-info">{{=cuenta.tipo_cuenta.title()}}</span></p>
+                            <p><strong>Estado:</strong>
                                 {{if cuenta.estado == 'activa':}}
-                                    <span class="badge badge-success">Activa</span>
+                                <span class="badge badge-success">Activa</span>
                                 {{elif cuenta.estado == 'inactiva':}}
-                                    <span class="badge badge-warning">Inactiva</span>
+                                <span class="badge badge-warning">Inactiva</span>
                                 {{else:}}
-                                    <span class="badge badge-danger">Bloqueada</span>
+                                <span class="badge badge-danger">Bloqueada</span>
                                 {{pass}}
                             </p>
-                            <p><strong>Fecha de Creación:</strong> {{=cuenta.fecha_creacion.strftime('%d/%m/%Y %H:%M')}}</p>
+                            <p><strong>Fecha de Creación:</strong> {{=cuenta.fecha_creacion.strftime('%d/%m/%Y %H:%M')}}
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Titular:</strong> {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
@@ -172,7 +174,8 @@ body {
                         </div>
                         <div class="col-md-3">
                             <div class="stat-card">
-                                <div class="stat-number">{{="{:,.0f}".format(estadisticas_mes['monto_total_ves'])}}</div>
+                                <div class="stat-number">{{="{:,.0f}".format(estadisticas_mes['monto_total_ves'])}}
+                                </div>
                                 <div class="stat-label">Monto Total VES</div>
                             </div>
                         </div>
@@ -188,7 +191,8 @@ body {
             <div class="card">
                 <div class="card-header">
                     <i class="fa fa-clock-o"></i> Últimas Transacciones
-                    <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-sm btn-outline-warning float-right">
+                    <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}"
+                        class="btn btn-sm btn-outline-warning float-right">
                         Ver Todas
                     </a>
                 </div>
@@ -212,9 +216,9 @@ body {
                                     <td>{{=transaccion.fecha_transaccion.strftime('%d/%m %H:%M')}}</td>
                                     <td>
                                         {{if transaccion.tipo_operacion == 'compra':}}
-                                            <span class="badge badge-success">Compra</span>
+                                        <span class="badge badge-success">Compra</span>
                                         {{else:}}
-                                            <span class="badge badge-info">Venta</span>
+                                        <span class="badge badge-info">Venta</span>
                                         {{pass}}
                                     </td>
                                     <td class="text-right">
@@ -228,9 +232,9 @@ body {
                                     </td>
                                     <td>
                                         {{if transaccion.estado == 'completada':}}
-                                            <span class="badge badge-success">OK</span>
+                                        <span class="badge badge-success">OK</span>
                                         {{else:}}
-                                            <span class="badge badge-warning">{{=transaccion.estado.title()}}</span>
+                                        <span class="badge badge-warning">{{=transaccion.estado.title()}}</span>
                                         {{pass}}
                                     </td>
                                 </tr>
@@ -262,13 +266,15 @@ body {
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-md-2">
-                            <a href="{{=URL('cuentas', 'consultar', args=[cuenta.id])}}" class="btn btn-outline-warning btn-block">
+                            <a href="{{=URL('cuentas', 'consultar', args=[cuenta.id])}}"
+                                class="btn btn-outline-warning btn-block">
                                 <i class="fa fa-search"></i><br>
                                 <small>Consultar Saldos</small>
                             </a>
                         </div>
                         <div class="col-md-2">
-                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-warning btn-block">
+                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}"
+                                class="btn btn-outline-warning btn-block">
                                 <i class="fa fa-history"></i><br>
                                 <small>Ver Movimientos</small>
                             </a>

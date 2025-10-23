@@ -44,23 +44,23 @@
                                 <div class="form-group">
                                     <label for="fecha_desde">Fecha Desde:</label>
                                     <input type="date" name="fecha_desde" id="fecha_desde" 
-                                           class="form-control" value="{{=filtros.get('fecha_desde', '')}}">
+                                           class="form-control" value="{{=filtros.get('fecha_desde', '') if filtros else ''}}">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="fecha_hasta">Fecha Hasta:</label>
                                     <input type="date" name="fecha_hasta" id="fecha_hasta" 
-                                           class="form-control" value="{{=filtros.get('fecha_hasta', '')}}">
+                                           class="form-control" value="{{=filtros.get('fecha_hasta', '') if filtros else ''}}">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="tipo_operacion">Tipo de Operación:</label>
                                     <select name="tipo_operacion" id="tipo_operacion" class="form-control">
-                                        <option value="todos" {{='selected' if filtros.get('tipo_operacion') == 'todos' else ''}}>Todas</option>
-                                        <option value="compra" {{='selected' if filtros.get('tipo_operacion') == 'compra' else ''}}>Compras</option>
-                                        <option value="venta" {{='selected' if filtros.get('tipo_operacion') == 'venta' else ''}}>Ventas</option>
+                                        <option value="todos">Todas</option>
+                                        <option value="compra">Compras</option>
+                                        <option value="venta">Ventas</option>
                                     </select>
                                 </div>
                             </div>
@@ -68,10 +68,10 @@
                                 <div class="form-group">
                                     <label for="moneda">Moneda:</label>
                                     <select name="moneda" id="moneda" class="form-control">
-                                        <option value="todas" {{='selected' if filtros.get('moneda') == 'todas' else ''}}>Todas</option>
-                                        <option value="VES" {{='selected' if filtros.get('moneda') == 'VES' else ''}}>VES</option>
-                                        <option value="USD" {{='selected' if filtros.get('moneda') == 'USD' else ''}}>USD</option>
-                                        <option value="EUR" {{='selected' if filtros.get('moneda') == 'EUR' else ''}}>EUR</option>
+                                        <option value="todas">Todas</option>
+                                        <option value="VES">VES</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
                                     </select>
                                 </div>
                             </div>
@@ -84,12 +84,6 @@
                                 <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-secondary">
                                     <i class="fas fa-eraser"></i> Limpiar Filtros
                                 </a>
-                                <button type="button" class="btn btn-success" onclick="exportarExcel()">
-                                    <i class="fas fa-file-excel"></i> Exportar Excel
-                                </button>
-                                <button type="button" class="btn btn-danger" onclick="exportarPDF()">
-                                    <i class="fas fa-file-pdf"></i> Exportar PDF
-                                </button>
                             </div>
                         </div>
                     </form>
@@ -105,15 +99,6 @@
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i> 
                 Se encontraron <strong>{{=len(transacciones)}}</strong> transacciones
-                {{if filtros.get('fecha_desde') or filtros.get('fecha_hasta'):}}
-                    {{if filtros.get('fecha_desde') and filtros.get('fecha_hasta'):}}
-                        entre el {{=filtros['fecha_desde']}} y el {{=filtros['fecha_hasta']}}
-                    {{elif filtros.get('fecha_desde'):}}
-                        desde el {{=filtros['fecha_desde']}}
-                    {{elif filtros.get('fecha_hasta'):}}
-                        hasta el {{=filtros['fecha_hasta']}}
-                    {{pass}}
-                {{pass}}
             </div>
         </div>
     </div>
@@ -151,8 +136,8 @@
                                 <tr>
                                     <td>
                                         <small>
-                                            {{=transaccion.transacciones.fecha_transaccion.strftime("%d/%m/%Y")}}<br>
-                                            {{=transaccion.transacciones.fecha_transaccion.strftime("%H:%M:%S")}}
+                                            {{=transaccion.transacciones.fecha_transaccion.strftime("%d/%m/%Y") if transaccion.transacciones.fecha_transaccion else 'N/A'}}<br>
+                                            {{=transaccion.transacciones.fecha_transaccion.strftime("%H:%M:%S") if transaccion.transacciones.fecha_transaccion else ''}}
                                         </small>
                                     </td>
                                     <td>
@@ -161,31 +146,35 @@
                                         </code>
                                     </td>
                                     <td>
-                                        <span class="badge badge-{{='success' if transaccion.transacciones.tipo_operacion == 'compra' else 'info'}}">
-                                            {{=transaccion.transacciones.tipo_operacion.upper()}}
-                                        </span>
+                                        {{if transaccion.transacciones.tipo_operacion == 'compra':}}
+                                        <span class="badge badge-success">COMPRA</span>
+                                        {{else:}}
+                                        <span class="badge badge-info">VENTA</span>
+                                        {{pass}}
                                     </td>
                                     <td>
-                                        <small>{{=transaccion.cuentas.numero_cuenta}}</small>
+                                        <small>{{=transaccion.cuentas.numero_cuenta if hasattr(transaccion, 'cuentas') else 'N/A'}}</small>
                                     </td>
                                     <td class="text-right">
-                                        <strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_origen))}}</strong><br>
+                                        <strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_origen)) if transaccion.transacciones.monto_origen else '0.00'}}</strong><br>
                                         <small class="text-muted">{{=transaccion.transacciones.moneda_origen}}</small>
                                     </td>
                                     <td class="text-right">
-                                        <strong class="text-success">{{="{:,.2f}".format(float(transaccion.transacciones.monto_destino))}}</strong><br>
+                                        <strong class="text-success">{{="{:,.2f}".format(float(transaccion.transacciones.monto_destino)) if transaccion.transacciones.monto_destino else '0.00'}}</strong><br>
                                         <small class="text-muted">{{=transaccion.transacciones.moneda_destino}}</small>
                                     </td>
                                     <td class="text-center">
-                                        <small>{{="{:,.4f}".format(float(transaccion.transacciones.tasa_aplicada))}}</small>
+                                        <small>{{="{:,.4f}".format(float(transaccion.transacciones.tasa_aplicada)) if transaccion.transacciones.tasa_aplicada else '0.0000'}}</small>
                                     </td>
                                     <td class="text-right">
-                                        <small class="text-warning">{{="{:,.2f}".format(float(transaccion.transacciones.comision))}}</small>
+                                        <small class="text-warning">{{="{:,.2f}".format(float(transaccion.transacciones.comision)) if transaccion.transacciones.comision else '0.00'}}</small>
                                     </td>
                                     <td>
-                                        <span class="badge badge-{{='success' if transaccion.transacciones.estado == 'completada' else 'warning'}}">
-                                            {{=transaccion.transacciones.estado.upper()}}
-                                        </span>
+                                        {{if transaccion.transacciones.estado == 'completada':}}
+                                        <span class="badge badge-success">COMPLETADA</span>
+                                        {{else:}}
+                                        <span class="badge badge-warning">{{=transaccion.transacciones.estado.upper() if transaccion.transacciones.estado else 'PENDIENTE'}}</span>
+                                        {{pass}}
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
@@ -210,15 +199,10 @@
                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No se encontraron transacciones</h5>
                         <p class="text-muted">
-                            {{if filtros.get('fecha_desde') or filtros.get('fecha_hasta') or filtros.get('tipo_operacion') != 'todos' or filtros.get('moneda') != 'todas':}}
-                                Intente ajustar los filtros de búsqueda o 
-                                <a href="{{=URL('divisas', 'historial_transacciones')}}">limpiar todos los filtros</a>
-                            {{else:}}
-                                Aún no ha realizado transacciones de divisas.<br>
-                                <a href="{{=URL('divisas', 'index')}}" class="btn btn-primary mt-2">
-                                    <i class="fas fa-plus"></i> Realizar Primera Transacción
-                                </a>
-                            {{pass}}
+                            Aún no ha realizado transacciones de divisas.<br>
+                            <a href="{{=URL('divisas', 'index')}}" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus"></i> Realizar Primera Transacción
+                            </a>
                         </p>
                     </div>
                     {{pass}}
@@ -238,45 +222,9 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {{
-                    # Calcular estadísticas
-                    total_compras = sum([float(t.transacciones.monto_origen) for t in transacciones if t.transacciones.tipo_operacion == 'compra'])
-                    total_ventas = sum([float(t.transacciones.monto_origen) for t in transacciones if t.transacciones.tipo_operacion == 'venta'])
-                    total_comisiones = sum([float(t.transacciones.comision) for t in transacciones])
-                    num_compras = len([t for t in transacciones if t.transacciones.tipo_operacion == 'compra'])
-                    num_ventas = len([t for t in transacciones if t.transacciones.tipo_operacion == 'venta'])
-                    }}
-                    
                     <div class="row text-center">
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <div class="card border-success">
-                                <div class="card-body">
-                                    <h6>Compras</h6>
-                                    <h4 class="text-success">{{=num_compras}}</h4>
-                                    <small class="text-muted">{{="{:,.2f}".format(total_compras)}} VES</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="card border-info">
-                                <div class="card-body">
-                                    <h6>Ventas</h6>
-                                    <h4 class="text-info">{{=num_ventas}}</h4>
-                                    <small class="text-muted">{{="{:,.2f}".format(total_ventas)}} USD/EUR</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="card border-warning">
-                                <div class="card-body">
-                                    <h6>Comisiones</h6>
-                                    <h4 class="text-warning">{{="{:,.2f}".format(total_comisiones)}}</h4>
-                                    <small class="text-muted">VES</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card border-primary">
                                 <div class="card-body">
                                     <h6>Total Transacciones</h6>
                                     <h4 class="text-primary">{{=len(transacciones)}}</h4>
@@ -284,21 +232,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card border-secondary">
+                        <div class="col-md-4">
+                            <div class="card border-info">
                                 <div class="card-body">
-                                    <h6>Promedio Diario</h6>
-                                    {{
-                                    dias_periodo = 1
-                                    if filtros.get('fecha_desde') and filtros.get('fecha_hasta'):
-                                        from datetime import datetime
-                                        fecha_desde = datetime.strptime(filtros['fecha_desde'], '%Y-%m-%d')
-                                        fecha_hasta = datetime.strptime(filtros['fecha_hasta'], '%Y-%m-%d')
-                                        dias_periodo = max(1, (fecha_hasta - fecha_desde).days + 1)
-                                    promedio = len(transacciones) / dias_periodo
-                                    }}
-                                    <h4 class="text-secondary">{{="{:.1f}".format(promedio)}}</h4>
-                                    <small class="text-muted">Transacciones</small>
+                                    <h6>Compras</h6>
+                                    <h4 class="text-success">{{=len([t for t in transacciones if t.transacciones.tipo_operacion == 'compra'])}}</h4>
+                                    <small class="text-muted">Operaciones</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h6>Ventas</h6>
+                                    <h4 class="text-info">{{=len([t for t in transacciones if t.transacciones.tipo_operacion == 'venta'])}}</h4>
+                                    <small class="text-muted">Operaciones</small>
                                 </div>
                             </div>
                         </div>
@@ -312,21 +260,6 @@
 
 <script>
 $(document).ready(function() {
-    // Inicializar DataTable si está disponible
-    if ($.fn.DataTable) {
-        $('#tabla-transacciones').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-            },
-            "order": [[ 0, "desc" ]], // Ordenar por fecha descendente
-            "pageLength": 25,
-            "responsive": true,
-            "columnDefs": [
-                { "orderable": false, "targets": [9] } // Columna de acciones no ordenable
-            ]
-        });
-    }
-    
     // Configurar fechas por defecto (último mes)
     if (!$('#fecha_desde').val() && !$('#fecha_hasta').val()) {
         const hoy = new Date();
@@ -341,12 +274,22 @@ $(document).ready(function() {
     $('.comprobante-codigo').click(function() {
         copiarComprobante($(this).text().trim());
     }).css('cursor', 'pointer');
+    
+    // Configurar valores de filtros desde el servidor
+    {{if filtros:}}
+    {{if filtros.get('tipo_operacion'):}}
+    $('#tipo_operacion').val('{{=filtros["tipo_operacion"]}}');
+    {{pass}}
+    {{if filtros.get('moneda'):}}
+    $('#moneda').val('{{=filtros["moneda"]}}');
+    {{pass}}
+    {{pass}}
 });
 
 function copiarComprobante(numeroComprobante) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(numeroComprobante).then(function() {
-            mostrarToast('Número de comprobante copiado', 'success');
+            alert('Número de comprobante copiado: ' + numeroComprobante);
         });
     } else {
         // Fallback para navegadores más antiguos
@@ -356,47 +299,7 @@ function copiarComprobante(numeroComprobante) {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        mostrarToast('Número de comprobante copiado', 'success');
+        alert('Número de comprobante copiado: ' + numeroComprobante);
     }
 }
-
-function exportarExcel() {
-    // Obtener parámetros actuales
-    const params = new URLSearchParams(window.location.search);
-    params.set('formato', 'excel');
-    
-    // Crear URL de exportación
-    const url = '{{=URL("divisas", "exportar_historial")}}?' + params.toString();
-    
-    // Abrir en nueva ventana para descarga
-    window.open(url, '_blank');
-}
-
-function exportarPDF() {
-    // Obtener parámetros actuales
-    const params = new URLSearchParams(window.location.search);
-    params.set('formato', 'pdf');
-    
-    // Crear URL de exportación
-    const url = '{{=URL("divisas", "exportar_historial")}}?' + params.toString();
-    
-    // Abrir en nueva ventana para descarga
-    window.open(url, '_blank');
-}
-
-function mostrarToast(mensaje, tipo = 'info') {
-    // Si existe toastr, usarlo
-    if (typeof toastr !== 'undefined') {
-        toastr[tipo](mensaje);
-    } else {
-        // Fallback con alert
-        alert(mensaje);
-    }
-}
-
-// Auto-submit del formulario cuando cambian las fechas
-$('#fecha_desde, #fecha_hasta').change(function() {
-    // Opcional: auto-submit después de seleccionar ambas fechas
-    // $('#form-filtros').submit();
-});
 </script>

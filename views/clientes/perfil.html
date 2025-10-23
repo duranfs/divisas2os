@@ -4,7 +4,7 @@
 <style>
 :root {
     --color-fondo: #000000;
-    --color-menu: #FF8C00;
+    --color-menu: #FFA366;
     --color-acento: #FFD700;
     --color-texto: #FFFFFF;
     --color-texto-secundario: #CCCCCC;
@@ -143,21 +143,21 @@ label {
                 <div class="info-section">
                     <div class="row">
                         <div class="col-sm-4 info-label">Nombre:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.auth_user.first_name}} {{=cliente.auth_user.last_name}}</div>
+                        <div class="col-sm-8 info-value">{{=usuario.first_name}} {{=usuario.last_name}}</div>
                     </div>
                 </div>
                 
                 <div class="info-section">
                     <div class="row">
                         <div class="col-sm-4 info-label">Cédula:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.clientes.cedula}}</div>
+                        <div class="col-sm-8 info-value">{{=cliente.cedula}}</div>
                     </div>
                 </div>
                 
                 <div class="info-section">
                     <div class="row">
                         <div class="col-sm-4 info-label">Email:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.auth_user.email}}</div>
+                        <div class="col-sm-8 info-value">{{=usuario.email}}</div>
                     </div>
                 </div>
                 
@@ -165,7 +165,7 @@ label {
                     <div class="row">
                         <div class="col-sm-4 info-label">Estado:</div>
                         <div class="col-sm-8 info-value">
-                            {{if cliente.auth_user.estado == 'activo':}}
+                            {{if hasattr(usuario, 'estado') and usuario.estado == 'activo':}}
                                 <span class="badge badge-success">Activo</span>
                             {{else:}}
                                 <span class="badge badge-danger">Inactivo</span>
@@ -177,7 +177,7 @@ label {
                 <div class="info-section">
                     <div class="row">
                         <div class="col-sm-4 info-label">Registro:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.clientes.fecha_registro.strftime('%d/%m/%Y')}}</div>
+                        <div class="col-sm-8 info-value">{{=cliente.fecha_registro.strftime('%d/%m/%Y') if cliente.fecha_registro else 'N/A'}}</div>
                     </div>
                 </div>
             </div>
@@ -251,14 +251,14 @@ label {
                             <div class="form-group">
                                 <label for="no_table_first_name">Nombres *</label>
                                 <input type="text" class="form-control" id="no_table_first_name" name="first_name" 
-                                       value="{{=cliente.auth_user.first_name}}" required>
+                                       value="{{=usuario.first_name}}" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="no_table_last_name">Apellidos *</label>
                                 <input type="text" class="form-control" id="no_table_last_name" name="last_name" 
-                                       value="{{=cliente.auth_user.last_name}}" required>
+                                       value="{{=usuario.last_name}}" required>
                             </div>
                         </div>
                     </div>
@@ -268,7 +268,7 @@ label {
                             <div class="form-group">
                                 <label for="no_table_cedula">Cédula</label>
                                 <input type="text" class="form-control" id="no_table_cedula" name="cedula" 
-                                       value="{{=cliente.clientes.cedula}}" readonly>
+                                       value="{{=cliente.cedula}}" readonly>
                                 <small class="form-text text-muted">La cédula no se puede modificar</small>
                             </div>
                         </div>
@@ -276,7 +276,7 @@ label {
                             <div class="form-group">
                                 <label for="no_table_telefono">Teléfono *</label>
                                 <input type="tel" class="form-control" id="no_table_telefono" name="telefono" 
-                                       value="{{=cliente.auth_user.telefono}}" required>
+                                       value="{{=usuario.telefono if hasattr(usuario, 'telefono') else ''}}" required>
                                 {{if form and form.errors.telefono:}}
                                 <div class="text-danger">{{=form.errors.telefono}}</div>
                                 {{pass}}
@@ -287,7 +287,7 @@ label {
                     <div class="form-group">
                         <label for="no_table_email">Email *</label>
                         <input type="email" class="form-control" id="no_table_email" name="email" 
-                               value="{{=cliente.auth_user.email}}" required>
+                               value="{{=usuario.email}}" required>
                         {{if form and form.errors.email:}}
                         <div class="text-danger">{{=form.errors.email}}</div>
                         {{pass}}
@@ -296,13 +296,13 @@ label {
                     <div class="form-group">
                         <label for="no_table_direccion">Dirección *</label>
                         <textarea class="form-control" id="no_table_direccion" name="direccion" 
-                                  rows="3" required>{{=cliente.auth_user.direccion}}</textarea>
+                                  rows="3" required>{{=usuario.direccion if hasattr(usuario, 'direccion') else ''}}</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label for="no_table_fecha_nacimiento">Fecha de Nacimiento *</label>
                         <input type="date" class="form-control" id="no_table_fecha_nacimiento" name="fecha_nacimiento" 
-                               value="{{=cliente.auth_user.fecha_nacimiento}}" required>
+                               value="{{=usuario.fecha_nacimiento if hasattr(usuario, 'fecha_nacimiento') else ''}}" required>
                     </div>
                     
                     <div class="form-group text-center mt-4">
@@ -320,7 +320,7 @@ label {
                         {{pass}}
                         
                         {{if auth.has_membership('administrador') or auth.has_membership('operador'):}}
-                        <a href="{{=URL('clientes', 'detalle', args=[cliente.clientes.id])}}" class="btn btn-info btn-lg ml-2">
+                        <a href="{{=URL('clientes', 'detalle', args=[cliente.id])}}" class="btn btn-info btn-lg ml-2">
                             <i class="fa fa-eye"></i> Ver Detalles
                         </a>
                         {{pass}}

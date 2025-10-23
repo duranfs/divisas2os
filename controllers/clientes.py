@@ -200,9 +200,11 @@ def perfil():
     # Obtener información del cliente actual
     if auth.has_membership('cliente'):
         # Cliente puede ver/editar solo su propio perfil
-        cliente = db((db.clientes.user_id == auth.user.id) & 
-                    (db.clientes.user_id == db.auth_user.id)).select(
-                        db.clientes.ALL, db.auth_user.ALL).first()
+        cliente = db(db.clientes.user_id == auth.user.id).select().first()
+        if cliente:
+            usuario = db(db.auth_user.id == cliente.user_id).select().first()
+        else:
+            usuario = None
     else:
         # Administradores y operadores pueden ver perfil específico
         cliente_id = request.args(0)
@@ -210,30 +212,32 @@ def perfil():
             session.flash = "ID de cliente requerido"
             redirect(URL('clientes', 'listar'))
         
-        cliente = db((db.clientes.id == cliente_id) & 
-                    (db.clientes.user_id == db.auth_user.id)).select(
-                        db.clientes.ALL, db.auth_user.ALL).first()
+        cliente = db(db.clientes.id == cliente_id).select().first()
+        if cliente:
+            usuario = db(db.auth_user.id == cliente.user_id).select().first()
+        else:
+            usuario = None
     
-    if not cliente:
+    if not cliente or not usuario:
         session.flash = "Cliente no encontrado"
         redirect(URL('default', 'index'))
     
     # Crear formulario de edición
     form = SQLFORM.factory(
         Field('first_name', 'string', label='Nombres', 
-              default=cliente.auth_user.first_name, requires=IS_NOT_EMPTY()),
+              default=usuario.first_name, requires=IS_NOT_EMPTY()),
         Field('last_name', 'string', label='Apellidos', 
-              default=cliente.auth_user.last_name, requires=IS_NOT_EMPTY()),
+              default=usuario.last_name, requires=IS_NOT_EMPTY()),
         Field('email', 'string', label='Email', 
-              default=cliente.auth_user.email, requires=[IS_NOT_EMPTY(), IS_EMAIL()]),
+              default=usuario.email, requires=[IS_NOT_EMPTY(), IS_EMAIL()]),
         Field('telefono', 'string', label='Teléfono', 
-              default=cliente.auth_user.telefono, requires=IS_NOT_EMPTY()),
+              default=usuario.telefono if hasattr(usuario, 'telefono') else '', requires=IS_NOT_EMPTY()),
         Field('direccion', 'text', label='Dirección', 
-              default=cliente.auth_user.direccion, requires=IS_NOT_EMPTY()),
+              default=usuario.direccion if hasattr(usuario, 'direccion') else '', requires=IS_NOT_EMPTY()),
         Field('fecha_nacimiento', 'date', label='Fecha de Nacimiento', 
-              default=cliente.auth_user.fecha_nacimiento, requires=IS_DATE()),
+              default=usuario.fecha_nacimiento if hasattr(usuario, 'fecha_nacimiento') else None, requires=IS_DATE()),
         Field('cedula', 'string', label='Cédula', 
-              default=cliente.clientes.cedula, writable=False),
+              default=cliente.cedula, writable=False),
         submit_button='Actualizar Perfil',
         formstyle='bootstrap4_inline'
     )
@@ -242,14 +246,14 @@ def perfil():
         try:
             # Verificar que el email no esté usado por otro usuario
             usuario_existente = db((db.auth_user.email == form.vars.email) & 
-                                 (db.auth_user.id != cliente.auth_user.id)).select().first()
+                                 (db.auth_user.id != usuario.id)).select().first()
             if usuario_existente:
                 form.errors.email = "Este email ya está registrado por otro usuario"
                 response.flash = "Error en la validación de datos"
-                return dict(form=form, cliente=cliente)
+                return dict(form=form, cliente=cliente, usuario=usuario)
             
             # Actualizar datos del usuario
-            db(db.auth_user.id == cliente.auth_user.id).update(
+            db(db.auth_user.id == usuario.id).update(
                 first_name=form.vars.first_name,
                 last_name=form.vars.last_name,
                 email=form.vars.email,
@@ -275,9 +279,9 @@ def perfil():
         response.flash = "Por favor corrija los errores en el formulario"
     
     # Obtener cuentas del cliente
-    cuentas = db(db.cuentas.cliente_id == cliente.clientes.id).select()
+    cuentas = db(db.cuentas.cliente_id == cliente.id).select()
     
-    return dict(form=form, cliente=cliente, cuentas=cuentas)
+    return dict(form=form, cliente=cliente, usuario=usuario, cuentas=cuentas)
 
 # -------------------------------------------------------------------------
 # Función de listado de clientes para administradores

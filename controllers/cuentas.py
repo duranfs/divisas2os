@@ -69,10 +69,23 @@ def crear():
         # Generar número de cuenta único
         numero_cuenta = generar_numero_cuenta()
         
-        # Actualizar el registro con el número de cuenta generado
-        db(db.cuentas.id == form.vars.id).update(numero_cuenta=numero_cuenta)
+        # Obtener el ID de la cuenta recién creada
+        cuenta_id = form.vars.id
+        if not cuenta_id:
+            # Si no está disponible en form.vars, buscar la cuenta más reciente del cliente
+            cuenta_reciente = db(db.cuentas.cliente_id == cliente.id).select(
+                orderby=~db.cuentas.id,
+                limitby=(0, 1)
+            ).first()
+            cuenta_id = cuenta_reciente.id if cuenta_reciente else None
         
-        session.flash = f"Cuenta creada exitosamente. Número: {numero_cuenta}"
+        if cuenta_id:
+            # Actualizar el registro con el número de cuenta generado
+            db(db.cuentas.id == cuenta_id).update(numero_cuenta=numero_cuenta)
+            session.flash = f"Cuenta creada exitosamente. Número: {numero_cuenta}"
+        else:
+            session.flash = "Cuenta creada pero no se pudo asignar número. Contacte al administrador."
+        
         redirect(URL('cuentas', 'index'))
     elif form.errors:
         response.flash = "Por favor corrija los errores en el formulario"

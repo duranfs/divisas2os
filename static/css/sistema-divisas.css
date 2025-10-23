@@ -5,11 +5,11 @@
 
 :root {
     --color-fondo: #000000;           /* Negro - Fondo principal */
-    --color-menu: #FF8C00;            /* Naranja - Menú y navegación */
+    --color-menu: #FFA366;            /* Naranja suave - Menú y navegación */
     --color-acento: #FFD700;          /* Dorado - Elementos destacados */
     --color-texto: #FFFFFF;           /* Blanco - Texto principal */
     --color-texto-secundario: #CCCCCC; /* Gris claro - Texto secundario */
-    --color-hover: #FF7F00;           /* Naranja más oscuro para hover */
+    --color-hover: #FF9147;           /* Naranja suave más oscuro para hover */
     --color-success: #28a745;         /* Verde para éxito */
     --color-warning: #ffc107;         /* Amarillo para advertencias */
     --color-danger: #dc3545;          /* Rojo para errores */
@@ -868,7 +868,7 @@ body .registro-form .form-label {
 
 /* Iconos en las etiquetas de registro */
 .registro-form .form-label i {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
     margin-right: 0.5rem;
 }
 
@@ -946,7 +946,7 @@ body .registro-form .form-label {
 
 /* Breadcrumbs */
 .breadcrumb-item a {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
 }
 
 .breadcrumb-item.active {
@@ -955,7 +955,7 @@ body .registro-form .form-label {
 
 /* Enlaces en general */
 a {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
 }
 
 a:hover {
@@ -1107,7 +1107,10 @@ a:hover {
 .form-control {
     background-color: #2d2d2d !important;
     color: #FFFFFF !important;
-    border: 2px solid #FF8C00 !important;
+    border: 2px solid #FFA366 !important;
+    padding: 0.75rem !important;
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    line-height: 1.5 !important;
 }
 
 .form-control:focus {
@@ -1121,17 +1124,43 @@ a:hover {
     color: #CCCCCC !important;
 }
 
+/* Asegurar que los select boxes tengan la misma altura que los inputs */
+select.form-control {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    padding: 0.75rem !important;
+    line-height: 1.5 !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+/* Todas las opciones de select con fondo blanco */
+select.form-control option {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 8px !important;
+}
+
+select.form-control option:checked {
+    background-color: #FFA366 !important;
+    color: #FFFFFF !important;
+}
+
+select.form-control option:hover {
+    background-color: #FFD700 !important;
+    color: #000000 !important;
+}
+
 /* Select options */
 .form-control option {
-    background-color: #2d2d2d !important;
-    color: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
 }
 
 /* Input groups */
 .input-group-text {
-    background-color: #FF8C00 !important;
+    background-color: #FFA366 !important;
     color: #000000 !important;
-    border: 2px solid #FF8C00 !important;
+    border: 2px solid #FFA366 !important;
     font-weight: bold !important;
 }
 
@@ -1142,14 +1171,14 @@ a:hover {
 /* Mejorar visibilidad de elementos específicos de la calculadora */
 .info-tasa {
     background-color: rgba(45, 45, 45, 0.9) !important;
-    border: 1px solid #FF8C00 !important;
+    border: 1px solid #FFA366 !important;
     border-radius: 8px !important;
     padding: 15px !important;
 }
 
 .info-tasa h6 {
     color: #FFD700 !important;
-    border-bottom: 1px solid #FF8C00 !important;
+    border-bottom: 1px solid #FFA366 !important;
     padding-bottom: 10px !important;
     margin-bottom: 15px !important;
 }
@@ -1235,7 +1264,7 @@ a:hover {
 }
 
 .form-check-label a {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
     text-decoration: underline !important;
 }
 
@@ -1282,6 +1311,66 @@ a:hover {
     background-color: rgba(45, 45, 45, 0.9) !important;
     padding: 15px !important;
     border-radius: 8px !important;
+}
+
+/* Estilos específicos para formularios de divisas */
+.divisas-page .form-control,
+.divisas-page select.form-control {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    padding: 0.75rem !important;
+    line-height: 1.5 !important;
+    font-size: 1rem !important;
+}
+
+/* Asegurar que los select boxes en divisas tengan buena apariencia */
+.divisas-page .cuenta-selector,
+.divisas-page .moneda-destino,
+.divisas-page .moneda-origen {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    padding: 0.75rem !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 2px solid #FFA366 !important;
+    border-radius: 0.375rem !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+}
+
+.divisas-page .cuenta-selector:focus,
+.divisas-page .moneda-destino:focus,
+.divisas-page .moneda-origen:focus {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25) !important;
+    outline: 0 !important;
+}
+
+/* Opciones de los select boxes en divisas */
+.divisas-page .cuenta-selector option,
+.divisas-page .moneda-destino option,
+.divisas-page .moneda-origen option {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 8px !important;
+}
+
+/* Opciones seleccionadas y hover */
+.divisas-page .cuenta-selector option:checked,
+.divisas-page .moneda-destino option:checked,
+.divisas-page .moneda-origen option:checked {
+    background-color: #FFA366 !important;
+    color: #FFFFFF !important;
+}
+
+.divisas-page .cuenta-selector option:hover,
+.divisas-page .moneda-destino option:hover,
+.divisas-page .moneda-origen option:hover {
+    background-color: #FFD700 !important;
+    color: #000000 !important;
+}
+
+/* Input groups en divisas */
+.divisas-page .input-group .form-control {
+    height: calc(1.5em + 1.5rem + 4px) !important;
 }
 
 #saldos-disponibles .row {

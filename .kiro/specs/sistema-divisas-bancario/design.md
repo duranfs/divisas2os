@@ -266,7 +266,7 @@ class TestDivisas(unittest.TestCase):
 ```css
 :root {
     --color-fondo: #000000;        /* Negro - Fondo principal */
-    --color-menu: #FF8C00;         /* Naranja - Menú y navegación */
+    --color-menu: #FFA366;         /* Naranja suave - Menú y navegación */
     --color-acento: #FFD700;       /* Dorado - Elementos destacados */
     --color-texto: #FFFFFF;        /* Blanco - Texto principal */
     --color-texto-secundario: #CCCCCC; /* Gris claro - Texto secundario */

@@ -83,7 +83,7 @@ label, .form-label {
 
 /* Enlaces */
 a {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
 }
 
 a:hover {
@@ -130,7 +130,37 @@ a:hover {
 .form-control {
     background-color: #FFFFFF !important;
     color: #000000 !important;
-    border: 2px solid #FF8C00 !important;
+    border: 2px solid #FFA366 !important;
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    padding: 0.75rem !important;
+    line-height: 1.5 !important;
+    font-size: 1rem !important;
+}
+
+/* Select boxes específicos */
+select.form-control {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    padding: 0.75rem !important;
+    line-height: 1.5 !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+/* Opciones de select con fondo blanco */
+select.form-control option {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 8px !important;
+}
+
+select.form-control option:checked {
+    background-color: #FFA366 !important;
+    color: #FFFFFF !important;
+}
+
+select.form-control option:hover {
+    background-color: #FFD700 !important;
+    color: #000000 !important;
 }
 
 .form-control:focus {
@@ -169,7 +199,7 @@ a:hover {
 }
 
 .breadcrumb-item a {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
 }
 
 /* Alertas */
@@ -229,15 +259,15 @@ strong, b {
 }
 
 .btn-primary {
-    background-color: #FF8C00 !important;
+    background-color: #FFA366 !important;
     color: #FFFFFF !important;
 }
 
 /* Input groups */
 .input-group-text {
-    background-color: #FF8C00 !important;
+    background-color: #FFA366 !important;
     color: #000000 !important;
-    border: 2px solid #FF8C00 !important;
+    border: 2px solid #FFA366 !important;
 }
 
 /* Dropdown menus */
@@ -250,7 +280,7 @@ strong, b {
 }
 
 .dropdown-item:hover {
-    background-color: #FF8C00 !important;
+    background-color: #FFA366 !important;
     color: #000000 !important;
 }
 
@@ -261,7 +291,7 @@ strong, b {
 }
 
 .modal-header {
-    background-color: #FF8C00 !important;
+    background-color: #FFA366 !important;
     color: #000000 !important;
 }
 
@@ -275,7 +305,7 @@ strong, b {
 }
 
 .table th {
-    background-color: #FF8C00 !important;
+    background-color: #FFA366 !important;
     color: #000000 !important;
 }
 
@@ -357,5 +387,5 @@ strong, b {
 }
 
 .sidebar .nav-link:hover {
-    color: #FF8C00 !important;
+    color: #FFA366 !important;
 }

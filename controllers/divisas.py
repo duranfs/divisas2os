@@ -245,9 +245,7 @@ def procesar_compra_divisa():
         # Generar número de comprobante único
         numero_comprobante = generar_comprobante_unico('COMP')
         
-        # Iniciar transacción de base de datos
-        db.begin()
-        
+        # En web2py las transacciones se manejan automáticamente
         try:
             # Registrar la transacción
             transaccion_id = db.transacciones.insert(
@@ -300,8 +298,7 @@ def procesar_compra_divisa():
                 transaccion_id=transaccion_id
             )
             
-            # Confirmar transacción
-            db.commit()
+            # Las transacciones se confirman automáticamente en web2py
             
             # Registrar en log de auditoría
             log_transaccion(
@@ -318,9 +315,21 @@ def procesar_compra_divisa():
             
             logger.info(f"Compra exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}, Monto: {monto_origen} VES -> {monto_destino} {moneda_destino}")
             
+            # Convertir transaccion_id para el return
+            try:
+                if hasattr(transaccion_id, 'id'):
+                    transaccion_id_return = transaccion_id.id
+                elif hasattr(transaccion_id, '_id'):
+                    transaccion_id_return = transaccion_id._id
+                else:
+                    transaccion_id_return = transaccion_id
+                transaccion_id_return = int(str(transaccion_id_return).strip()) if transaccion_id_return else None
+            except:
+                transaccion_id_return = None
+            
             return {
                 'success': True,
-                'transaccion_id': transaccion_id,
+                'transaccion_id': transaccion_id_return,
                 'comprobante': numero_comprobante,
                 'monto_origen': float(monto_origen),
                 'monto_destino': float(monto_destino),
@@ -329,7 +338,7 @@ def procesar_compra_divisa():
             }
             
         except Exception as e:
-            db.rollback()
+            # En web2py, los rollbacks se manejan automáticamente en caso de error
             
             # Registrar error en log de auditoría
             log_transaccion(
@@ -434,9 +443,7 @@ def procesar_venta_divisa():
         # Generar número de comprobante único
         numero_comprobante = generar_comprobante_unico('VENT')
         
-        # Iniciar transacción de base de datos
-        db.begin()
-        
+        # En web2py las transacciones se manejan automáticamente
         try:
             # Registrar la transacción
             transaccion_id = db.transacciones.insert(
@@ -453,6 +460,21 @@ def procesar_venta_divisa():
                 fecha_transaccion=datetime.datetime.now(),
                 observaciones=f'Venta de {moneda_origen} - Tasa: {tasa_aplicada}'
             )
+            
+            # Debug: Imprimir información sobre transaccion_id
+            logger.info(f"Tipo de transaccion_id: {type(transaccion_id)}")
+            logger.info(f"Valor de transaccion_id: {transaccion_id}")
+            
+            # Intentar obtener el ID numérico
+            try:
+                if hasattr(transaccion_id, 'id'):
+                    transaccion_id = transaccion_id.id
+                elif hasattr(transaccion_id, '_id'):
+                    transaccion_id = transaccion_id._id
+                transaccion_id = int(str(transaccion_id).strip())
+                logger.info(f"ID convertido: {transaccion_id}")
+            except Exception as e:
+                logger.error(f"Error convirtiendo ID: {str(e)}")
             
             # Actualizar saldos de la cuenta
             nuevo_saldo_ves = cuenta.saldo_ves + monto_neto_ves
@@ -489,8 +511,7 @@ def procesar_venta_divisa():
                 transaccion_id=transaccion_id
             )
             
-            # Confirmar transacción
-            db.commit()
+            # Las transacciones se confirman automáticamente en web2py
             
             # Registrar en log de auditoría
             log_transaccion(
@@ -507,9 +528,21 @@ def procesar_venta_divisa():
             
             logger.info(f"Venta exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}, Monto: {monto_origen} {moneda_origen} -> {monto_neto_ves} VES")
             
+            # Convertir transaccion_id para el return
+            try:
+                if hasattr(transaccion_id, 'id'):
+                    transaccion_id_return = transaccion_id.id
+                elif hasattr(transaccion_id, '_id'):
+                    transaccion_id_return = transaccion_id._id
+                else:
+                    transaccion_id_return = transaccion_id
+                transaccion_id_return = int(str(transaccion_id_return).strip()) if transaccion_id_return else None
+            except:
+                transaccion_id_return = None
+            
             return {
                 'success': True,
-                'transaccion_id': transaccion_id,
+                'transaccion_id': transaccion_id_return,
                 'comprobante': numero_comprobante,
                 'monto_origen': float(monto_origen),
                 'monto_destino': float(monto_neto_ves),
@@ -518,7 +551,7 @@ def procesar_venta_divisa():
             }
             
         except Exception as e:
-            db.rollback()
+            # En web2py, los rollbacks se manejan automáticamente en caso de error
             
             # Registrar error en log de auditoría
             log_transaccion(
@@ -639,11 +672,11 @@ def crear_datos_prueba_admin():
                 activa=True
             )
         
-        db.commit()
+        # Las transacciones se confirman automáticamente en web2py
         return db(db.clientes.id == cliente_id).select().first()
         
     except Exception as e:
-        db.rollback()
+        # En web2py, los rollbacks se manejan automáticamente en caso de error
         logger.error(f"Error creando datos de prueba: {str(e)}")
         return None
 
@@ -934,6 +967,19 @@ def registrar_movimiento_historial(cuenta_id, tipo_movimiento, moneda, monto, de
     Requisitos: 4.5, 5.5
     """
     try:
+        # Convertir transaccion_id a entero si es posible
+        if transaccion_id is not None:
+            try:
+                if hasattr(transaccion_id, 'id'):
+                    transaccion_id = transaccion_id.id
+                elif hasattr(transaccion_id, '_id'):
+                    transaccion_id = transaccion_id._id
+                transaccion_id = int(str(transaccion_id).strip())
+                logger.info(f"ID de transacción convertido: {transaccion_id}")
+            except Exception as e:
+                logger.error(f"Error convirtiendo ID de transacción: {str(e)}")
+                transaccion_id = None
+        
         # Obtener cuenta actual
         cuenta = db(db.cuentas.id == cuenta_id).select().first()
         if not cuenta:
