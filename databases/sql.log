@@ -211,3 +211,129 @@ CREATE TABLE "configuracion"(
     "fecha_actualizacion" TIMESTAMP
 );
 success!
+DELETE FROM "transacciones";
+DELETE FROM sqlite_sequence WHERE name='transacciones'
+success!
+DELETE FROM "cuentas";
+DELETE FROM sqlite_sequence WHERE name='cuentas'
+success!
+DELETE FROM "clientes";
+DELETE FROM sqlite_sequence WHERE name='clientes'
+success!
+DELETE FROM "auth_membership";
+DELETE FROM sqlite_sequence WHERE name='auth_membership'
+success!
+DELETE FROM "auth_group";
+DELETE FROM sqlite_sequence WHERE name='auth_group'
+success!
+DELETE FROM "auth_user";
+DELETE FROM sqlite_sequence WHERE name='auth_user'
+success!
+DELETE FROM "tasas_cambio";
+DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
+success!
+DELETE FROM "transacciones";
+DELETE FROM sqlite_sequence WHERE name='transacciones'
+success!
+DELETE FROM "cuentas";
+DELETE FROM sqlite_sequence WHERE name='cuentas'
+success!
+DELETE FROM "clientes";
+DELETE FROM sqlite_sequence WHERE name='clientes'
+success!
+DELETE FROM "auth_membership";
+DELETE FROM sqlite_sequence WHERE name='auth_membership'
+success!
+DELETE FROM "auth_group";
+DELETE FROM sqlite_sequence WHERE name='auth_group'
+success!
+DELETE FROM "auth_user";
+DELETE FROM sqlite_sequence WHERE name='auth_user'
+success!
+DELETE FROM "tasas_cambio";
+DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
+success!
+DELETE FROM "transacciones";
+DELETE FROM sqlite_sequence WHERE name='transacciones'
+success!
+DELETE FROM "cuentas";
+DELETE FROM sqlite_sequence WHERE name='cuentas'
+success!
+DELETE FROM "clientes";
+DELETE FROM sqlite_sequence WHERE name='clientes'
+success!
+DELETE FROM "auth_membership";
+DELETE FROM sqlite_sequence WHERE name='auth_membership'
+success!
+DELETE FROM "auth_group";
+DELETE FROM sqlite_sequence WHERE name='auth_group'
+success!
+DELETE FROM "auth_user";
+DELETE FROM sqlite_sequence WHERE name='auth_user'
+success!
+DELETE FROM "tasas_cambio";
+DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
+success!
+DELETE FROM "transacciones";
+DELETE FROM sqlite_sequence WHERE name='transacciones'
+success!
+DELETE FROM "cuentas";
+DELETE FROM sqlite_sequence WHERE name='cuentas'
+success!
+DELETE FROM "clientes";
+DELETE FROM sqlite_sequence WHERE name='clientes'
+success!
+DELETE FROM "auth_membership";
+DELETE FROM sqlite_sequence WHERE name='auth_membership'
+success!
+DELETE FROM "auth_group";
+DELETE FROM sqlite_sequence WHERE name='auth_group'
+success!
+DELETE FROM "auth_user";
+DELETE FROM sqlite_sequence WHERE name='auth_user'
+success!
+DELETE FROM "tasas_cambio";
+DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
+success!
+DELETE FROM "transacciones";
+DELETE FROM sqlite_sequence WHERE name='transacciones'
+success!
+DELETE FROM "cuentas";
+DELETE FROM sqlite_sequence WHERE name='cuentas'
+success!
+DELETE FROM "clientes";
+DELETE FROM sqlite_sequence WHERE name='clientes'
+success!
+DELETE FROM "auth_membership";
+DELETE FROM sqlite_sequence WHERE name='auth_membership'
+success!
+DELETE FROM "auth_group";
+DELETE FROM sqlite_sequence WHERE name='auth_group'
+success!
+DELETE FROM "auth_user";
+DELETE FROM sqlite_sequence WHERE name='auth_user'
+success!
+DELETE FROM "tasas_cambio";
+DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
+success!
+DELETE FROM "transacciones";
+DELETE FROM sqlite_sequence WHERE name='transacciones'
+success!
+DELETE FROM "cuentas";
+DELETE FROM sqlite_sequence WHERE name='cuentas'
+success!
+DELETE FROM "clientes";
+DELETE FROM sqlite_sequence WHERE name='clientes'
+success!
+DELETE FROM "auth_membership";
+DELETE FROM sqlite_sequence WHERE name='auth_membership'
+success!
+DELETE FROM "auth_group";
+DELETE FROM sqlite_sequence WHERE name='auth_group'
+success!
+DELETE FROM "auth_user";
+DELETE FROM sqlite_sequence WHERE name='auth_user'
+success!
+DELETE FROM "tasas_cambio";
+DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
+success!

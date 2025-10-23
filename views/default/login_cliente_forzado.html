@@ -1,0 +1,76 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fa fa-user-check"></i> Login Forzado de Cliente</h4>
+                    <small>Cerrando sesión de admin y logueando como cliente</small>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>🔄 Proceso de Login Forzado:</h5>
+                        <p>Esta función cierra la sesión actual y fuerza el login del cliente usando auth.login_user()</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            {{for item in resultado:}}
+                            <div class="mb-2">
+                                {{if '✅' in item or '🎉' in item:}}
+                                <div class="alert alert-success py-2">{{=item}}</div>
+                                {{elif '❌' in item:}}
+                                <div class="alert alert-danger py-2">{{=item}}</div>
+                                {{elif '🚪' in item or '🔄' in item:}}
+                                <div class="alert alert-warning py-2">{{=item}}</div>
+                                {{else:}}
+                                <div class="alert alert-info py-2">{{=item}}</div>
+                                {{pass}}
+                            </div>
+                            {{pass}}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        {{if auth.is_logged_in():}}
+                        <div class="alert alert-success">
+                            <h5>🎉 ¡Login exitoso como: {{=auth.user.email}}!</h5>
+                            <p>Rol: {{=auth.has_membership('cliente') and 'Cliente' or (auth.has_membership('administrador') and 'Administrador' or 'Usuario')}}</p>
+                        </div>
+                        
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-success btn-lg">
+                            <i class="fa fa-tachometer-alt"></i> Ir al Dashboard
+                        </a>
+                        <a href="{{=URL('divisas', 'index')}}" class="btn btn-primary btn-lg ml-2">
+                            <i class="fa fa-exchange-alt"></i> Operaciones de Divisas
+                        </a>
+                        {{else:}}
+                        <div class="alert alert-warning">
+                            <h5>⚠️ No hay usuario logueado</h5>
+                        </div>
+                        
+                        <a href="{{=URL('default', 'login_cliente_forzado')}}" class="btn btn-warning btn-lg">
+                            <i class="fa fa-refresh"></i> Repetir Intento
+                        </a>
+                        <a href="{{=URL('default', 'user/login')}}" class="btn btn-primary btn-lg ml-2">
+                            <i class="fa fa-sign-in-alt"></i> Login Normal
+                        </a>
+                        {{pass}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.alert.py-2 {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+</style>

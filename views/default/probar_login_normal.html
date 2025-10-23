@@ -1,0 +1,64 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fa fa-sign-in-alt"></i> Prueba de Login Normal</h4>
+                    <small>Formulario de login estándar con debugging</small>
+                </div>
+                <div class="card-body">
+                    {{if resultado:}}
+                    <div class="alert alert-info">
+                        <h5>🔍 Resultado del intento de login:</h5>
+                        {{for item in resultado:}}
+                        <div class="mb-1">
+                            {{if '✅' in item:}}
+                            <span class="text-success">{{=item}}</span>
+                            {{elif '❌' in item:}}
+                            <span class="text-danger">{{=item}}</span>
+                            {{else:}}
+                            <span class="text-info">{{=item}}</span>
+                            {{pass}}
+                        </div>
+                        {{pass}}
+                    </div>
+                    {{pass}}
+                    
+                    {{if auth.is_logged_in():}}
+                    <div class="alert alert-success">
+                        <h5>🎉 ¡Login exitoso!</h5>
+                        <p>Estás logueado como: <strong>{{=auth.user.email}}</strong></p>
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-success">
+                            <i class="fa fa-tachometer-alt"></i> Ir al Dashboard
+                        </a>
+                    </div>
+                    {{else:}}
+                    <div class="alert alert-warning">
+                        <h5>📝 Formulario de Login</h5>
+                        <p>Usa las credenciales que conoces:</p>
+                        <ul>
+                            <li><strong>Admin:</strong> duranfs.2012@gmail.com / admin123</li>
+                            <li><strong>Cliente:</strong> beto.jesus@gmail.com / 123456</li>
+                        </ul>
+                    </div>
+                    
+                    {{=form}}
+                    {{pass}}
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <a href="{{=URL('default', 'login_rapido')}}" class="btn btn-info">
+                            <i class="fa fa-bolt"></i> Login Rápido
+                        </a>
+                        <a href="{{=URL('default', 'diagnosticar_login')}}" class="btn btn-secondary ml-2">
+                            <i class="fa fa-stethoscope"></i> Diagnóstico
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

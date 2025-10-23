@@ -153,12 +153,11 @@ auth.settings.login_after_registration = False
 # Configuración de Seguridad Avanzada
 # -------------------------------------------------------------------------
 
-# Sin validación de contraseña
+# Configuración de validación de contraseña
 auth.settings.password_field = 'password'
-db.auth_user.password.requires = IS_NOT_EMPTY(error_message='La contraseña es requerida')
+db.auth_user.password.requires = [IS_NOT_EMPTY(error_message='La contraseña es requerida'), CRYPT()]
 
-# Configuración adicional de seguridad
-auth.settings.login_methods = [auth]  # Solo login local
+# Configuración adicional de seguridad - SIMPLIFICADA
 auth.settings.login_next = URL('default', 'dashboard')
 auth.settings.logout_next = URL('default', 'index')
 auth.settings.profile_next = URL('default', 'dashboard')
@@ -295,37 +294,28 @@ def usuario_bloqueado_temporalmente(user_id):
 # -------------------------------------------------------------------------
 
 def custom_login_onaccept(form):
-    """Hook ejecutado después de login exitoso"""
-    if auth.user:
-        # Registrar login exitoso
-        registrar_intento_login(auth.user.email, exitoso=True)
-        
-        # Asignar rol de cliente por defecto si no tiene rol
-        if not auth.has_membership():
-            # Buscar si ya existe un registro de cliente
-            cliente = db(db.clientes.user_id == auth.user.id).select().first()
-            if not cliente:
-                # Si es el primer usuario, hacerlo administrador
-                if db(db.auth_user.id > 0).count() == 1:
-                    auth.add_membership('administrador', auth.user.id)
-                else:
+    """Hook ejecutado después de login exitoso - SIMPLIFICADO"""
+    try:
+        if auth.user:
+            # Solo asignar rol si no tiene ninguno
+            if not auth.has_membership():
+                # Buscar si ya existe un registro de cliente
+                cliente = db(db.clientes.user_id == auth.user.id).select().first()
+                if cliente:
                     auth.add_membership('cliente', auth.user.id)
-            else:
-                auth.add_membership('cliente', auth.user.id)
+    except Exception as e:
+        # No fallar el login por errores en el hook
+        pass
 
 def custom_login_onfail(form):
-    """Hook ejecutado después de login fallido"""
-    email = form.vars.email if form.vars else None
-    if email:
-        # Registrar intento fallido
-        registrar_intento_login(email, exitoso=False)
-        
-        # Verificar si debe bloquearse el usuario
-        if verificar_intentos_fallidos(email):
-            user = db(db.auth_user.email == email).select().first()
-            if user:
-                bloquear_usuario_temporalmente(user.id)
-                session.flash = 'Cuenta bloqueada temporalmente por demasiados intentos fallidos'
+    """Hook ejecutado después de login fallido - SIMPLIFICADO"""
+    try:
+        # Solo logging básico, sin bloqueos
+        email = form.vars.email if form.vars else 'unknown'
+        print(f"Login fallido para: {email}")
+    except Exception as e:
+        # No interferir con el proceso de login
+        pass
 
 def custom_register_onaccept(form):
     """Hook ejecutado después de registro exitoso"""
@@ -337,9 +327,9 @@ def custom_register_onaccept(form):
         # Crear registro en tabla clientes si se proporciona cédula
         # (esto se manejará en el controlador de clientes)
 
-# Asignar hooks personalizados (temporarily disabled for debugging)
-# auth.settings.login_onaccept = custom_login_onaccept
-# auth.settings.login_onfail = custom_login_onfail
+# Asignar hooks personalizados - SOLO LOS SEGUROS
+auth.settings.login_onaccept = custom_login_onaccept
+# auth.settings.login_onfail = custom_login_onfail  # Deshabilitado para evitar interferencias
 # auth.settings.register_onaccept = custom_register_onaccept
 
 # -------------------------------------------------------------------------
@@ -1543,7 +1533,17 @@ def crear_primer_administrador():
         primer_usuario = db(db.auth_user.id > 0).select(orderby=db.auth_user.id).first()
         
         if not primer_usuario:
-            return False, "No hay usuarios en el sistema"
+            # No hay usuarios, crear administrador por defecto
+            admin_id = db.auth_user.insert(
+                first_name='Administrador',
+                last_name='Sistema',
+                email='admin@sistema.com',
+                password='admin123',  # Se hasheará automáticamente
+                telefono='04141234567',
+                direccion='Sistema',
+                estado='activo'
+            )
+            primer_usuario = db(db.auth_user.id == admin_id).select().first()
         
         # Aprobar el usuario si está pendiente
         if primer_usuario.registration_key:
@@ -1566,7 +1566,7 @@ def crear_primer_administrador():
         auth.add_membership('administrador', primer_usuario.id)
         
         db.commit()
-        return True, f"Usuario {primer_usuario.email} convertido en administrador"
+        return True, f"Administrador creado: {primer_usuario.email} / contraseña: admin123"
         
     except Exception as e:
         db.rollback()

@@ -1,0 +1,60 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fa fa-stethoscope"></i> Diagnóstico de Login</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>📋 Estado del Sistema de Autenticación:</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            {{for item in diagnostico:}}
+                            <div class="mb-2">
+                                {{if '✅' in item:}}
+                                <div class="alert alert-success py-2">{{=item}}</div>
+                                {{elif '❌' in item:}}
+                                <div class="alert alert-danger py-2">{{=item}}</div>
+                                {{elif '🔧' in item:}}
+                                <div class="alert alert-warning py-2">{{=item}}</div>
+                                {{else:}}
+                                <div class="alert alert-info py-2">{{=item}}</div>
+                                {{pass}}
+                            </div>
+                            {{pass}}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <h5>🔧 Acciones Disponibles:</h5>
+                        <a href="{{=URL('default', 'limpiar_y_crear_admin')}}" class="btn btn-danger btn-lg">
+                            <i class="fa fa-database"></i> Limpiar y Crear Admin
+                        </a>
+                        <a href="{{=URL('default', 'user/login')}}" class="btn btn-primary btn-lg ml-2">
+                            <i class="fa fa-sign-in-alt"></i> Intentar Login
+                        </a>
+                        <a href="{{=URL('default', 'diagnosticar_login')}}" class="btn btn-secondary btn-lg ml-2">
+                            <i class="fa fa-refresh"></i> Actualizar Diagnóstico
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.alert.py-2 {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+</style>

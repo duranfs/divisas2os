@@ -1,0 +1,36 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fa fa-users"></i> Verificación de Usuarios</h4>
+                </div>
+                <div class="card-body">
+                    {{if usuarios_arreglados:}}
+                    <div class="alert alert-success">
+                        <h5>Usuarios con contraseñas arregladas:</h5>
+                        <ul>
+                            {{for usuario in usuarios_arreglados:}}
+                            <li>{{=usuario}}</li>
+                            {{pass}}
+                        </ul>
+                        <p><strong>Nota:</strong> Todos los usuarios afectados ahora tienen la contraseña temporal "123456"</p>
+                    </div>
+                    {{else:}}
+                    <div class="alert alert-info">
+                        <p>No se encontraron usuarios con contraseñas que necesiten ser arregladas.</p>
+                    </div>
+                    {{pass}}
+                    
+                    <div class="text-center">
+                        <a href="{{=URL('default', 'index')}}" class="btn btn-primary">
+                            <i class="fa fa-home"></i> Volver al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -95,12 +95,19 @@ function validarFormulario() {
     const password = document.getElementById('no_table_password').value;
     const passwordConfirm = document.getElementById('no_table_password_confirm').value;
     
+    // Validar longitud de contraseña
+    if (password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return false;
+    }
+    
+    // Validar que las contraseñas coincidan
     if (password !== passwordConfirm) {
         alert('Las contraseñas no coinciden');
         return false;
     }
     
-    return true; // Sin más validaciones
+    return true;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -127,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body">
                 {{if response.flash:}}
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <div class="alert {{='alert-danger' if '❌' in response.flash else 'alert-success' if '✅' in response.flash else 'alert-info'}} alert-dismissible fade show" role="alert">
                     {{=response.flash}}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -135,6 +142,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 {{pass}}
                 
+                {{if form and form.errors and form.errors.general:}}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fa fa-exclamation-triangle"></i> {{=form.errors.general}}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {{pass}}
+                
+                {{if registro_exitoso:}}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fa fa-check-circle"></i> <strong>¡Cliente registrado exitosamente!</strong><br>
+                    Número de cuenta asignado: <strong>{{=numero_cuenta}}</strong>
+                    <hr>
+                    <div class="text-center">
+                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-primary">
+                            <i class="fa fa-list"></i> Ver Lista de Clientes
+                        </a>
+                        <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success ml-2">
+                            <i class="fa fa-user-plus"></i> Registrar Otro Cliente
+                        </a>
+                    </div>
+                </div>
+                {{pass}}
+                
+                {{if not registro_exitoso:}}
                 <form method="post" action="{{=URL('clientes', 'registrar')}}">
                     <div class="row">
                         <div class="col-md-6">
@@ -208,7 +241,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label for="no_table_password">Contraseña *</label>
                                 <input type="password" class="form-control" id="no_table_password" name="password" 
                                        required>
-                                <small class="form-text">Cualquier contraseña</small>
+                                <small class="form-text">Mínimo 6 caracteres</small>
+                                {{if form and form.errors.password:}}
+                                <div class="text-danger">{{=form.errors.password}}</div>
+                                {{pass}}
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -216,6 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label for="no_table_password_confirm">Confirmar Contraseña *</label>
                                 <input type="password" class="form-control" id="no_table_password_confirm" name="password_confirm" 
                                        required>
+                                {{if form and form.errors.password_confirm:}}
+                                <div class="text-danger">{{=form.errors.password_confirm}}</div>
+                                {{pass}}
                             </div>
                         </div>
                     </div>
@@ -229,6 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </a>
                     </div>
                 </form>
+                {{pass}}
             </div>
         </div>
     </div>

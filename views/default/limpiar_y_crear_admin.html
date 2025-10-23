@@ -1,0 +1,68 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fa fa-database"></i> Limpieza de Base de Datos y Creación de Administrador</h4>
+                </div>
+                <div class="card-body">
+                    {{if '✅' in mensaje:}}
+                    <div class="alert alert-success">
+                        <pre>{{=mensaje}}</pre>
+                        <hr>
+                        <h5>🚀 Próximos pasos:</h5>
+                        <ol>
+                            <li><strong>Hacer Login:</strong> Ve a la página de login</li>
+                            <li><strong>Credenciales:</strong> 
+                                <ul>
+                                    <li>Email: <code>duranfs.2012@gmail.com</code></li>
+                                    <li>Contraseña: <code>admin123</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>Cambiar contraseña:</strong> Una vez dentro, ve al perfil y cambia la contraseña</li>
+                            <li><strong>Crear clientes:</strong> Usa "Gestión → Clientes → Nuevo Cliente"</li>
+                        </ol>
+                    </div>
+                    {{else:}}
+                    <div class="alert alert-danger">
+                        <h5>{{=mensaje}}</h5>
+                    </div>
+                    {{pass}}
+                    
+                    <div class="text-center">
+                        <a href="{{=URL('default', 'user/login')}}" class="btn btn-success btn-lg">
+                            <i class="fa fa-sign-in-alt"></i> Ir al Login
+                        </a>
+                        <a href="{{=URL('default', 'index')}}" class="btn btn-secondary btn-lg ml-2">
+                            <i class="fa fa-home"></i> Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-header.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    color: #495057;
+    white-space: pre-wrap;
+}
+
+code {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+}
+</style>

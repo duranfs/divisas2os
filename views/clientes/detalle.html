@@ -253,9 +253,9 @@ body {
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{{=URL('clientes', 'perfil', args=[cliente.clientes.id])}}" 
+                    <a href="{{=URL('clientes', 'editar', args=[cliente.clientes.id])}}" 
                        class="btn btn-warning btn-block">
-                        <i class="fa fa-edit"></i> Editar Perfil
+                        <i class="fa fa-edit"></i> Editar Cliente
                     </a>
                     
                     {{if auth.has_membership('administrador'):}}

@@ -1,0 +1,67 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fa fa-wrench"></i> Prueba de Login Directo</h4>
+                    <small>Intentando crear sesión manualmente para: beto.jesus@gmail.com</small>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5>⚠️ Prueba de Login Bypass:</h5>
+                        <p>Esta función intenta crear una sesión de usuario manualmente, saltándose el sistema de auth de web2py.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            {{for item in resultado:}}
+                            <div class="mb-2">
+                                {{if '✅' in item:}}
+                                <div class="alert alert-success py-2">{{=item}}</div>
+                                {{elif '❌' in item:}}
+                                <div class="alert alert-danger py-2">{{=item}}</div>
+                                {{else:}}
+                                <div class="alert alert-info py-2">{{=item}}</div>
+                                {{pass}}
+                            </div>
+                            {{pass}}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <h5>🔧 Acciones:</h5>
+                        {{if auth.is_logged_in():}}
+                        <div class="alert alert-success">
+                            <h5>🎉 ¡Estás logueado como: {{=auth.user.email}}!</h5>
+                            <a href="{{=URL('default', 'dashboard')}}" class="btn btn-success btn-lg">
+                                <i class="fa fa-tachometer-alt"></i> Ir al Dashboard
+                            </a>
+                        </div>
+                        {{else:}}
+                        <a href="{{=URL('default', 'probar_login_directo')}}" class="btn btn-warning btn-lg">
+                            <i class="fa fa-refresh"></i> Repetir Prueba
+                        </a>
+                        {{pass}}
+                        
+                        <a href="{{=URL('default', 'user/login')}}" class="btn btn-primary btn-lg ml-2">
+                            <i class="fa fa-sign-in-alt"></i> Login Normal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.alert.py-2 {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+</style>

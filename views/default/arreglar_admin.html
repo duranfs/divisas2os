@@ -1,0 +1,41 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fa fa-wrench"></i> Arreglo de Emergencia - Administrador</h4>
+                </div>
+                <div class="card-body">
+                    {{if '✅' in mensaje:}}
+                    <div class="alert alert-success">
+                        <h5>{{=mensaje}}</h5>
+                        <hr>
+                        <p><strong>Instrucciones:</strong></p>
+                        <ol>
+                            <li>Ve a la página de login</li>
+                            <li>Usa el email: <code>duranfs.2012@gmail.com</code></li>
+                            <li>Usa la contraseña temporal: <code>admin123</code></li>
+                            <li>Una vez dentro, cambia tu contraseña desde el perfil</li>
+                        </ol>
+                    </div>
+                    {{else:}}
+                    <div class="alert alert-danger">
+                        <h5>{{=mensaje}}</h5>
+                    </div>
+                    {{pass}}
+                    
+                    <div class="text-center">
+                        <a href="{{=URL('default', 'user/login')}}" class="btn btn-primary">
+                            <i class="fa fa-sign-in-alt"></i> Ir al Login
+                        </a>
+                        <a href="{{=URL('default', 'index')}}" class="btn btn-secondary ml-2">
+                            <i class="fa fa-home"></i> Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

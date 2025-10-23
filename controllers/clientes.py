@@ -102,24 +102,50 @@ def registrar():
                 form.errors.telefono = "El teléfono debe tener al menos 10 dígitos"
                 errores = True
             
+            # Validar contraseña
+            if not request.vars.password:
+                form.errors.password = "La contraseña es requerida"
+                errores = True
+            elif len(request.vars.password) < 6:
+                form.errors.password = "La contraseña debe tener al menos 6 caracteres"
+                errores = True
+            
+            # Validar confirmación de contraseña
+            if request.vars.password != request.vars.password_confirm:
+                form.errors.password_confirm = "Las contraseñas no coinciden"
+                errores = True
+            
             # Si hay errores, mostrar el formulario con errores
             if errores:
                 response.flash = "Por favor corrija los errores indicados"
                 return dict(form=form)
             
-            # Crear usuario en auth_user
-            # Hashear la contraseña manualmente
-            from gluon.validators import CRYPT
-            password_hash = CRYPT()(request.vars.password)[0]
+            # Procesar fecha de nacimiento
+            fecha_nacimiento = None
+            if request.vars.fecha_nacimiento:
+                try:
+                    from datetime import datetime
+                    if isinstance(request.vars.fecha_nacimiento, str):
+                        fecha_nacimiento = datetime.strptime(request.vars.fecha_nacimiento, '%Y-%m-%d').date()
+                    else:
+                        fecha_nacimiento = request.vars.fecha_nacimiento
+                except:
+                    form.errors.fecha_nacimiento = "Formato de fecha inválido"
+                    errores = True
             
+            if errores:
+                response.flash = "Por favor corrija los errores indicados"
+                return dict(form=form)
+            
+            # Crear usuario - la contraseña se hasheará automáticamente por CRYPT()
             user_id = db.auth_user.insert(
                 first_name=request.vars.first_name,
                 last_name=request.vars.last_name,
                 email=request.vars.email,
-                password=password_hash,
+                password=request.vars.password,  # Se hasheará automáticamente
                 telefono=request.vars.telefono or '',
                 direccion=request.vars.direccion or '',
-                fecha_nacimiento=request.vars.fecha_nacimiento,
+                fecha_nacimiento=fecha_nacimiento,
                 estado='activo'
             )
             
@@ -131,7 +157,14 @@ def registrar():
             )
             
             # Asignar rol de cliente
-            auth.add_membership('cliente', user_id)
+            # Verificar que el grupo 'cliente' existe
+            grupo_cliente = db(db.auth_group.role == 'cliente').select().first()
+            if grupo_cliente:
+                auth.add_membership(grupo_cliente.id, user_id)
+            else:
+                # Crear el grupo si no existe
+                grupo_cliente_id = db.auth_group.insert(role='cliente', description='Clientes del banco')
+                auth.add_membership(grupo_cliente_id, user_id)
             
             # Crear cuenta bancaria inicial
             numero_cuenta = generar_numero_cuenta()
@@ -147,40 +180,40 @@ def registrar():
             
             db.commit()
             
-            # Registrar en log de auditoría
-            log_auditoria(
-                accion='crear',
-                modulo='clientes',
-                tabla_afectada='clientes',
-                registro_id=cliente_id,
-                datos_nuevos={
-                    'cedula': request.vars.cedula or '',
-                    'user_id': user_id,
-                    'numero_cuenta': numero_cuenta
-                },
-                resultado='exitoso'
-            )
+            # TODO: Registrar en log de auditoría cuando esté implementada
+            # log_auditoria(...)
             
-            session.flash = f"Cliente registrado exitosamente. Número de cuenta: {numero_cuenta}"
-            redirect(URL('clientes', 'listar'))
+            # Registro exitoso - usar response.flash en lugar de session.flash
+            response.flash = f"✅ Cliente registrado exitosamente. Número de cuenta: {numero_cuenta}"
+            
+            # Limpiar el formulario para mostrar el mensaje de éxito
+            form = Storage()
+            form.errors = Storage()
+            
+            return dict(form=form, registro_exitoso=True, numero_cuenta=numero_cuenta)
             
         except Exception as e:
             db.rollback()
             
-            # Registrar error en log de auditoría
-            log_auditoria(
-                accion='crear',
-                modulo='clientes',
-                tabla_afectada='clientes',
-                datos_nuevos={
-                    'cedula': request.vars.cedula or 'N/A',
-                    'email': request.vars.email or 'N/A'
-                },
-                resultado='fallido',
-                mensaje_error=str(e)
-            )
+            # TODO: Registrar error en log de auditoría cuando esté implementada
+            # log_auditoria(...)
             
-            response.flash = f"Error al registrar cliente: {str(e)}"
+            import traceback
+            error_detail = str(e)
+            print(f"Error en registro de cliente: {error_detail}")
+            print(f"Traceback: {traceback.format_exc()}")
+            
+            # Mostrar error más específico
+            if "auth_user" in error_detail:
+                form.errors.general = "Error al crear el usuario. Verifique que el email no esté duplicado."
+            elif "clientes" in error_detail:
+                form.errors.general = "Error al crear el perfil del cliente. Verifique que la cédula no esté duplicada."
+            elif "cuentas" in error_detail:
+                form.errors.general = "Error al crear la cuenta bancaria."
+            else:
+                form.errors.general = f"Error inesperado: {error_detail}"
+            
+            response.flash = "❌ Error al registrar el cliente. Revise los detalles del error."
             return dict(form=form)
     
     return dict(form=form)
@@ -274,6 +307,113 @@ def perfil():
         except Exception as e:
             db.rollback()
             response.flash = f"Error al actualizar perfil: {str(e)}"
+            
+    elif form.errors:
+        response.flash = "Por favor corrija los errores en el formulario"
+    
+    # Obtener cuentas del cliente
+    cuentas = db(db.cuentas.cliente_id == cliente.id).select()
+    
+    return dict(form=form, cliente=cliente, usuario=usuario, cuentas=cuentas)
+
+@auth.requires_login()
+@requiere_rol('administrador', 'operador')
+def editar():
+    """
+    Función de edición de clientes para administradores
+    Permite editar todos los datos del cliente incluyendo estado
+    """
+    
+    cliente_id = request.args(0)
+    if not cliente_id:
+        session.flash = "ID de cliente requerido"
+        redirect(URL('clientes', 'listar'))
+    
+    try:
+        cliente_id = int(cliente_id)
+    except ValueError:
+        session.flash = "ID de cliente inválido"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener cliente y usuario
+    cliente = db(db.clientes.id == cliente_id).select().first()
+    if not cliente:
+        session.flash = "Cliente no encontrado"
+        redirect(URL('clientes', 'listar'))
+    
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    if not usuario:
+        session.flash = "Usuario no encontrado"
+        redirect(URL('clientes', 'listar'))
+    
+    # Crear formulario de edición administrativa
+    form = SQLFORM.factory(
+        Field('first_name', 'string', label='Nombres', 
+              default=usuario.first_name, requires=IS_NOT_EMPTY()),
+        Field('last_name', 'string', label='Apellidos', 
+              default=usuario.last_name, requires=IS_NOT_EMPTY()),
+        Field('email', 'string', label='Email', 
+              default=usuario.email, requires=[IS_NOT_EMPTY(), IS_EMAIL()]),
+        Field('telefono', 'string', label='Teléfono', 
+              default=usuario.telefono or '', requires=IS_NOT_EMPTY()),
+        Field('direccion', 'text', label='Dirección', 
+              default=usuario.direccion or '', requires=IS_NOT_EMPTY()),
+        Field('fecha_nacimiento', 'date', label='Fecha de Nacimiento', 
+              default=usuario.fecha_nacimiento, requires=IS_DATE()),
+        Field('cedula', 'string', label='Cédula', 
+              default=cliente.cedula, requires=IS_NOT_EMPTY()),
+        Field('estado', 'string', label='Estado', 
+              default=usuario.estado or 'activo',
+              requires=IS_IN_SET(['activo', 'inactivo'], zero=None)),
+        submit_button='Actualizar Cliente',
+        formstyle='bootstrap4_inline'
+    )
+    
+    if form.process().accepted:
+        try:
+            # Verificar que el email no esté usado por otro usuario
+            usuario_existente = db((db.auth_user.email == form.vars.email) & 
+                                 (db.auth_user.id != usuario.id)).select().first()
+            if usuario_existente:
+                form.errors.email = "Este email ya está registrado por otro usuario"
+                response.flash = "Error en la validación de datos"
+                return dict(form=form, cliente=cliente, usuario=usuario)
+            
+            # Verificar que la cédula no esté usada por otro cliente
+            cliente_existente = db((db.clientes.cedula == form.vars.cedula) & 
+                                 (db.clientes.id != cliente.id)).select().first()
+            if cliente_existente:
+                form.errors.cedula = "Esta cédula ya está registrada por otro cliente"
+                response.flash = "Error en la validación de datos"
+                return dict(form=form, cliente=cliente, usuario=usuario)
+            
+            # Actualizar datos del usuario
+            db(db.auth_user.id == usuario.id).update(
+                first_name=form.vars.first_name,
+                last_name=form.vars.last_name,
+                email=form.vars.email,
+                telefono=form.vars.telefono,
+                direccion=form.vars.direccion,
+                fecha_nacimiento=form.vars.fecha_nacimiento,
+                estado=form.vars.estado
+            )
+            
+            # Actualizar cédula del cliente
+            db(db.clientes.id == cliente.id).update(
+                cedula=form.vars.cedula
+            )
+            
+            db.commit()
+            
+            # TODO: Registrar en auditoría cuando esté implementada la función
+            # registrar_auditoria(...)
+            
+            session.flash = "Cliente actualizado exitosamente"
+            redirect(URL('clientes', 'listar'))
+                
+        except Exception as e:
+            db.rollback()
+            response.flash = f"Error al actualizar cliente: {str(e)}"
             
     elif form.errors:
         response.flash = "Por favor corrija los errores en el formulario"
