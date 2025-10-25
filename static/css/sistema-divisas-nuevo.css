@@ -1,0 +1,517 @@
+/* =========================================================================
+   Sistema de Divisas Bancario - Diseño Moderno y Fresco
+   Nueva Paleta: Azul Profesional, Verde Menta, Blanco Puro
+   ========================================================================= */
+
+:root {
+    /* Paleta Principal - Azul Profesional */
+    --primary-dark: #1e3a8a;         /* Azul marino profundo */
+    --primary-main: #3b82f6;         /* Azul principal */
+    --primary-light: #60a5fa;        /* Azul claro */
+    --primary-lighter: #dbeafe;      /* Azul muy claro */
+    
+    /* Paleta Secundaria - Verde Menta */
+    --secondary-dark: #059669;       /* Verde esmeralda */
+    --secondary-main: #10b981;       /* Verde menta */
+    --secondary-light: #34d399;      /* Verde claro */
+    --secondary-lighter: #d1fae5;    /* Verde muy claro */
+    
+    /* Paleta de Grises Modernos */
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+    
+    /* Colores de Estado */
+    --success: #10b981;              /* Verde éxito */
+    --warning: #f59e0b;              /* Ámbar advertencia */
+    --danger: #ef4444;               /* Rojo error */
+    --info: #06b6d4;                 /* Cian información */
+    
+    /* Fondos y Superficies */
+    --bg-primary: #ffffff;           /* Fondo principal blanco */
+    --bg-secondary: var(--gray-50);  /* Fondo secundario */
+    --bg-card: #ffffff;              /* Fondo de tarjetas */
+    --bg-sidebar: var(--gray-900);   /* Fondo de sidebar */
+    
+    /* Texto */
+    --text-primary: var(--gray-900); /* Texto principal */
+    --text-secondary: var(--gray-600); /* Texto secundario */
+    --text-muted: var(--gray-400);   /* Texto deshabilitado */
+    --text-white: #ffffff;           /* Texto blanco */
+    
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Bordes */
+    --border-radius: 0.75rem;        /* 12px */
+    --border-radius-sm: 0.5rem;      /* 8px */
+    --border-radius-lg: 1rem;        /* 16px */
+}
+
+/* =========================================================================
+   ESTILOS GENERALES
+   ========================================================================= */
+
+body {
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-lighter) 100%);
+    color: var(--text-primary);
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container-fluid {
+    padding: 2rem 1.5rem;
+}
+
+/* =========================================================================
+   NAVEGACIÓN MODERNA
+   ========================================================================= */
+
+.navbar {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-main) 100%) !important;
+    border: none !important;
+    box-shadow: var(--shadow-lg);
+    padding: 1rem 0;
+    backdrop-filter: blur(10px);
+}
+
+.navbar-brand {
+    color: var(--text-white) !important;
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -0.025em;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.3s ease;
+    margin: 0 0.25rem;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-white) !important;
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link.active {
+    background-color: var(--secondary-main);
+    color: var(--text-white) !important;
+}
+
+/* =========================================================================
+   TARJETAS MODERNAS
+   ========================================================================= */
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-dark) 100%);
+    color: var(--text-white);
+    border: none;
+    padding: 1.5rem;
+    font-weight: 600;
+}
+
+.card-header.bg-success {
+    background: linear-gradient(135deg, var(--secondary-main) 0%, var(--secondary-dark) 100%) !important;
+}
+
+.card-header.bg-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%) !important;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, var(--info) 0%, #0891b2 100%) !important;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* =========================================================================
+   BOTONES MODERNOS
+   ========================================================================= */
+
+.btn {
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-dark) 100%);
+    color: var(--text-white);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e40af 100%);
+    color: var(--text-white);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--secondary-main) 0%, var(--secondary-dark) 100%);
+    color: var(--text-white);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, var(--secondary-dark) 0%, #047857 100%);
+    color: var(--text-white);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+    color: var(--text-white);
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: var(--text-white);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+    color: var(--text-white);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: var(--text-white);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--gray-500) 0%, var(--gray-600) 100%);
+    color: var(--text-white);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, var(--gray-600) 0%, var(--gray-700) 100%);
+    color: var(--text-white);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--info) 0%, #0891b2 100%);
+    color: var(--text-white);
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+    color: var(--text-white);
+}
+
+/* =========================================================================
+   TABLAS MODERNAS
+   ========================================================================= */
+
+.table {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+    color: var(--text-primary);
+    font-weight: 600;
+    border: none;
+    padding: 1rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--primary-lighter);
+    transform: scale(1.01);
+}
+
+.table tbody td {
+    padding: 1rem;
+    border-color: var(--gray-200);
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--gray-50);
+}
+
+/* =========================================================================
+   BADGES MODERNOS
+   ========================================================================= */
+
+.badge {
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, var(--secondary-main) 0%, var(--secondary-dark) 100%);
+    color: var(--text-white);
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+    color: var(--text-white);
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+    color: var(--text-white);
+}
+
+.badge-info {
+    background: linear-gradient(135deg, var(--info) 0%, #0891b2 100%);
+    color: var(--text-white);
+}
+
+.badge-primary {
+    background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-dark) 100%);
+    color: var(--text-white);
+}
+
+.badge-secondary {
+    background: linear-gradient(135deg, var(--gray-500) 0%, var(--gray-600) 100%);
+    color: var(--text-white);
+}
+
+/* =========================================================================
+   FORMULARIOS MODERNOS
+   ========================================================================= */
+
+.form-control {
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    background-color: var(--bg-card);
+}
+
+.form-control:focus {
+    border-color: var(--primary-main);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: var(--bg-card);
+}
+
+.input-group-text {
+    background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+    border: 2px solid var(--gray-200);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* =========================================================================
+   ALERTAS MODERNAS
+   ========================================================================= */
+
+.alert {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 1rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, var(--secondary-lighter) 0%, rgba(16, 185, 129, 0.1) 100%);
+    color: var(--secondary-dark);
+    border-left: 4px solid var(--secondary-main);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+    color: #b91c1c;
+    border-left: 4px solid var(--danger);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+    color: #92400e;
+    border-left: 4px solid var(--warning);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+    color: #0e7490;
+    border-left: 4px solid var(--info);
+}
+
+/* =========================================================================
+   TÍTULOS Y TEXTO
+   ========================================================================= */
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.text-white {
+    color: var(--text-white) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* =========================================================================
+   ELEMENTOS ESPECÍFICOS DEL SISTEMA
+   ========================================================================= */
+
+/* Widget de Tasas */
+.widget-tasas {
+    background: linear-gradient(135deg, var(--primary-main) 0%, var(--secondary-main) 100%);
+    color: var(--text-white);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Calculadora de Divisas */
+.calculadora-container {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--gray-50) 100%);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Saldos de Cuentas */
+.saldo-ves {
+    color: var(--primary-main);
+    font-weight: 700;
+}
+
+.saldo-usd {
+    color: var(--secondary-main);
+    font-weight: 700;
+}
+
+.saldo-eur {
+    color: var(--info);
+    font-weight: 700;
+}
+
+/* =========================================================================
+   ANIMACIONES Y TRANSICIONES
+   ========================================================================= */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.slide-in {
+    animation: slideIn 0.4s ease-out;
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .table-responsive {
+        border-radius: var(--border-radius-sm);
+    }
+}
+
+/* =========================================================================
+   UTILIDADES
+   ========================================================================= */
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-dark) 100%) !important;
+}
+
+.bg-gradient-secondary {
+    background: linear-gradient(135deg, var(--secondary-main) 0%, var(--secondary-dark) 100%) !important;
+}
+
+.shadow-custom {
+    box-shadow: var(--shadow-lg);
+}
+
+.rounded-custom {
+    border-radius: var(--border-radius);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-main) 0%, var(--secondary-main) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}

@@ -1,0 +1,266 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-ruler-vertical me-3"></i>Test de Alturas de Campos
+                </h1>
+                <p class="lead mb-0">Verificación de que todos los campos tengan la misma altura</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="calculadora-divisas">
+                <h3>Campos en Calculadora de Divisas</h3>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-text-width"></i>Input de Texto
+                        </label>
+                        <input type="text" class="form-control" placeholder="Input de texto normal" value="Texto de ejemplo">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-list"></i>Select Box
+                        </label>
+                        <select class="form-control">
+                            <option>Opción 1 - Select Box</option>
+                            <option>Opción 2 - Select Box</option>
+                            <option>Opción 3 - Select Box</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-hashtag"></i>Input Numérico
+                        </label>
+                        <input type="number" class="form-control" placeholder="0.00" value="123.45">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-envelope"></i>Input Email
+                        </label>
+                        <input type="email" class="form-control" placeholder="correo@ejemplo.com" value="test@test.com">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            <i class="fas fa-dollar-sign"></i>Input Group con Select
+                        </label>
+                        <div class="input-group">
+                            <select class="form-control">
+                                <option>USD</option>
+                                <option>EUR</option>
+                                <option>VES</option>
+                            </select>
+                            <input type="number" class="form-control" placeholder="0.00" value="100.00">
+                            <span class="input-group-text">
+                                <i class="fas fa-calculator"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            <i class="fas fa-coins"></i>Input Group Inverso
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">VES</span>
+                            <input type="text" class="form-control" placeholder="0.00" value="3,650.00" readonly>
+                            <select class="form-control">
+                                <option>Calculado</option>
+                                <option>Manual</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Campos Normales (Fuera de Calculadora)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Input Normal</label>
+                        <input type="text" class="form-control" placeholder="Input normal" value="Texto normal">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select Normal</label>
+                        <select class="form-control">
+                            <option>Opción A</option>
+                            <option>Opción B</option>
+                            <option>Opción C</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Input Group Normal</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Verificación Visual
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-ruler me-2"></i>
+                        <strong>Altura Objetivo:</strong><br>
+                        Todos los campos deben tener la misma altura visual
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-eye me-2"></i>
+                        <strong>Qué verificar:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Input de texto = Select box</li>
+                            <li>Input numérico = Select box</li>
+                            <li>Elementos en input-group alineados</li>
+                            <li>Consistencia en toda la página</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-shopping-cart me-1"></i>Probar en Compra
+                        </a>
+                        <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success btn-sm">
+                            <i class="fas fa-hand-holding-usd me-1"></i>Probar en Venta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ejemplo de formulario web2py -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-wpforms me-2"></i>Formulario Web2py (Simulado)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="web2py_user_form">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" placeholder="Ingrese nombre">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Tipo de Cuenta</label>
+                                    <select class="form-control">
+                                        <option>Seleccione tipo</option>
+                                        <option>Cuenta Corriente</option>
+                                        <option>Cuenta de Ahorros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" placeholder="correo@ejemplo.com">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos adicionales para la demostración */
+.alert ul {
+    padding-left: 1.2rem;
+}
+
+.alert li {
+    margin-bottom: 0.25rem;
+}
+
+/* Destacar visualmente las diferencias si las hay */
+.form-control {
+    border: 2px solid #2563eb !important;
+}
+
+select.form-control {
+    border: 2px solid #10b981 !important;
+}
+
+.input-group-text {
+    border: 2px solid #d97706 !important;
+}
+
+/* Mostrar las alturas calculadas */
+.form-control::after {
+    content: attr(data-height);
+    position: absolute;
+    right: -50px;
+    top: 0;
+    font-size: 0.7rem;
+    color: #666;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar las alturas reales de los elementos para debugging
+    const elementos = document.querySelectorAll('.form-control, .input-group-text');
+    elementos.forEach(function(elemento) {
+        const altura = window.getComputedStyle(elemento).height;
+        console.log(`Elemento ${elemento.tagName}: ${altura}`);
+        
+        // Agregar tooltip con la altura
+        elemento.title = `Altura: ${altura}`;
+    });
+    
+    // Verificar que todas las alturas sean iguales
+    const inputs = document.querySelectorAll('input.form-control');
+    const selects = document.querySelectorAll('select.form-control');
+    
+    if (inputs.length > 0 && selects.length > 0) {
+        const alturaInput = window.getComputedStyle(inputs[0]).height;
+        const alturaSelect = window.getComputedStyle(selects[0]).height;
+        
+        console.log(`Altura Input: ${alturaInput}`);
+        console.log(`Altura Select: ${alturaSelect}`);
+        
+        if (alturaInput === alturaSelect) {
+            console.log('✅ Las alturas coinciden!');
+        } else {
+            console.log('❌ Las alturas NO coinciden');
+        }
+    }
+});
+</script>

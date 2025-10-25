@@ -1,274 +1,68 @@
 {{extend 'layout.html'}}
 
-{{block head}}
-<style>
-:root {
-    --color-fondo: #000000;
-    --color-menu: #FFA366;
-    --color-acento: #FFD700;
-    --color-texto: #FFFFFF;
-    --color-texto-secundario: #CCCCCC;
-}
-
-body {
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-}
-
-.card {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    color: var(--color-texto);
-}
-
-.card-header {
-    background-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.form-control {
-    background-color: #2a2a2a;
-    border: 1px solid #555;
-    color: var(--color-texto);
-}
-
-.form-control:focus {
-    background-color: #2a2a2a;
-    border-color: var(--color-acento);
-    color: var(--color-texto);
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
-}
-
-.btn-primary {
-    background-color: var(--color-menu);
-    border-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.btn-primary:hover {
-    background-color: var(--color-acento);
-    border-color: var(--color-acento);
-    color: #000;
-}
-
-.btn-secondary {
-    background-color: #555;
-    border-color: #555;
-    color: var(--color-texto);
-}
-
-.btn-secondary:hover {
-    background-color: #666;
-    border-color: #666;
-}
-
-.alert-danger {
-    background-color: #721c24;
-    border-color: #842029;
-    color: #f8d7da;
-}
-
-.text-muted {
-    color: var(--color-texto-secundario) !important;
-}
-
-.form-text {
-    color: var(--color-texto-secundario);
-}
-
-label {
-    color: var(--color-texto);
-    font-weight: 500;
-}
-
-.cedula-help {
-    font-size: 0.875em;
-    color: var(--color-texto-secundario);
-    margin-top: 0.25rem;
-}
-</style>
-
-<script>
-function validarFormulario() {
-    const password = document.getElementById('no_table_password').value;
-    const passwordConfirm = document.getElementById('no_table_password_confirm').value;
-    
-    // Validar longitud de contraseña
-    if (password.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres');
-        return false;
-    }
-    
-    // Validar que las contraseñas coincidan
-    if (password !== passwordConfirm) {
-        alert('Las contraseñas no coinciden');
-        return false;
-    }
-    
-    return true;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Agregar validación mínima al formulario
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            if (!validarFormulario()) {
-                e.preventDefault();
-            }
-        });
-    }
-});
-</script>
-{{end}}
-
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">
-                    <i class="fa fa-user-plus"></i> Registrar Nuevo Cliente
-                </h4>
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-user-plus me-3"></i>Registrar Cliente
+                </h1>
+                <p class="lead mb-0">Registro de nuevo cliente bancario</p>
             </div>
-            <div class="card-body">
-                {{if response.flash:}}
-                <div class="alert {{='alert-danger' if '❌' in response.flash else 'alert-success' if '✅' in response.flash else 'alert-info'}} alert-dismissible fade show" role="alert">
-                    {{=response.flash}}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+        </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{=URL('clientes', 'listar')}}">Gestión de Clientes</a></li>
+            <li class="breadcrumb-item active">Registrar Cliente</li>
+        </ol>
+    </nav>
+
+    {{if response.flash:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Contenido principal -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-form me-2"></i>Formulario de Registro
+                    </h5>
                 </div>
-                {{pass}}
-                
-                {{if form and form.errors and form.errors.general:}}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fa fa-exclamation-triangle"></i> {{=form.errors.general}}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="card-body">
+                    <!-- Aquí va el formulario de registro -->
+                    <p>Formulario de registro de cliente...</p>
                 </div>
-                {{pass}}
-                
-                {{if registro_exitoso:}}
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fa fa-check-circle"></i> <strong>¡Cliente registrado exitosamente!</strong><br>
-                    Número de cuenta asignado: <strong>{{=numero_cuenta}}</strong>
-                    <hr>
-                    <div class="text-center">
-                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-primary">
-                            <i class="fa fa-list"></i> Ver Lista de Clientes
-                        </a>
-                        <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success ml-2">
-                            <i class="fa fa-user-plus"></i> Registrar Otro Cliente
-                        </a>
-                    </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Requisitos
+                    </h6>
                 </div>
-                {{pass}}
-                
-                {{if not registro_exitoso:}}
-                <form method="post" action="{{=URL('clientes', 'registrar')}}">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_first_name">Nombres *</label>
-                                <input type="text" class="form-control" id="no_table_first_name" name="first_name" 
-                                       value="{{=request.vars.first_name or ''}}" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_last_name">Apellidos *</label>
-                                <input type="text" class="form-control" id="no_table_last_name" name="last_name" 
-                                       value="{{=request.vars.last_name or ''}}" required>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_cedula">Cédula *</label>
-                                <input type="text" class="form-control" id="no_table_cedula" name="cedula" 
-                                       value="{{=request.vars.cedula or ''}}" 
-                                       placeholder="V-12345678 o E-12345678">
-                                <div id="cedula-help" class="cedula-help">
-                                    Cualquier formato de cédula
-                                </div>
-                                {{if form and form.errors.cedula:}}
-                                <div class="text-danger">{{=form.errors.cedula}}</div>
-                                {{pass}}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_telefono">Teléfono *</label>
-                                <input type="tel" class="form-control" id="no_table_telefono" name="telefono" 
-                                       value="{{=request.vars.telefono or ''}}" 
-                                       placeholder="+58 412-1234567">
-                                {{if form and form.errors.telefono:}}
-                                <div class="text-danger">{{=form.errors.telefono}}</div>
-                                {{pass}}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="no_table_email">Email *</label>
-                        <input type="email" class="form-control" id="no_table_email" name="email" 
-                               value="{{=request.vars.email or ''}}" required>
-                        {{if form and form.errors.email:}}
-                        <div class="text-danger">{{=form.errors.email}}</div>
-                        {{pass}}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="no_table_direccion">Dirección *</label>
-                        <textarea class="form-control" id="no_table_direccion" name="direccion" 
-                                  rows="3" required>{{=request.vars.direccion or ''}}</textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="no_table_fecha_nacimiento">Fecha de Nacimiento *</label>
-                        <input type="date" class="form-control" id="no_table_fecha_nacimiento" name="fecha_nacimiento" 
-                               value="{{=request.vars.fecha_nacimiento or ''}}" required>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_password">Contraseña *</label>
-                                <input type="password" class="form-control" id="no_table_password" name="password" 
-                                       required>
-                                <small class="form-text">Mínimo 6 caracteres</small>
-                                {{if form and form.errors.password:}}
-                                <div class="text-danger">{{=form.errors.password}}</div>
-                                {{pass}}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_password_confirm">Confirmar Contraseña *</label>
-                                <input type="password" class="form-control" id="no_table_password_confirm" name="password_confirm" 
-                                       required>
-                                {{if form and form.errors.password_confirm:}}
-                                <div class="text-danger">{{=form.errors.password_confirm}}</div>
-                                {{pass}}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group text-center mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fa fa-save"></i> Registrar Cliente
-                        </button>
-                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary btn-lg ml-2">
-                            <i class="fa fa-times"></i> Cancelar
-                        </a>
-                    </div>
-                </form>
-                {{pass}}
+                <div class="card-body">
+                    <ul class="small">
+                        <li>Cédula de identidad válida</li>
+                        <li>Información de contacto</li>
+                        <li>Datos bancarios completos</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

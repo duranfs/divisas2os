@@ -337,3 +337,9 @@ success!
 DELETE FROM "tasas_cambio";
 DELETE FROM sqlite_sequence WHERE name='tasas_cambio'
 success!
+timestamp: 2025-10-25T11:52:04.650601
+ALTER TABLE "cuentas" ADD "saldo_usdt" DOUBLE;
+success!
+timestamp: 2025-10-25T11:52:04.691698
+ALTER TABLE "tasas_cambio" ADD "usdt_ves" DOUBLE;
+success!

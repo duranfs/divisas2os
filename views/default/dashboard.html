@@ -4,83 +4,70 @@
   
   {{if tipo_dashboard == 'administrativo':}}
     <!-- Dashboard Administrativo -->
-    <div class="row mb-4">
-      <div class="col-10">
-        <h2 class="text-white mb-3">
-          <i class="fas fa-tachometer-alt text-warning"></i> Dashboard Administrativo
-        </h2>
-      </div>
-      <div class="col-2 text-end">
-        <a href="{{=URL('default','user/logout')}}" 
-           class="btn btn-outline-danger"
-           onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
-          <i class="fas fa-sign-out-alt me-1"></i>Salir
-        </a>
+    <div class="dashboard-header fade-in-up">
+      <div class="row align-items-center">
+        <div class="col-10">
+          <h1>
+            <i class="fas fa-tachometer-alt me-3"></i>Dashboard Administrativo
+          </h1>
+          <p class="lead mb-0">Panel de control y gestión del sistema bancario</p>
+        </div>
+        <div class="col-2 text-end">
+          <a href="{{=URL('default','user/logout')}}" 
+             class="btn btn-danger"
+             onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+            <i class="fas fa-sign-out-alt me-1"></i>Salir
+          </a>
+        </div>
       </div>
     </div>
     
     <!-- Estadísticas principales -->
     <div class="row mb-4">
-      <div class="col-md-3">
-        <div class="card bg-primary text-white">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <div>
-                <h4>{{=transacciones_hoy}}</h4>
-                <p class="mb-0">Transacciones Hoy</p>
-              </div>
-              <div class="align-self-center">
-                <i class="fas fa-exchange-alt fa-2x"></i>
-              </div>
-            </div>
+      <div class="col-md-3 mb-3">
+        <div class="card-resumen slide-in-right">
+          <div class="card-header">
+            <i class="fas fa-exchange-alt me-2"></i>Transacciones Hoy
+          </div>
+          <div class="card-body text-center">
+            <div class="saldo-amount">{{=transacciones_hoy}}</div>
+            <small class="text-muted">Operaciones completadas</small>
           </div>
         </div>
       </div>
       
-      <div class="col-md-3">
-        <div class="card bg-success text-white">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <div>
-                <h4>{{=clientes_activos}}</h4>
-                <p class="mb-0">Clientes Activos</p>
-              </div>
-              <div class="align-self-center">
-                <i class="fas fa-users fa-2x"></i>
-              </div>
-            </div>
+      <div class="col-md-3 mb-3">
+        <div class="card-resumen slide-in-right" style="animation-delay: 0.1s;">
+          <div class="card-header">
+            <i class="fas fa-users me-2"></i>Clientes Activos
+          </div>
+          <div class="card-body text-center">
+            <div class="saldo-amount">{{=clientes_activos}}</div>
+            <small class="text-muted">Usuarios registrados</small>
           </div>
         </div>
       </div>
       
-      <div class="col-md-3">
-        <div class="card bg-info text-white">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <div>
-                <h4>{{=cuentas_activas}}</h4>
-                <p class="mb-0">Cuentas Activas</p>
-              </div>
-              <div class="align-self-center">
-                <i class="fas fa-university fa-2x"></i>
-              </div>
-            </div>
+      <div class="col-md-3 mb-3">
+        <div class="card-resumen slide-in-right" style="animation-delay: 0.2s;">
+          <div class="card-header">
+            <i class="fas fa-university me-2"></i>Cuentas Activas
+          </div>
+          <div class="card-body text-center">
+            <div class="saldo-amount">{{=cuentas_activas}}</div>
+            <small class="text-muted">Cuentas bancarias</small>
           </div>
         </div>
       </div>
       
-      <div class="col-md-3">
-        <div class="card bg-warning text-dark">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <div>
-                <h4>{{=len(ultimas_transacciones) if ultimas_transacciones else 0}}</h4>
-                <p class="mb-0">Transacciones Recientes</p>
-              </div>
-              <div class="align-self-center">
-                <i class="fas fa-clock fa-2x"></i>
-              </div>
-            </div>
+      <div class="col-md-3 mb-3">
+        <div class="card-resumen slide-in-right" style="animation-delay: 0.3s;">
+          <div class="card-header">
+            <i class="fas fa-clock me-2"></i>Transacciones Recientes
+          </div>
+          <div class="card-body text-center">
+            <div class="saldo-amount">{{=len(ultimas_transacciones) if ultimas_transacciones else 0}}</div>
+            <small class="text-muted">Últimas operaciones</small>
           </div>
         </div>
       </div>
@@ -127,19 +114,21 @@
     
   {{elif tipo_dashboard == 'cliente':}}
     <!-- Dashboard Cliente -->
-    <div class="row mb-4">
-      <div class="col-10">
-        <h2 class="text-white mb-3">
-          <i class="fas fa-user text-warning"></i> Mi Dashboard
-        </h2>
-        <p class="text-light">Bienvenido, {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
-      </div>
-      <div class="col-2 text-end">
-        <a href="{{=URL('default','user/logout')}}" 
-           class="btn btn-outline-danger"
-           onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
-          <i class="fas fa-sign-out-alt me-1"></i>Salir
-        </a>
+    <div class="dashboard-header fade-in-up">
+      <div class="row align-items-center">
+        <div class="col-10">
+          <h1>
+            <i class="fas fa-user me-3"></i>Mi Dashboard
+          </h1>
+          <p class="lead mb-0">Bienvenido, {{=auth.user.first_name}} {{=auth.user.last_name}}</p>
+        </div>
+        <div class="col-2 text-end">
+          <a href="{{=URL('default','user/logout')}}" 
+             class="btn btn-danger"
+             onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+            <i class="fas fa-sign-out-alt me-1"></i>Salir
+          </a>
+        </div>
       </div>
     </div>
     
@@ -190,19 +179,21 @@
     
   {{else:}}
     <!-- Dashboard Básico -->
-    <div class="row mb-4">
-      <div class="col-10">
-        <h2 class="text-white mb-3">
-          <i class="fas fa-home text-warning"></i> Dashboard
-        </h2>
-        <p class="text-light">Bienvenido al Sistema de Divisas Bancario</p>
-      </div>
-      <div class="col-2 text-end">
-        <a href="{{=URL('default','user/logout')}}" 
-           class="btn btn-outline-danger"
-           onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
-          <i class="fas fa-sign-out-alt me-1"></i>Salir
-        </a>
+    <div class="dashboard-header fade-in-up">
+      <div class="row align-items-center">
+        <div class="col-10">
+          <h1>
+            <i class="fas fa-home me-3"></i>Dashboard
+          </h1>
+          <p class="lead mb-0">Bienvenido al Sistema de Divisas Bancario</p>
+        </div>
+        <div class="col-2 text-end">
+          <a href="{{=URL('default','user/logout')}}" 
+             class="btn btn-danger"
+             onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
+            <i class="fas fa-sign-out-alt me-1"></i>Salir
+          </a>
+        </div>
       </div>
     </div>
     
@@ -217,6 +208,62 @@
     </div>
   {{pass}}
   
+  <!-- Widget Informativo - Nueva Calculadora -->
+  {{if tipo_dashboard in ['cliente', 'administrativo']:}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-sparkles"></i> ¡Nueva Funcionalidad! Calculadora Automática
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-8">
+              <h6><i class="fas fa-magic text-primary"></i> ¿Qué hay de nuevo?</h6>
+              <p class="mb-2">Ahora es más fácil comprar y vender divisas. Solo ingresa la cantidad que quieres y nosotros calculamos automáticamente cuántos bolívares necesitas o recibirás.</p>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="text-warning"><i class="fas fa-shopping-cart"></i> Para Comprar:</h6>
+                  <ul class="small mb-0">
+                    <li>Ingresa cuántos USD/EUR quieres</li>
+                    <li>Ve automáticamente los VES necesarios</li>
+                    <li>Campo amarillo = dinero que pagas</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-hand-holding-usd"></i> Para Vender:</h6>
+                  <ul class="small mb-0">
+                    <li>Ingresa cuántos USD/EUR vendes</li>
+                    <li>Ve automáticamente los VES que recibes</li>
+                    <li>Campo verde = dinero que recibes</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="mt-2">
+                <a href="{{=URL('divisas', 'prueba_calculadora')}}" class="btn btn-outline-primary btn-sm mb-2">
+                  <i class="fas fa-flask"></i> Probar Calculadora
+                </a>
+                <br>
+                <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-warning btn-sm me-1">
+                  <i class="fas fa-shopping-cart"></i> Comprar
+                </a>
+                <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success btn-sm">
+                  <i class="fas fa-hand-holding-usd"></i> Vender
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{pass}}
+
   <!-- Tasas de cambio actuales (para todos los dashboards) -->
   {{if tasas_actuales:}}
   <div class="row mb-4">

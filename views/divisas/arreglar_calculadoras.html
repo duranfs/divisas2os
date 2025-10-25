@@ -1,0 +1,64 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <h2>Arreglar Calculadoras - Diagnóstico</h2>
+    
+    <div class="alert alert-info">
+        <h5>Problema Identificado:</h5>
+        <p>Las calculadoras en las páginas de comprar y vender no están funcionando. Vamos a diagnosticar y arreglar paso a paso.</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Estado de Comprar Divisas</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Página:</strong> <a href="{{=URL('divisas', 'comprar')}}" target="_blank">Comprar Divisas</a></p>
+                    <p><strong>Problema:</strong> Calculadora no responde al ingresar cantidad</p>
+                    <p><strong>Causa Probable:</strong> Error en carga de tasas o configuración de eventos</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Estado de Vender Divisas</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Página:</strong> <a href="{{=URL('divisas', 'vender')}}" target="_blank">Vender Divisas</a></p>
+                    <p><strong>Problema:</strong> Calculadora dejó de funcionar después de cambios</p>
+                    <p><strong>Causa Probable:</strong> Conflicto entre calculadora unificada y función original</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <h4>Plan de Arreglo:</h4>
+        <ol>
+            <li><strong>Restaurar funcionalidad de Vender:</strong> Usar la función original que funcionaba</li>
+            <li><strong>Arreglar Comprar:</strong> Aplicar la misma lógica que funciona en Vender</li>
+            <li><strong>Simplificar:</strong> Eliminar complejidad innecesaria</li>
+            <li><strong>Probar:</strong> Verificar que ambas páginas funcionen</li>
+        </ol>
+    </div>
+    
+    <div class="mt-4">
+        <button type="button" class="btn btn-primary" onclick="window.location.href='{{=URL('divisas', 'comprar')}}'">
+            Probar Comprar
+        </button>
+        <button type="button" class="btn btn-success" onclick="window.location.href='{{=URL('divisas', 'vender')}}'">
+            Probar Vender
+        </button>
+    </div>
+</div>
+
+<script>
+console.log('🔧 Página de diagnóstico cargada');
+console.log('📍 URLs de prueba:');
+console.log('- Comprar: {{=URL("divisas", "comprar")}}');
+console.log('- Vender: {{=URL("divisas", "vender")}}');
+</script>

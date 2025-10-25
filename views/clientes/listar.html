@@ -1,388 +1,147 @@
 {{extend 'layout.html'}}
 
-{{block head}}
-<style>
-:root {
-    --color-fondo: #000000;
-    --color-menu: #FFA366;
-    --color-acento: #FFD700;
-    --color-texto: #FFFFFF;
-    --color-texto-secundario: #CCCCCC;
-}
-
-body {
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-}
-
-.card {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    color: var(--color-texto);
-}
-
-.card-header {
-    background-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.form-control {
-    background-color: #2a2a2a;
-    border: 1px solid #555;
-    color: var(--color-texto);
-}
-
-.form-control:focus {
-    background-color: #2a2a2a;
-    border-color: var(--color-acento);
-    color: var(--color-texto);
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
-}
-
-.btn-primary {
-    background-color: var(--color-menu);
-    border-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.btn-primary:hover {
-    background-color: var(--color-acento);
-    border-color: var(--color-acento);
-    color: #000;
-}
-
-.btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-}
-
-.btn-warning {
-    background-color: #ffc107;
-    border-color: #ffc107;
-    color: #000;
-}
-
-.btn-warning:hover {
-    background-color: #e0a800;
-    border-color: #d39e00;
-    color: #000;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
-
-.btn-info {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-}
-
-.btn-info:hover {
-    background-color: #138496;
-    border-color: #117a8b;
-}
-
-.btn-secondary {
-    background-color: #555;
-    border-color: #555;
-    color: var(--color-texto);
-}
-
-.btn-secondary:hover {
-    background-color: #666;
-    border-color: #666;
-}
-
-.table-dark {
-    background-color: #1a1a1a;
-    color: var(--color-texto);
-}
-
-.table-dark th {
-    background-color: var(--color-menu);
-    color: #000;
-    border-color: #333;
-    font-weight: bold;
-}
-
-.table-dark td {
-    border-color: #333;
-    vertical-align: middle;
-}
-
-.table-dark tbody tr:hover {
-    background-color: #2a2a2a;
-}
-
-.badge-success {
-    background-color: #28a745;
-}
-
-.badge-danger {
-    background-color: #dc3545;
-}
-
-.stats-card {
-    background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
-    border: 1px solid #333;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.stats-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--color-acento);
-}
-
-.stats-label {
-    color: var(--color-texto-secundario);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.pagination .page-link {
-    background-color: #2a2a2a;
-    border-color: #555;
-    color: var(--color-texto);
-}
-
-.pagination .page-link:hover {
-    background-color: var(--color-menu);
-    border-color: var(--color-menu);
-    color: #000;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: var(--color-acento);
-    border-color: var(--color-acento);
-    color: #000;
-}
-
-.search-section {
-    background-color: #2a2a2a;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.btn-sm {
-    font-size: 0.8rem;
-    padding: 0.25rem 0.5rem;
-}
-</style>
-{{end}}
-
-<div class="row mb-4">
-    <!-- Estadísticas -->
-    <div class="col-md-3">
-        <div class="stats-card">
-            <div class="stats-number">{{=stats['total']}}</div>
-            <div class="stats-label">Total Clientes</div>
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-users me-3"></i>Gestión de Clientes
+                </h1>
+                <p class="lead mb-0">Administración y consulta de clientes bancarios</p>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
-            <div class="stats-number">{{=stats['activos']}}</div>
-            <div class="stats-label">Activos</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stats-card">
-            <div class="stats-number">{{=stats['inactivos']}}</div>
-            <div class="stats-label">Inactivos</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="text-center">
-            <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success btn-lg">
-                <i class="fa fa-user-plus"></i><br>
-                <small>Nuevo Cliente</small>
-            </a>
-        </div>
-    </div>
-</div>
 
-<!-- Filtros y Búsqueda -->
-<div class="search-section">
-    <form method="get" action="{{=URL('clientes', 'listar')}}">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="buscar">Buscar Cliente</label>
-                    <input type="text" class="form-control" id="buscar" name="buscar" 
-                           value="{{=buscar}}" placeholder="Nombre, apellido, email o cédula">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Gestión de Clientes</li>
+        </ol>
+    </nav>
+
+    {{if response.flash:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Filtros de búsqueda -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Buscar por nombre</label>
+                                <input type="text" class="form-control" placeholder="Nombre del cliente">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Buscar por cédula</label>
+                                <input type="text" class="form-control" placeholder="Número de cédula">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-control">
+                                    <option>Todos los estados</option>
+                                    <option>Activo</option>
+                                    <option>Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Buscar
+                            </button>
+                            <button type="button" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="estado">Estado</label>
-                    <select class="form-control" id="estado" name="estado">
-                        <option value="todos" {{='selected' if estado_filtro == 'todos' else ''}}>Todos</option>
-                        <option value="activo" {{='selected' if estado_filtro == 'activo' else ''}}>Activos</option>
-                        <option value="inactivo" {{='selected' if estado_filtro == 'inactivo' else ''}}>Inactivos</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label>&nbsp;</label><br>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-search"></i> Buscar
-                    </button>
-                    <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary ml-2">
-                        <i class="fa fa-refresh"></i> Limpiar
+        </div>
+    </div>
+
+    <!-- Lista de clientes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Lista de Clientes
+                    </h5>
+                    <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Nuevo Cliente
                     </a>
                 </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Cédula</th>
+                                    <th>Email</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí van los datos de clientes -->
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Los datos de clientes se cargarán aquí
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 
-<!-- Lista de Clientes -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fa fa-users"></i> Lista de Clientes
-            <span class="badge badge-secondary ml-2">{{=total_clientes}} resultados</span>
-        </h5>
-    </div>
-    <div class="card-body p-0">
-        {{if clientes:}}
-        <div class="table-responsive">
-            <table class="table table-dark table-striped mb-0">
-                <thead>
-                    <tr>
-                        <th>Cédula</th>
-                        <th>Nombre Completo</th>
-                        <th>Email</th>
-                        <th>Teléfono</th>
-                        <th>Estado</th>
-                        <th>Fecha Registro</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{for cliente in clientes:}}
-                    <tr>
-                        <td>
-                            <strong>{{=cliente.clientes.cedula}}</strong>
-                        </td>
-                        <td>
-                            {{=cliente.auth_user.first_name}} {{=cliente.auth_user.last_name}}
-                        </td>
-                        <td>
-                            <a href="mailto:{{=cliente.auth_user.email}}" class="text-info">
-                                {{=cliente.auth_user.email}}
-                            </a>
-                        </td>
-                        <td>{{=cliente.auth_user.telefono}}</td>
-                        <td>
-                            {{if cliente.auth_user.estado == 'activo':}}
-                                <span class="badge badge-success">Activo</span>
-                            {{else:}}
-                                <span class="badge badge-danger">Inactivo</span>
-                            {{pass}}
-                        </td>
-                        <td>{{=cliente.clientes.fecha_registro.strftime('%d/%m/%Y')}}</td>
-                        <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <a href="{{=URL('clientes', 'detalle', args=[cliente.clientes.id])}}" 
-                                   class="btn btn-info btn-sm" title="Ver Detalles">
-                                    <i class="fa fa-eye"></i>
-                                </a>
-                                <a href="{{=URL('clientes', 'editar', args=[cliente.clientes.id])}}" 
-                                   class="btn btn-warning btn-sm" title="Editar">
-                                    <i class="fa fa-edit"></i>
-                                </a>
-                                {{if auth.has_membership('administrador'):}}
-                                    {{if cliente.auth_user.estado == 'activo':}}
-                                    <a href="{{=URL('clientes', 'cambiar_estado', args=[cliente.clientes.id, 'inactivo'])}}" 
-                                       class="btn btn-danger btn-sm" title="Desactivar"
-                                       onclick="return confirm('¿Está seguro de desactivar este cliente?')">
-                                        <i class="fa fa-ban"></i>
-                                    </a>
-                                    {{else:}}
-                                    <a href="{{=URL('clientes', 'cambiar_estado', args=[cliente.clientes.id, 'activo'])}}" 
-                                       class="btn btn-success btn-sm" title="Activar"
-                                       onclick="return confirm('¿Está seguro de activar este cliente?')">
-                                        <i class="fa fa-check"></i>
-                                    </a>
-                                    {{pass}}
-                                {{pass}}
-                            </div>
-                        </td>
-                    </tr>
-                    {{pass}}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Paginación -->
-        {{if total_pages > 1:}}
-        <div class="card-footer">
-            <nav aria-label="Paginación de clientes">
-                <ul class="pagination justify-content-center mb-0">
-                    {{if page > 1:}}
-                    <li class="page-item">
-                        <a class="page-link" href="{{=URL('clientes', 'listar', vars={'page': page-1, 'buscar': buscar, 'estado': estado_filtro})}}">
-                            <i class="fa fa-chevron-left"></i> Anterior
-                        </a>
-                    </li>
-                    {{pass}}
-                    
-                    {{for p in range(max(1, page-2), min(total_pages+1, page+3)):}}
-                    <li class="page-item {{='active' if p == page else ''}}">
-                        <a class="page-link" href="{{=URL('clientes', 'listar', vars={'page': p, 'buscar': buscar, 'estado': estado_filtro})}}">
-                            {{=p}}
-                        </a>
-                    </li>
-                    {{pass}}
-                    
-                    {{if page < total_pages:}}
-                    <li class="page-item">
-                        <a class="page-link" href="{{=URL('clientes', 'listar', vars={'page': page+1, 'buscar': buscar, 'estado': estado_filtro})}}">
-                            Siguiente <i class="fa fa-chevron-right"></i>
-                        </a>
-                    </li>
-                    {{pass}}
-                </ul>
-            </nav>
-        </div>
-        {{pass}}
-        
-        {{else:}}
-        <div class="text-center py-5">
-            <i class="fa fa-users fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">No se encontraron clientes</h5>
-            {{if buscar or estado_filtro != 'todos':}}
-            <p class="text-muted">Intente modificar los filtros de búsqueda</p>
-            <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary">
-                <i class="fa fa-refresh"></i> Limpiar Filtros
-            </a>
-            {{else:}}
-            <p class="text-muted">Comience registrando el primer cliente</p>
-            <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success">
-                <i class="fa fa-user-plus"></i> Registrar Cliente
-            </a>
-            {{pass}}
-        </div>
-        {{pass}}
-    </div>
-</div>
+<style>
+/* Estilos específicos para la gestión de clientes */
+.page-header {
+    background: linear-gradient(135deg, var(--color-primario, #2563eb) 0%, var(--color-secundario, #06b6d4) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: white !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin: 0;
+}
+</style>

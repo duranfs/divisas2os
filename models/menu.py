@@ -31,7 +31,9 @@ else:
                 ('Comprar Divisas', False, URL('divisas', 'comprar')),
                 ('Vender Divisas', False, URL('divisas', 'vender')),
                 ('Historial de Transacciones', False, URL('divisas', 'historial_transacciones')),
-                ('Tasas Actuales', False, URL('api', 'index'))
+                ('Tasas Actuales', False, URL('api', 'index')),
+                ('---', False, None),
+                ('🧪 Prueba Calculadora', False, URL('divisas', 'prueba_calculadora'))
             ])
         ])
     

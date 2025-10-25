@@ -1,0 +1,131 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-sync me-3"></i>Actualizar Tasas del BCV
+                </h1>
+                <p class="lead mb-0">Obtener las tasas oficiales más recientes del Banco Central de Venezuela</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download me-2"></i>Actualización de Tasas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultado-actualizacion">
+                        <p>Haga clic en el botón para obtener las tasas más recientes del BCV.</p>
+                    </div>
+                    
+                    <button id="btn-actualizar" class="btn btn-success btn-lg">
+                        <i class="fas fa-sync me-2"></i>Actualizar Tasas del BCV
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">
+                        <strong>¿Qué hace esta función?</strong>
+                    </p>
+                    <ul class="small">
+                        <li>Consulta la página oficial del BCV</li>
+                        <li>Extrae las tasas USD/VES y EUR/VES</li>
+                        <li>Las guarda en la base de datos</li>
+                        <li>Las marca como activas para uso inmediato</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <p class="small">
+                        <strong>Después de actualizar:</strong>
+                    </p>
+                    <ul class="small">
+                        <li>Las calculadoras usarán las tasas reales</li>
+                        <li>Los widgets mostrarán valores actualizados</li>
+                        <li>Las transacciones usarán tasas oficiales</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('btn-actualizar').addEventListener('click', async function() {
+    const btn = this;
+    const resultado = document.getElementById('resultado-actualizacion');
+    
+    // Deshabilitar botón y mostrar loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+    
+    resultado.innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            Consultando el BCV, por favor espere...
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('{{=URL("default", "actualizar_tasas_bcv")}}', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            resultado.innerHTML = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>¡Tasas actualizadas correctamente!</h6>
+                    <p><strong>USD/VES:</strong> ${data.tasas.usd_ves}</p>
+                    <p><strong>EUR/VES:</strong> ${data.tasas.eur_ves}</p>
+                    <p><strong>Fecha:</strong> ${data.fecha}</p>
+                    <p><strong>Fuente:</strong> ${data.fuente}</p>
+                </div>
+                <div class="mt-3">
+                    <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary me-2">
+                        <i class="fas fa-shopping-cart me-1"></i>Probar Calculadora
+                    </a>
+                    <a href="{{=URL('default', 'verificar_tasas_bd')}}" class="btn btn-info">
+                        <i class="fas fa-database me-1"></i>Ver Base de Datos
+                    </a>
+                </div>
+            `;
+        } else {
+            resultado.innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Error al actualizar</h6>
+                    <p>${data.error}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        resultado.innerHTML = `
+            <div class="alert alert-danger">
+                <h6><i class="fas fa-times-circle me-2"></i>Error de conexión</h6>
+                <p>No se pudo conectar con el servidor: ${error.message}</p>
+            </div>
+        `;
+    }
+    
+    // Rehabilitar botón
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sync me-2"></i>Actualizar Tasas del BCV';
+});
+</script>

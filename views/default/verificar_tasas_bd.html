@@ -1,0 +1,154 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-database me-3"></i>Verificar Tasas en Base de Datos
+                </h1>
+                <p class="lead mb-0">Diagnóstico de tasas de cambio almacenadas</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search me-2"></i>Estado de las Tasas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{try:}}
+                        {{# Verificar si existe la tabla}}
+                        {{if 'tasas_cambio' in db.tables:}}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Tabla tasas_cambio encontrada</strong>
+                            </div>
+                            
+                            {{# Contar registros}}
+                            {{total_registros = db(db.tasas_cambio).count()}}
+                            <p><strong>Total de registros:</strong> {{=total_registros}}</p>
+                            
+                            {{if total_registros > 0:}}
+                                {{# Buscar tasa activa}}
+                                {{tasa_activa = db(db.tasas_cambio.activa == True).select().first()}}
+                                {{if tasa_activa:}}
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-check-circle me-2"></i>Tasa Activa Encontrada</h6>
+                                        <p><strong>USD/VES:</strong> {{=tasa_activa.usd_ves}}</p>
+                                        <p><strong>EUR/VES:</strong> {{=tasa_activa.eur_ves}}</p>
+                                        <p><strong>Fecha:</strong> {{=tasa_activa.fecha}}</p>
+                                        <p><strong>Hora:</strong> {{=tasa_activa.hora}}</p>
+                                        <p><strong>Fuente:</strong> {{=tasa_activa.fuente}}</p>
+                                    </div>
+                                {{else:}}
+                                    <div class="alert alert-warning">
+                                        <h6><i class="fas fa-exclamation-triangle me-2"></i>No hay tasa activa</h6>
+                                        <p>Buscando la más reciente...</p>
+                                    </div>
+                                    
+                                    {{# Buscar la más reciente}}
+                                    {{tasa_reciente = db().select(db.tasas_cambio.ALL, orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora, limitby=(0,1)).first()}}
+                                    {{if tasa_reciente:}}
+                                        <div class="alert alert-info">
+                                            <h6><i class="fas fa-clock me-2"></i>Tasa Más Reciente</h6>
+                                            <p><strong>USD/VES:</strong> {{=tasa_reciente.usd_ves}}</p>
+                                            <p><strong>EUR/VES:</strong> {{=tasa_reciente.eur_ves}}</p>
+                                            <p><strong>Fecha:</strong> {{=tasa_reciente.fecha}}</p>
+                                            <p><strong>Hora:</strong> {{=tasa_reciente.hora}}</p>
+                                            <p><strong>Fuente:</strong> {{=tasa_reciente.fuente}}</p>
+                                            <p><strong>Activa:</strong> {{=tasa_reciente.activa}}</p>
+                                        </div>
+                                    {{pass}}
+                                {{pass}}
+                                
+                                {{# Mostrar últimas 5 tasas}}
+                                <h6 class="mt-4">Últimas 5 Tasas Registradas:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Fecha</th>
+                                                <th>Hora</th>
+                                                <th>USD/VES</th>
+                                                <th>EUR/VES</th>
+                                                <th>Fuente</th>
+                                                <th>Activa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {{for tasa in db().select(db.tasas_cambio.ALL, orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora, limitby=(0,5)):}}
+                                            <tr>
+                                                <td>{{=tasa.id}}</td>
+                                                <td>{{=tasa.fecha}}</td>
+                                                <td>{{=tasa.hora}}</td>
+                                                <td>{{=tasa.usd_ves}}</td>
+                                                <td>{{=tasa.eur_ves}}</td>
+                                                <td>{{=tasa.fuente}}</td>
+                                                <td>
+                                                    {{if tasa.activa:}}
+                                                        <span class="badge bg-success">Sí</span>
+                                                    {{else:}}
+                                                        <span class="badge bg-secondary">No</span>
+                                                    {{pass}}
+                                                </td>
+                                            </tr>
+                                            {{pass}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {{else:}}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <strong>No hay tasas en la base de datos</strong>
+                                    <p>La tabla existe pero está vacía.</p>
+                                </div>
+                            {{pass}}
+                        {{else:}}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle me-2"></i>
+                                <strong>Tabla tasas_cambio no encontrada</strong>
+                                <p>La tabla no existe en la base de datos.</p>
+                            </div>
+                        {{pass}}
+                    {{except Exception as e:}}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-bug me-2"></i>
+                            <strong>Error al verificar tasas:</strong>
+                            <p>{{=str(e)}}</p>
+                        </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Acciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <a href="{{=URL('api', 'tasas_simples')}}" class="btn btn-primary me-2" target="_blank">
+                        <i class="fas fa-eye me-1"></i>Ver API tasas_simples
+                    </a>
+                    <a href="{{=URL('default', 'actualizar_tasas')}}" class="btn btn-success me-2">
+                        <i class="fas fa-sync me-1"></i>Actualizar Tasas BCV
+                    </a>
+                    <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-info">
+                        <i class="fas fa-shopping-cart me-1"></i>Probar Calculadora
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

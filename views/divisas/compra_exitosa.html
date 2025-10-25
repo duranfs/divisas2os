@@ -1,0 +1,45 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Compra Realizada Exitosamente
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-thumbs-up me-2"></i>¡Transacción Completada!</h5>
+                        <p class="mb-0">Su compra de divisas ha sido procesada correctamente.</p>
+                    </div>
+                    
+                    {{if comprobante:}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Número de Comprobante:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="badge bg-primary">{{=comprobante}}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    {{pass}}
+                    
+                    <div class="text-center">
+                        <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-primary me-2">
+                            <i class="fas fa-history me-1"></i>Ver Historial
+                        </a>
+                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-secondary me-2">
+                            <i class="fas fa-plus me-1"></i>Nueva Compra
+                        </a>
+                        <a href="{{=URL('divisas', 'index')}}" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

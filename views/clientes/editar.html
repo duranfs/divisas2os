@@ -1,257 +1,63 @@
 {{extend 'layout.html'}}
 
-{{block head}}
-<style>
-:root {
-    --color-fondo: #000000;
-    --color-menu: #FFA366;
-    --color-acento: #FFD700;
-    --color-texto: #FFFFFF;
-    --color-texto-secundario: #CCCCCC;
-}
-
-body {
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-}
-
-.card {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    color: var(--color-texto);
-}
-
-.card-header {
-    background-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.form-control {
-    background-color: #2a2a2a;
-    border: 1px solid #555;
-    color: var(--color-texto);
-}
-
-.form-control:focus {
-    background-color: #2a2a2a;
-    border-color: var(--color-acento);
-    color: var(--color-texto);
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
-}
-
-.btn-primary {
-    background-color: var(--color-menu);
-    border-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.btn-primary:hover {
-    background-color: var(--color-acento);
-    border-color: var(--color-acento);
-    color: #000;
-}
-
-.btn-secondary {
-    background-color: #555;
-    border-color: #555;
-    color: var(--color-texto);
-}
-
-.btn-secondary:hover {
-    background-color: #666;
-    border-color: #666;
-}
-
-.btn-info {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-}
-
-.btn-info:hover {
-    background-color: #138496;
-    border-color: #117a8b;
-}
-
-.info-section {
-    background-color: #2a2a2a;
-    border-radius: 0.375rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.info-label {
-    font-weight: bold;
-    color: var(--color-acento);
-}
-
-.info-value {
-    color: var(--color-texto);
-}
-
-label {
-    color: var(--color-texto);
-    font-weight: 500;
-}
-
-.badge-success {
-    background-color: #28a745;
-}
-
-.badge-warning {
-    background-color: #ffc107;
-    color: #000;
-}
-
-.badge-danger {
-    background-color: #dc3545;
-}
-</style>
-{{end}}
-
-<div class="row">
-    <div class="col-md-4">
-        <!-- Información Actual del Cliente -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-user"></i> Información Actual
-                </h5>
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-user-edit me-3"></i>Editar Cliente
+                </h1>
+                <p class="lead mb-0">Modificación de datos del cliente</p>
             </div>
-            <div class="card-body">
-                {{if usuario and cliente:}}
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Nombre:</div>
-                        <div class="col-sm-8 info-value">{{=usuario.first_name or ''}} {{=usuario.last_name or ''}}</div>
-                    </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{=URL('clientes', 'listar')}}">Gestión de Clientes</a></li>
+            <li class="breadcrumb-item active">Editar Cliente</li>
+        </ol>
+    </nav>
+
+    {{if response.flash:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Contenido principal -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Formulario de Edición
+                    </h5>
                 </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Cédula:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.cedula or 'N/A'}}</div>
-                    </div>
+                <div class="card-body">
+                    <!-- Aquí va el formulario de edición -->
+                    <p>Formulario de edición de cliente...</p>
                 </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Email:</div>
-                        <div class="col-sm-8 info-value">{{=usuario.email or 'N/A'}}</div>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Estado:</div>
-                        <div class="col-sm-8 info-value">
-                            {{if hasattr(usuario, 'estado') and usuario.estado == 'activo':}}
-                                <span class="badge badge-success">Activo</span>
-                            {{else:}}
-                                <span class="badge badge-danger">Inactivo</span>
-                            {{pass}}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Registro:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.fecha_registro.strftime('%d/%m/%Y') if cliente and cliente.fecha_registro else 'N/A'}}</div>
-                    </div>
-                </div>
-                {{else:}}
-                <div class="alert alert-danger">
-                    <i class="fa fa-exclamation-triangle"></i>
-                    Error: No se pudieron cargar los datos del cliente.
-                </div>
-                {{pass}}
             </div>
         </div>
         
-        <!-- Cuentas del Cliente -->
-        {{if cuentas and cliente:}}
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-credit-card"></i> Cuentas Bancarias
-                </h5>
-            </div>
-            <div class="card-body">
-                {{for cuenta in cuentas:}}
-                {{if cuenta:}}
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-12">
-                            <strong>{{=cuenta.numero_cuenta or 'N/A'}}</strong>
-                            {{if cuenta.estado == 'activa':}}
-                                <span class="badge badge-success float-right">{{=cuenta.estado.title()}}</span>
-                            {{elif cuenta.estado == 'inactiva':}}
-                                <span class="badge badge-warning float-right">{{=cuenta.estado.title()}}</span>
-                            {{else:}}
-                                <span class="badge badge-danger float-right">{{=cuenta.estado.title() if cuenta.estado else 'N/A'}}</span>
-                            {{pass}}
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-4 text-center">
-                            <small class="text-muted">VES</small><br>
-                            <strong>{{="{:,.2f}".format(float(cuenta.saldo_ves or 0))}}</strong>
-                        </div>
-                        <div class="col-4 text-center">
-                            <small class="text-muted">USD</small><br>
-                            <strong>{{="{:,.2f}".format(float(cuenta.saldo_usd or 0))}}</strong>
-                        </div>
-                        <div class="col-4 text-center">
-                            <small class="text-muted">EUR</small><br>
-                            <strong>{{="{:,.2f}".format(float(cuenta.saldo_eur or 0))}}</strong>
-                        </div>
-                    </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Historial
+                    </h6>
                 </div>
-                {{pass}}
-                {{pass}}
-            </div>
-        </div>
-        {{pass}}
-    </div>
-    
-    <div class="col-md-8">
-        <!-- Formulario de Edición Administrativa -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-edit"></i> Editar Cliente (Administrador)
-                </h5>
-            </div>
-            <div class="card-body">
-                {{if response.flash:}}
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                    {{=response.flash}}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                {{pass}}
-                
-                {{if form:}}
-                {{=form}}
-                {{else:}}
-                <div class="alert alert-danger">
-                    <i class="fa fa-exclamation-triangle"></i>
-                    Error: No se pudo cargar el formulario de edición.
-                </div>
-                {{pass}}
-                
-                <div class="form-group text-center mt-4">
-                    <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary btn-lg">
-                        <i class="fa fa-arrow-left"></i> Volver a Lista
-                    </a>
-                    {{if cliente:}}
-                    <a href="{{=URL('clientes', 'detalle', args=[cliente.id])}}" class="btn btn-info btn-lg ml-2">
-                        <i class="fa fa-eye"></i> Ver Detalles
-                    </a>
-                    {{pass}}
+                <div class="card-body">
+                    <p class="small">Últimas modificaciones del cliente...</p>
                 </div>
             </div>
         </div>

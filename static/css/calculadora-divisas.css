@@ -1,0 +1,87 @@
+/* Estilos para la Calculadora de Divisas */
+
+/* Campo calculado de bolívares - Compra */
+#monto_bolivares_calculado.bg-warning {
+    background-color: #fff3cd !important;
+    border-color: #ffeaa7 !important;
+    color: #856404 !important;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: right;
+}
+
+/* Campo calculado de bolívares - Venta */
+#monto_bolivares_calculado.bg-success {
+    background-color: #d4edda !important;
+    border-color: #c3e6cb !important;
+    color: #155724 !important;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: right;
+}
+
+/* Símbolos de divisa */
+#simbolo-divisa {
+    background-color: #007bff !important;
+    color: white !important;
+    font-weight: bold;
+    border-color: #007bff !important;
+}
+
+/* Animación para cambios de valor */
+#monto_bolivares_calculado {
+    transition: all 0.3s ease;
+}
+
+#monto_bolivares_calculado:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Iconos en los campos calculados */
+.input-group-text i.fas {
+    margin-right: 5px;
+}
+
+/* Texto explicativo */
+.form-text.text-muted i.fas {
+    color: #17a2b8 !important;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    #monto_bolivares_calculado {
+        font-size: 1em;
+        text-align: center;
+    }
+    
+    .input-group-text {
+        font-size: 0.9em;
+    }
+}
+
+/* Efecto hover en campos de entrada */
+#cantidad_divisa:hover {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.1);
+}
+
+/* Estilo para campos deshabilitados */
+input[readonly] {
+    cursor: not-allowed;
+}
+
+/* Indicador de cálculo automático */
+.calculando {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.calculando::after {
+    content: " 🔄";
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

@@ -1,0 +1,36 @@
+{{extend 'layout.html'}}
+
+<h1 style="color: red;">PRUEBA - Vista de Detalle</h1>
+
+<p style="color: white; font-size: 20px;">Si ves este texto, la vista está funcionando.</p>
+
+{{if cliente:}}
+    <div style="background: green; color: white; padding: 10px;">
+        <h2>✅ Cliente Encontrado</h2>
+        <p><strong>ID:</strong> {{=cliente.id}}</p>
+        <p><strong>Cédula:</strong> {{=cliente.cedula}}</p>
+    </div>
+{{else:}}
+    <div style="background: red; color: white; padding: 10px;">
+        <h2>❌ No se encontró cliente</h2>
+    </div>
+{{pass}}
+
+{{if datos_seguros:}}
+    <div style="background: blue; color: white; padding: 10px; margin-top: 10px;">
+        <h2>✅ Datos Seguros Disponibles</h2>
+        <p><strong>Nombre:</strong> {{=datos_seguros['nombre_completo']}}</p>
+        <p><strong>Email:</strong> {{=datos_seguros['email']}}</p>
+    </div>
+{{else:}}
+    <div style="background: orange; color: white; padding: 10px; margin-top: 10px;">
+        <h2>⚠️ No hay datos seguros</h2>
+    </div>
+{{pass}}
+
+<div style="background: gray; color: white; padding: 10px; margin-top: 10px;">
+    <h3>Enlaces de Prueba:</h3>
+    <p><a href="{{=URL('clientes', 'detalle_simple', args=[1])}}" style="color: yellow;">Vista Simple</a></p>
+    <p><a href="{{=URL('clientes', 'detalle_debug', args=[1])}}" style="color: yellow;">Vista Debug</a></p>
+    <p><a href="{{=URL('clientes', 'listar')}}" style="color: yellow;">Volver a Lista</a></p>
+</div>

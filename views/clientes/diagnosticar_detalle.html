@@ -1,0 +1,201 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-stethoscope"></i> Diagnóstico - Vista Detalle Cliente</h4>
+                </div>
+                <div class="card-body">
+                    
+                    {{if 'error' in globals():}}
+                        <div class="alert alert-danger">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Error Encontrado</h5>
+                            <p><strong>{{=error}}</strong></p>
+                            
+                            {{if 'clientes_disponibles' in globals():}}
+                                <h6>Clientes Disponibles:</h6>
+                                <ul>
+                                {{for c in clientes_disponibles:}}
+                                    <li>
+                                        <a href="{{=URL('clientes', 'diagnosticar_detalle', args=[c.id])}}">
+                                            ID: {{=c.id}} - Cédula: {{=c.cedula}}
+                                        </a>
+                                    </li>
+                                {{pass}}
+                                </ul>
+                            {{pass}}
+                        </div>
+                    {{else:}}
+                        
+                        <!-- Información de Diagnóstico -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h5><i class="fas fa-check-circle"></i> Estado del Diagnóstico</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Cliente existe:</span>
+                                                <span class="badge badge-{{='success' if diagnostico.cliente_existe else 'danger'}}">
+                                                    {{='Sí' if diagnostico.cliente_existe else 'No'}}
+                                                </span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Usuario existe:</span>
+                                                <span class="badge badge-{{='success' if diagnostico.usuario_existe else 'danger'}}">
+                                                    {{='Sí' if diagnostico.usuario_existe else 'No'}}
+                                                </span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Número de cuentas:</span>
+                                                <span class="badge badge-info">{{=diagnostico.num_cuentas}}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5><i class="fas fa-link"></i> Enlaces de Prueba</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            <a href="{{=URL('clientes', 'detalle', args=[cliente.id])}}" 
+                                               class="btn btn-primary">
+                                                <i class="fas fa-eye"></i> Ver Detalle Real
+                                            </a>
+                                            <a href="{{=URL('clientes', 'listar')}}" 
+                                               class="btn btn-secondary">
+                                                <i class="fas fa-list"></i> Lista de Clientes
+                                            </a>
+                                            <a href="{{=URL('clientes', 'editar', args=[cliente.id])}}" 
+                                               class="btn btn-warning">
+                                                <i class="fas fa-edit"></i> Editar Cliente
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Datos del Cliente -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-user"></i> Datos del Cliente</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {{if cliente:}}
+                                            <table class="table table-sm">
+                                                <tr><td><strong>ID:</strong></td><td>{{=cliente.id}}</td></tr>
+                                                <tr><td><strong>User ID:</strong></td><td>{{=cliente.user_id}}</td></tr>
+                                                <tr><td><strong>Cédula:</strong></td><td>{{=cliente.cedula}}</td></tr>
+                                                <tr><td><strong>Fecha Registro:</strong></td><td>{{=cliente.fecha_registro}}</td></tr>
+                                            </table>
+                                            
+                                            <h6>Campos Disponibles:</h6>
+                                            <div class="small">
+                                                {{for campo in diagnostico.campos_cliente:}}
+                                                    <span class="badge badge-secondary me-1">{{=campo}}</span>
+                                                {{pass}}
+                                            </div>
+                                        {{else:}}
+                                            <p class="text-muted">No hay datos de cliente</p>
+                                        {{pass}}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-user-circle"></i> Datos del Usuario</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {{if usuario:}}
+                                            <table class="table table-sm">
+                                                <tr><td><strong>ID:</strong></td><td>{{=usuario.id}}</td></tr>
+                                                <tr><td><strong>Email:</strong></td><td>{{=usuario.email}}</td></tr>
+                                                <tr><td><strong>Nombre:</strong></td><td>{{=usuario.first_name}} {{=usuario.last_name}}</td></tr>
+                                                {{try:}}
+                                                    <tr><td><strong>Teléfono:</strong></td><td>{{=usuario.get('telefono', 'N/A')}}</td></tr>
+                                                    <tr><td><strong>Estado:</strong></td><td>{{=usuario.get('estado', 'N/A')}}</td></tr>
+                                                {{except:}}
+                                                    <tr><td colspan="2"><em>Error accediendo a campos adicionales</em></td></tr>
+                                                {{pass}}
+                                            </table>
+                                            
+                                            <h6>Campos Disponibles:</h6>
+                                            <div class="small">
+                                                {{for campo in diagnostico.campos_usuario:}}
+                                                    <span class="badge badge-info me-1">{{=campo}}</span>
+                                                {{pass}}
+                                            </div>
+                                        {{else:}}
+                                            <p class="text-muted">No hay datos de usuario</p>
+                                        {{pass}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Cuentas del Cliente -->
+                        {{if cuentas:}}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-credit-card"></i> Cuentas del Cliente ({{=len(cuentas)}})</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Número</th>
+                                                        <th>Tipo</th>
+                                                        <th>VES</th>
+                                                        <th>USD</th>
+                                                        <th>EUR</th>
+                                                        <th>Estado</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {{for cuenta in cuentas:}}
+                                                    <tr>
+                                                        <td>{{=cuenta.id}}</td>
+                                                        <td>{{=cuenta.numero_cuenta}}</td>
+                                                        <td>{{=cuenta.tipo_cuenta}}</td>
+                                                        <td>{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</td>
+                                                        <td>{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</td>
+                                                        <td>{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</td>
+                                                        <td>
+                                                            <span class="badge badge-{{='success' if cuenta.estado == 'activa' else 'danger'}}">
+                                                                {{=cuenta.estado}}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    {{pass}}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{pass}}
+                        
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

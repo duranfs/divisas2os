@@ -1,0 +1,305 @@
+{{extend 'layout.html'}}
+
+<link rel="stylesheet" href="{{=URL('static', 'css/calculadora-divisas-fresh.css')}}">
+
+<div class="container-fluid">
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-flask me-3"></i>Prueba de Calculadora Asíncrona
+                </h1>
+                <p class="lead mb-0">Verificando que las tasas se carguen antes de configurar la calculadora</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calculator me-2"></i>Calculadora de Prueba</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Selector de Operación -->
+                    <div class="mb-3">
+                        <label for="tipo_operacion_test" class="form-label">Tipo de Operación</label>
+                        <select id="tipo_operacion_test" class="form-control">
+                            <option value="compra">Comprar Divisas</option>
+                            <option value="venta">Vender Divisas</option>
+                        </select>
+                    </div>
+
+                    <!-- Selector de Divisa -->
+                    <div class="mb-3">
+                        <label for="moneda_destino" class="form-label">Divisa</label>
+                        <select id="moneda_destino" class="form-control">
+                            <option value="USD">Dólares (USD)</option>
+                            <option value="EUR">Euros (EUR)</option>
+                        </select>
+                    </div>
+
+                    <!-- Cantidad de Divisa -->
+                    <div class="mb-3">
+                        <label for="cantidad_divisa" class="form-label">Cantidad de Divisa</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="simbolo-divisa">USD</span>
+                            <input type="number" id="cantidad_divisa" class="form-control" 
+                                   placeholder="0.00" step="0.01" min="0.01">
+                        </div>
+                    </div>
+
+                    <!-- Monto en Bolívares -->
+                    <div class="mb-3">
+                        <label for="monto_bolivares_calculado" class="form-label">Monto en Bolívares</label>
+                        <div class="input-group">
+                            <span class="input-group-text">VES</span>
+                            <input type="text" id="monto_bolivares_calculado" class="form-control" 
+                                   placeholder="0.00" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Campo oculto -->
+                    <input type="hidden" id="monto_origen" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Estado de la Calculadora -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle me-2"></i>Estado de la Calculadora</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <strong>Estado de Inicialización:</strong>
+                        <span id="estado-init" class="badge bg-warning">Cargando...</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Tasas Cargadas:</strong>
+                        <span id="estado-tasas" class="badge bg-warning">Cargando...</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Calculadora Lista:</strong>
+                        <span id="estado-calculadora" class="badge bg-warning">Esperando...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasas Actuales -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-exchange-alt me-2"></i>Tasas Actuales</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>USD Compra:</strong><br>
+                            <span id="tasa-usd-compra" class="text-primary">--</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>USD Venta:</strong><br>
+                            <span id="tasa-usd-venta" class="text-success">--</span>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>EUR Compra:</strong><br>
+                            <span id="tasa-eur-compra" class="text-primary">--</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>EUR Venta:</strong><br>
+                            <span id="tasa-eur-venta" class="text-success">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log de Eventos -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-list me-2"></i>Log de Eventos</h6>
+                </div>
+                <div class="card-body">
+                    <div id="log-eventos" style="height: 200px; overflow-y: auto; font-size: 0.8em;">
+                        <!-- Los eventos se mostrarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Log de eventos para debugging
+function logEvento(mensaje) {
+    const logDiv = document.getElementById('log-eventos');
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.innerHTML = `<small class="text-muted">${timestamp}</small> ${mensaje}`;
+    logDiv.appendChild(logEntry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+// Actualizar estados en la interfaz
+function actualizarEstado(elemento, estado, clase) {
+    const badge = document.getElementById(elemento);
+    if (badge) {
+        badge.textContent = estado;
+        badge.className = `badge ${clase}`;
+    }
+}
+
+// Actualizar tasas en la interfaz
+function actualizarTasasUI(tasas) {
+    if (tasas.USD) {
+        document.getElementById('tasa-usd-compra').textContent = tasas.USD.compra || '--';
+        document.getElementById('tasa-usd-venta').textContent = tasas.USD.venta || '--';
+    }
+    if (tasas.EUR) {
+        document.getElementById('tasa-eur-compra').textContent = tasas.EUR.compra || '--';
+        document.getElementById('tasa-eur-venta').textContent = tasas.EUR.venta || '--';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    logEvento('🚀 DOM cargado, iniciando prueba...');
+    actualizarEstado('estado-init', 'Iniciando...', 'bg-info');
+    
+    try {
+        // Simular la inicialización de la calculadora
+        logEvento('📊 Creando instancia de CalculadoraDivisas...');
+        
+        if (typeof CalculadoraDivisas !== 'undefined') {
+            window.calculadoraDivisas = new CalculadoraDivisas();
+            logEvento('✅ Calculadora creada exitosamente');
+            actualizarEstado('estado-init', 'Completado', 'bg-success');
+            
+            // Esperar un poco para que se carguen las tasas
+            setTimeout(() => {
+                if (window.calculadoraDivisas && window.calculadoraDivisas.tasas) {
+                    logEvento('📈 Tasas disponibles en la calculadora');
+                    actualizarEstado('estado-tasas', 'Cargadas', 'bg-success');
+                    actualizarEstado('estado-calculadora', 'Lista', 'bg-success');
+                    
+                    // Mostrar las tasas
+                    actualizarTasasUI(window.calculadoraDivisas.tasas);
+                    
+                    logEvento('🎯 Calculadora completamente funcional');
+                } else {
+                    logEvento('⚠️ Tasas aún no disponibles');
+                    actualizarEstado('estado-tasas', 'Pendiente', 'bg-warning');
+                }
+            }, 1000);
+            
+        } else {
+            logEvento('❌ Clase CalculadoraDivisas no encontrada');
+            actualizarEstado('estado-init', 'Error', 'bg-danger');
+        }
+        
+    } catch (error) {
+        logEvento('💥 Error durante la inicialización: ' + error.message);
+        actualizarEstado('estado-init', 'Error', 'bg-danger');
+    }
+    
+    // Configurar eventos de prueba
+    const tipoOperacionSelect = document.getElementById('tipo_operacion_test');
+    if (tipoOperacionSelect) {
+        tipoOperacionSelect.addEventListener('change', function() {
+            logEvento(`🔄 Tipo de operación cambiado a: ${this.value}`);
+            if (window.calculadoraDivisas) {
+                window.calculadoraDivisas.tipoOperacion = this.value;
+                logEvento('✅ Tipo de operación actualizado en calculadora');
+            }
+        });
+    }
+    
+    // Monitorear cambios en cantidad
+    const cantidadInput = document.getElementById('cantidad_divisa');
+    if (cantidadInput) {
+        cantidadInput.addEventListener('input', function() {
+            logEvento(`💰 Cantidad ingresada: ${this.value}`);
+        });
+    }
+});
+
+// Función para probar manualmente la calculadora
+function probarCalculadora() {
+    if (window.calculadoraDivisas) {
+        logEvento('🧪 Ejecutando prueba manual de cálculo...');
+        window.calculadoraDivisas.calcularBolivares();
+        logEvento('✅ Prueba de cálculo completada');
+    } else {
+        logEvento('❌ Calculadora no disponible para prueba');
+    }
+}
+
+// Función para recargar tasas manualmente
+async function recargarTasas() {
+    if (window.calculadoraDivisas) {
+        logEvento('🔄 Recargando tasas manualmente...');
+        await window.calculadoraDivisas.cargarTasas();
+        actualizarTasasUI(window.calculadoraDivisas.tasas);
+        logEvento('✅ Tasas recargadas');
+    } else {
+        logEvento('❌ Calculadora no disponible para recargar tasas');
+    }
+}
+</script>
+
+<style>
+.page-header {
+    background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: white !important;
+    font-weight: 700;
+}
+
+#log-eventos {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+}
+
+#log-eventos div {
+    margin-bottom: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
+<!-- Botones de prueba -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-tools me-2"></i>Herramientas de Prueba</h6>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-primary me-2" onclick="probarCalculadora()">
+                        <i class="fas fa-play me-1"></i>Probar Cálculo
+                    </button>
+                    <button type="button" class="btn btn-secondary me-2" onclick="recargarTasas()">
+                        <i class="fas fa-sync me-1"></i>Recargar Tasas
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="console.log('Calculadora:', window.calculadoraDivisas)">
+                        <i class="fas fa-bug me-1"></i>Debug Console
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

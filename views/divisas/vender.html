@@ -1,202 +1,34 @@
 {{extend 'layout.html'}}
 
-<style>
-/* ESTILOS ESPECÍFICOS SOLO PARA ESTA PÁGINA */
-.divisas-page {
-    background-color: #000000;
-    color: #FFFFFF;
-}
-
-/* Títulos en fondo negro */
-.divisas-page h1, .divisas-page h2, .divisas-page h3, 
-.divisas-page h4, .divisas-page h5, .divisas-page h6 { 
-    color: #FFFFFF !important; 
-    font-weight: bold !important; 
-}
-
-.divisas-page .lead { 
-    color: #CCCCCC !important; 
-}
-
-/* Breadcrumbs */
-.divisas-page .breadcrumb-item { 
-    color: #CCCCCC !important; 
-}
-.divisas-page .breadcrumb-item a { 
-    color: #FFA366 !important; 
-}
-.divisas-page .breadcrumb-item.active { 
-    color: #FFD700 !important; 
-}
-
-/* Tarjetas con fondo blanco y texto negro */
-.divisas-page .card { 
-    background-color: #FFFFFF !important; 
-    border: 2px solid #FFA366 !important; 
-}
-
-.divisas-page .card-body { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-}
-
-.divisas-page .card-body * { 
-    color: #000000 !important; 
-}
-
-/* Headers de tarjetas mantienen su color */
-.divisas-page .card-header.bg-info { 
-    background-color: #17a2b8 !important; 
-    color: #FFFFFF !important; 
-}
-
-/* Labels y formularios */
-.divisas-page label, .divisas-page .form-label { 
-    color: #000000 !important; 
-    font-weight: bold !important; 
-}
-
-.divisas-page .form-control { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-    border: 2px solid #FFA366 !important; 
-}
-
-.divisas-page .form-control:focus { 
-    border-color: #FFD700 !important; 
-    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important; 
-}
-
-.divisas-page .form-control::placeholder { 
-    color: #666666 !important; 
-}
-
-/* Input groups */
-.divisas-page .input-group-text { 
-    background-color: #FFA366 !important; 
-    color: #000000 !important; 
-    border: 2px solid #FFA366 !important; 
-}
-
-/* Select options con fondo blanco */
-.divisas-page select.form-control option { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-    padding: 8px !important; 
-}
-
-.divisas-page select.form-control option:checked { 
-    background-color: #FFA366 !important; 
-    color: #FFFFFF !important; 
-}
-
-.divisas-page select.form-control option:hover { 
-    background-color: #FFD700 !important; 
-    color: #000000 !important; 
-}
-
-/* Enlaces dentro de tarjetas */
-.divisas-page .card a { 
-    color: #007bff !important; 
-}
-
-/* Botones */
-.divisas-page .btn { 
-    font-weight: bold !important; 
-}
-
-.divisas-page .btn-info { 
-    background-color: #17a2b8 !important; 
-    color: #FFFFFF !important; 
-}
-
-.divisas-page .btn-secondary { 
-    background-color: #6c757d !important; 
-    color: #FFFFFF !important; 
-}
-
-/* Alertas */
-.divisas-page .alert { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-    border: 2px solid #007bff !important; 
-}
-
-/* Texto de ayuda */
-.divisas-page .form-text, .divisas-page .small { 
-    color: #666666 !important; 
-}
-
-/* Checkboxes */
-.divisas-page .form-check-label { 
-    color: #000000 !important; 
-}
-
-/* Modales */
-.modal-content { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-}
-
-.modal-header { 
-    background-color: #FFA366 !important; 
-    color: #FFFFFF !important; 
-}
-
-.modal-body * { 
-    color: #000000 !important; 
-}
-
-/* Elementos específicos de la calculadora */
-.divisas-page .info-tasa { 
-    background-color: #f8f9fa !important; 
-    border: 2px solid #FFA366 !important; 
-}
-
-.divisas-page .validacion-fondos { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-}
-
-.divisas-page .calculando-indicator { 
-    background-color: #fff3cd !important; 
-    color: #856404 !important; 
-    border: 2px solid #ffc107 !important; 
-}
-
-/* Saldos disponibles */
-.divisas-page #saldos-disponibles { 
-    background-color: #f8f9fa !important; 
-    color: #000000 !important; 
-    border: 2px solid #28a745 !important; 
-}
-</style>
-
-<div class="divisas-page">
+<link rel="stylesheet" href="{{=URL('static', 'css/calculadora-divisas-fresh.css')}}">
 
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{=URL('divisas', 'index')}}">Divisas</a></li>
-                    <li class="breadcrumb-item active">Vender Divisas</li>
-                </ol>
-            </nav>
-            
-            <h2><i class="fas fa-hand-holding-usd"></i> Vender Divisas</h2>
-            <p class="lead">Convierta sus dólares o euros a bolívares</p>
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-hand-holding-usd me-3"></i>Vender Divisas
+                </h1>
+                <p class="lead mb-0">Convierta sus dólares o euros a bolívares con las mejores tasas</p>
+            </div>
         </div>
     </div>
 
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('divisas', 'index')}}">Divisas</a></li>
+            <li class="breadcrumb-item active">Vender Divisas</li>
+        </ol>
+    </nav>
+
     {{if response.flash:}}
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-12">
             <div class="alert alert-info alert-dismissible fade show">
                 {{=response.flash}}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </div>
     </div>
@@ -208,129 +40,150 @@
             <form method="post" id="form-venta-divisas">
                 <input type="hidden" name="confirmar_venta" value="1">
                 
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-calculator"></i> Calculadora de Venta
-                        </h5>
+                <div class="calculadora-divisas">
+                    <h3>
+                        <i class="fas fa-calculator me-2"></i>Calculadora de Venta
+                    </h3>
+                    
+                    <!-- Selector de Cuenta -->
+                    <div class="mb-3">
+                        <label for="cuenta_id" class="form-label">
+                            <i class="fas fa-university"></i>Cuenta a Acreditar
+                        </label>
+                        <select name="cuenta_id" id="cuenta_id" class="form-control cuenta-selector" required>
+                            <option value="">Seleccione una cuenta</option>
+                            {{for cuenta in cuentas:}}
+                            <option value="{{=cuenta.id}}" data-saldo-usd="{{=cuenta.saldo_usd or 0}}" data-saldo-eur="{{=cuenta.saldo_eur or 0}}" data-saldo-usdt="{{=cuenta.saldo_usdt or 0}}">
+                                {{=cuenta.numero_cuenta}} - USD: {{="{:,.2f}".format(float(cuenta.saldo_usd or 0))}} | EUR: {{="{:,.2f}".format(float(cuenta.saldo_eur or 0))}} | USDT: {{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}
+                            </option>
+                            {{pass}}
+                        </select>
+                        <div class="form-text">Seleccione la cuenta donde se acreditarán los bolívares</div>
                     </div>
-                    <div class="card-body">
-                        <!-- Selector de Cuenta -->
-                        <div class="form-group">
-                            <label for="cuenta_id">Cuenta a Usar:</label>
-                            <select name="cuenta_id" id="cuenta_id" class="form-control cuenta-selector" required>
-                                <option value="">Seleccione una cuenta</option>
-                                {{for cuenta in cuentas:}}
-                                <option value="{{=cuenta.id}}" 
-                                        data-saldo-usd="{{=cuenta.saldo_usd}}"
-                                        data-saldo-eur="{{=cuenta.saldo_eur}}">
-                                    {{=cuenta.numero_cuenta}} - USD: {{="{:,.2f}".format(float(cuenta.saldo_usd))}} | EUR: {{="{:,.2f}".format(float(cuenta.saldo_eur))}}
-                                </option>
-                                {{pass}}
-                            </select>
-                        </div>
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <!-- Divisa a Vender -->
+                            <div class="mb-3">
+                                <label for="moneda_origen" class="form-label">
+                                    <i class="fas fa-coins"></i>Divisa a Vender
+                                </label>
+                                <select name="moneda_origen" id="moneda_origen" class="form-control moneda-origen" required>
+                                    <option value="">Seleccione divisa</option>
+                                    <option value="USD">Dólares Estadounidenses (USD)</option>
+                                    <option value="EUR">Euros (EUR)</option>
+                                    <option value="USDT">Tether (USDT)</option>
+                                </select>
+                                <div class="form-text">Seleccione la divisa que desea vender</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Cantidad de Divisa a Vender -->
+                            <div class="mb-3">
+                                <label for="cantidad_divisa_venta" class="form-label">
+                                    <i class="fas fa-dollar-sign"></i>Cantidad a Vender
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="simbolo-divisa-venta">USD</span>
+                                    <input type="number" name="cantidad_divisa" id="cantidad_divisa_venta" 
+                                           class="form-control cantidad-divisa" 
+                                           placeholder="0.00" step="0.01" min="0.01" required>
+                                </div>
+                                <div class="form-text">Ingrese la cantidad de divisa que desea vender</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campo Calculado de Bolívares -->
+                    <div class="mb-4">
+                        <label for="monto_bolivares_recibir" class="form-label">
+                            <i class="fas fa-calculator"></i>Monto a Recibir en Bolívares
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-success text-white">
+                                <i class="fas fa-coins"></i> VES
+                            </span>
+                            <input type="text" id="monto_bolivares_recibir" 
+                                   class="form-control bg-success text-white fw-bold text-end" 
+                                   style="font-size: 1.1em;" 
+                                   placeholder="0.00" readonly>
+                            <span class="input-group-text bg-success text-white">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle text-info"></i> 
+                            Este monto se calcula automáticamente usando la <strong>tasa de venta</strong> del día
+                        </div>
+                    </div>
+
+                    <!-- Campos ocultos -->
+                    <input type="hidden" name="monto_destino" id="monto_destino" value="0">
+                    <input type="hidden" class="tipo-operacion" value="venta">
+                    <input type="hidden" class="moneda-destino" value="VES">
+
+                    <!-- Indicador de cálculo -->
+                    <div class="calculando-indicator text-center" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Calculando conversión...
+                    </div>
+
+                    <!-- Error de calculadora -->
+                    <div class="alert alert-danger error-calculadora" style="display: none;"></div>
+
+                    <!-- Información de la conversión -->
+                    <div class="info-tasa" style="display: none;">
+                        <h6><i class="fas fa-info-circle"></i> Detalles de la Operación</h6>
                         <div class="row">
-                            <div class="col-md-6">
-                                <!-- Divisa a Vender -->
-                                <div class="form-group">
-                                    <label for="moneda_origen">Divisa a Vender:</label>
-                                    <select name="moneda_origen" id="moneda_origen" class="form-control moneda-origen" required>
-                                        <option value="">Seleccione divisa</option>
-                                        <option value="USD">Dólares Estadounidenses (USD)</option>
-                                        <option value="EUR">Euros (EUR)</option>
-                                    </select>
-                                </div>
+                            <div class="col-md-3">
+                                <strong>Venderá</strong>
+                                <span class="monto-origen-display">0.00</span>
+                                <span class="moneda-origen-display"></span>
                             </div>
-                            <div class="col-md-6">
-                                <!-- Monto a Vender -->
-                                <div class="form-group">
-                                    <label for="monto_origen">Monto a Vender:</label>
-                                    <div class="input-group">
-                                        <input type="number" name="monto_origen" id="monto_origen" 
-                                               class="form-control monto-origen" 
-                                               placeholder="0.00" step="0.01" min="0.01" required>
-                                        <div class="input-group-append">
-                                            <span class="input-group-text moneda-origen-display">--</span>
-                                        </div>
-                                    </div>
-                                    <small class="form-text text-muted">Monto mínimo: 0.01</small>
-                                </div>
+                            <div class="col-md-3">
+                                <strong>Tasa Aplicada</strong>
+                                <span class="tasa-aplicada">0.0000</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Comisión (0.5%)</strong>
+                                <span class="comision-calculada">0.00</span> VES
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Total a Recibir</strong>
+                                <span class="total-acreditado">0.00</span> VES
                             </div>
                         </div>
+                        <hr>
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> 
+                            Tasa actualizada: <span class="fecha-tasa">--</span>
+                        </small>
+                    </div>
 
-                        <!-- Campos ocultos para el tipo de operación -->
-                        <input type="hidden" class="tipo-operacion" value="venta">
-                        <input type="hidden" class="moneda-destino" value="VES">
-
-                        <!-- Indicador de cálculo -->
-                        <div class="calculando-indicator text-center" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Calculando conversión...
-                        </div>
-
-                        <!-- Error de calculadora -->
-                        <div class="alert alert-danger error-calculadora" style="display: none;"></div>
-
-                        <!-- Información de la conversión -->
-                        <div class="info-tasa" style="display: none;">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h6><i class="fas fa-info-circle"></i> Detalles de la Operación</h6>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <strong>Recibirá en VES:</strong><br>
-                                            <span class="text-success h5">
-                                                <span class="monto-destino-display">0.00</span> VES
-                                            </span>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <strong>Tasa Aplicada:</strong><br>
-                                            <span class="tasa-aplicada">0.0000</span>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <strong>Comisión (0.5%):</strong><br>
-                                            <span class="comision-calculada">0.00</span> VES
-                                        </div>
-                                        <div class="col-md-3">
-                                            <strong>Valor Bruto:</strong><br>
-                                            <span class="valor-bruto">0.00</span> VES
-                                        </div>
-                                    </div>
-                                    <hr>
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock"></i> 
-                                        Tasa actualizada: <span class="fecha-tasa">--</span>
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Validación de fondos -->
-                        <div class="validacion-fondos alert" style="display: none;">
-                            <i class="fas icono-validacion"></i>
-                            <strong class="mensaje-validacion"></strong><br>
-                            <small class="detalle-fondos"></small>
-                        </div>
+                    <!-- Validación de fondos -->
+                    <div class="validacion-fondos alert" style="display: none;">
+                        <i class="fas icono-validacion"></i>
+                        <strong class="mensaje-validacion"></strong><br>
+                        <small class="detalle-fondos"></small>
                     </div>
                 </div>
 
                 <!-- Confirmación -->
-                <div class="card mt-3">
+                <div class="card mt-4">
                     <div class="card-body">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="confirmar-terminos" required>
-                            <label class="form-check-label" for="confirmar-terminos">
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="confirmar-terminos-venta" required>
+                            <label class="form-check-label" for="confirmar-terminos-venta">
                                 Confirmo que he revisado los detalles de la operación y acepto los 
-                                <a href="#" data-toggle="modal" data-target="#modal-terminos">términos y condiciones</a>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#modal-terminos-venta">términos y condiciones</a>
                             </label>
                         </div>
                         
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-info btn-lg btn-confirmar-transaccion">
-                                <i class="fas fa-check"></i> Confirmar Venta de Divisas
+                        <div class="d-grid gap-2 d-md-flex">
+                            <button type="submit" class="btn btn-success btn-lg btn-confirmar-transaccion">
+                                <i class="fas fa-check me-2"></i>Confirmar Venta de Divisas
                             </button>
-                            <a href="{{=URL('divisas', 'index')}}" class="btn btn-secondary btn-lg ml-2">
-                                <i class="fas fa-times"></i> Cancelar
+                            <a href="{{=URL('divisas', 'index')}}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
                             </a>
                         </div>
                     </div>
@@ -340,20 +193,42 @@
 
         <div class="col-md-4">
             <!-- Widget de Tasas -->
-            <div id="widget-tasas-venta" class="mb-3"></div>
+            <div id="widget-tasas-venta" class="widget-tasas mb-4">
+                <h4>
+                    <i class="fas fa-exchange-alt me-2"></i>Tasas de Cambio
+                </h4>
+                <div class="tasa-item">
+                    <span class="tasa-moneda">USD/VES (Venta)</span>
+                    <span class="tasa-valor" id="tasa-usd-venta">36.80</span>
+                </div>
+                <div class="tasa-item">
+                    <span class="tasa-moneda">EUR/VES (Venta)</span>
+                    <span class="tasa-valor" id="tasa-eur-venta">40.60</span>
+                </div>
+                <div class="tasa-item">
+                    <span class="tasa-moneda">USDT/VES (Venta)</span>
+                    <span class="tasa-valor" id="tasa-usdt-venta">36.75</span>
+                </div>
+                <div class="tasa-actualizacion">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        Última actualización: <span id="ultima-actualizacion-venta">{{=request.now.strftime('%d/%m/%Y %H:%M')}}</span>
+                    </small>
+                </div>
+            </div>
 
             <!-- Información de Ayuda -->
-            <div class="card border-info">
-                <div class="card-header bg-info text-white">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-question-circle"></i> ¿Cómo funciona?
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>¿Cómo funciona?
                     </h6>
                 </div>
                 <div class="card-body">
                     <ol>
-                        <li>Seleccione la cuenta que contiene las divisas</li>
+                        <li>Seleccione la cuenta donde se acreditarán los bolívares</li>
                         <li>Elija la divisa que desea vender (USD o EUR)</li>
-                        <li>Ingrese el monto que desea vender</li>
+                        <li>Ingrese la cantidad de divisa que desea vender</li>
                         <li>Revise los cálculos automáticos</li>
                         <li>Confirme la operación</li>
                     </ol>
@@ -361,38 +236,24 @@
                     <hr>
                     <h6>Importante:</h6>
                     <ul class="small">
-                        <li>Se aplicará una comisión del 0.5% sobre el monto en VES</li>
+                        <li>Se aplicará una comisión del 0.5%</li>
                         <li>Las tasas se actualizan automáticamente</li>
                         <li>La operación es irreversible una vez confirmada</li>
-                        <li>Los bolívares se acreditarán inmediatamente</li>
+                        <li>Recibirá un comprobante de la transacción</li>
                     </ul>
                 </div>
             </div>
 
             <!-- Saldos Disponibles -->
-            <div class="card border-success mt-3">
-                <div class="card-header bg-success text-white">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-wallet"></i> Saldos Disponibles
-                    </h6>
-                </div>
-                <div class="card-body" id="saldos-disponibles">
-                    <p class="text-muted small">Seleccione una cuenta para ver los saldos</p>
-                </div>
-            </div>
-
-            <!-- Historial Reciente -->
-            <div class="card border-secondary mt-3">
+            <div class="card mt-3">
                 <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-history"></i> Últimas Ventas
+                    <h6 class="mb-0">
+                        <i class="fas fa-wallet me-2"></i>Saldos Disponibles
                     </h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="saldos-disponibles-venta">
                     <p class="text-muted small">
-                        <a href="{{=URL('divisas', 'historial_transacciones')}}">
-                            Ver historial completo <i class="fas fa-arrow-right"></i>
-                        </a>
+                        Seleccione una cuenta para ver los saldos disponibles
                     </p>
                 </div>
             </div>
@@ -401,179 +262,305 @@
 </div>
 
 <!-- Modal de Términos y Condiciones -->
-<div class="modal fade" id="modal-terminos" tabindex="-1">
+<div class="modal fade" id="modal-terminos-venta" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Términos y Condiciones - Venta de Divisas</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <h6>Condiciones de la Operación:</h6>
                 <ul>
                     <li>La tasa de cambio aplicada es la vigente al momento de la transacción</li>
-                    <li>Se cobrará una comisión del 0.5% sobre el monto convertido en bolívares</li>
+                    <li>Se cobrará una comisión del 0.5% sobre el monto en bolívares</li>
                     <li>La operación es irreversible una vez procesada</li>
-                    <li>Los bolívares se acreditarán inmediatamente en su cuenta</li>
+                    <li>Los fondos se acreditarán inmediatamente en su cuenta</li>
                     <li>Recibirá un comprobante electrónico de la transacción</li>
                 </ul>
                 
                 <h6>Responsabilidades del Cliente:</h6>
                 <ul>
                     <li>Verificar que los datos ingresados sean correctos</li>
-                    <li>Asegurarse de tener fondos suficientes en la divisa seleccionada</li>
                     <li>Mantener confidencial la información de sus cuentas</li>
                     <li>Reportar cualquier irregularidad inmediatamente</li>
                 </ul>
-                
-                <h6>Limitaciones:</h6>
-                <ul>
-                    <li>Monto mínimo por operación: 0.01 USD/EUR</li>
-                    <li>Monto máximo diario: según límites de su cuenta</li>
-                    <li>Horario de operaciones: 24/7 (sujeto a mantenimientos programados)</li>
-                </ul>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-$(document).ready(function() {
-    // Crear widget de tasas
-    crearWidgetTasas('widget-tasas-venta');
-    
+// Tasas dinámicas globales para venta que se actualizan desde la API
+let tasasVentaActuales = {
+    USD: 36.80,  // Fallback
+    EUR: 40.60,  // Fallback
+    USDT: 36.75  // Fallback
+};
+
+document.addEventListener('DOMContentLoaded', function() {
     // Configurar calculadora para venta
-    $('.calculadora-container').remove(); // Limpiar si existe
-    $('form').addClass('calculadora-container');
-    
-    // Inicializar calculadora
-    if (typeof inicializarCalculadora === 'function') {
-        inicializarCalculadora();
+    const form = document.getElementById('form-venta-divisas');
+    if (form) {
+        form.classList.add('calculadora-container');
     }
+    
+    // Cargar tasas actuales
+    cargarTasasActualesVenta();
     
     // Configurar tipo de operación para venta
-    $('.moneda-destino').val('VES');
-    $('.tipo-operacion').val('venta');
+    const tipoOperacion = document.querySelector('.tipo-operacion');
+    const monedaDestino = document.querySelector('.moneda-destino');
+    if (tipoOperacion) tipoOperacion.value = 'venta';
+    if (monedaDestino) monedaDestino.value = 'VES';
     
-    // Manejar cambio en moneda origen
-    $('#moneda_origen').change(function() {
-        const moneda = $(this).val();
-        $('.moneda-origen-display').text(moneda || '--');
-        
-        // Actualizar saldos disponibles
-        actualizarSaldosDisponibles();
-    });
+    // Configurar calculadora básica para venta
+    configurarCalculadoraVenta();
     
-    // Manejar cambio en cuenta
-    $('#cuenta_id').change(function() {
-        actualizarSaldosDisponibles();
-    });
-    
-    function actualizarSaldosDisponibles() {
-        const cuentaSeleccionada = $('#cuenta_id option:selected');
-        const monedaOrigen = $('#moneda_origen').val();
-        
-        if (cuentaSeleccionada.val() && monedaOrigen) {
-            const saldoUsd = parseFloat(cuentaSeleccionada.data('saldo-usd')) || 0;
-            const saldoEur = parseFloat(cuentaSeleccionada.data('saldo-eur')) || 0;
-            
-            let html = '<div class="row text-center">';
-            html += '<div class="col-6">';
-            html += '<strong>USD</strong><br>';
-            html += `<span class="text-${monedaOrigen === 'USD' ? 'primary' : 'muted'}">${saldoUsd.toLocaleString('es-VE', {minimumFractionDigits: 2})}</span>`;
-            html += '</div>';
-            html += '<div class="col-6">';
-            html += '<strong>EUR</strong><br>';
-            html += `<span class="text-${monedaOrigen === 'EUR' ? 'info' : 'muted'}">${saldoEur.toLocaleString('es-VE', {minimumFractionDigits: 2})}</span>`;
-            html += '</div>';
-            html += '</div>';
-            
-            if (monedaOrigen) {
-                const saldoDisponible = monedaOrigen === 'USD' ? saldoUsd : saldoEur;
-                html += '<hr><small class="text-muted">';
-                html += `Saldo disponible en ${monedaOrigen}: <strong>${saldoDisponible.toLocaleString('es-VE', {minimumFractionDigits: 2})}</strong>`;
-                html += '</small>';
+    // Validación del formulario
+    const formVenta = document.getElementById('form-venta-divisas');
+    if (formVenta) {
+        formVenta.addEventListener('submit', function(e) {
+            const terminos = document.getElementById('confirmar-terminos-venta');
+            if (!terminos.checked) {
+                e.preventDefault();
+                alert('Debe aceptar los términos y condiciones.');
+                return false;
             }
             
-            $('#saldos-disponibles').html(html);
+            // Deshabilitar botón para evitar doble envío
+            const btnConfirmar = document.querySelector('.btn-confirmar-transaccion');
+            if (btnConfirmar) {
+                btnConfirmar.disabled = true;
+                btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            }
+        });
+    }
+});
+
+// Función para cargar tasas actuales para venta
+async function cargarTasasActualesVenta() {
+    try {
+        const response = await fetch('{{=URL("api", "tasas_simples")}}');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.tasas) {
+                // Actualizar tasas de venta en el widget
+                if (data.tasas.USD) {
+                    const tasaUSDVenta = parseFloat(data.tasas.USD.venta);
+                    document.getElementById('tasa-usd-venta').textContent = tasaUSDVenta.toFixed(4);
+                    // Actualizar tasa para cálculos
+                    tasasVentaActuales.USD = tasaUSDVenta;
+                }
+                if (data.tasas.EUR) {
+                    const tasaEURVenta = parseFloat(data.tasas.EUR.venta);
+                    document.getElementById('tasa-eur-venta').textContent = tasaEURVenta.toFixed(4);
+                    // Actualizar tasa para cálculos
+                    tasasVentaActuales.EUR = tasaEURVenta;
+                }
+                if (data.tasas.USDT) {
+                    const tasaUSDTVenta = parseFloat(data.tasas.USDT.venta);
+                    document.getElementById('tasa-usdt-venta').textContent = tasaUSDTVenta.toFixed(4);
+                    // Actualizar tasa para cálculos
+                    tasasVentaActuales.USDT = tasaUSDTVenta;
+                }
+                
+                // Actualizar timestamp
+                if (data.fecha) {
+                    document.getElementById('ultima-actualizacion-venta').textContent = 
+                        new Date(data.timestamp).toLocaleString('es-ES');
+                }
+                
+                console.log('Tasas de venta cargadas y actualizadas para cálculos:', tasasVentaActuales);
+                
+                // Recalcular si hay valores en el formulario
+                const cantidadInput = document.getElementById('cantidad_divisa_venta');
+                if (cantidadInput && cantidadInput.value) {
+                    // Trigger recalculation
+                    cantidadInput.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+    } catch (error) {
+        console.log('Error cargando tasas de venta, usando valores por defecto:', error);
+        // Las tasas por defecto ya están en el HTML
+    }
+}
+
+// Función básica de calculadora para venta
+function configurarCalculadoraVenta() {
+    const cantidadInput = document.getElementById('cantidad_divisa_venta');
+    const monedaSelect = document.getElementById('moneda_origen');
+    const bolivaresInput = document.getElementById('monto_bolivares_recibir');
+    const montoDestinoHidden = document.getElementById('monto_destino');
+    const simboloDivisa = document.getElementById('simbolo-divisa-venta');
+    
+    // Las tasas se obtienen de la variable global
+    
+    function calcular() {
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        const moneda = monedaSelect.value;
+        
+        if (cantidad > 0 && moneda && tasasVentaActuales[moneda]) {
+            const bolivares = cantidad * tasasVentaActuales[moneda];
+            bolivaresInput.value = bolivares.toLocaleString('es-ES', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            montoDestinoHidden.value = bolivares.toFixed(2);
+            
+            // Mostrar información de la conversión
+            mostrarInfoConversionVenta(cantidad, moneda, bolivares, tasasVentaActuales[moneda]);
+            
+            // Validar fondos disponibles
+            validarFondosDisponibles(cantidad, moneda);
         } else {
-            $('#saldos-disponibles').html('<p class="text-muted small">Seleccione una cuenta y divisa para ver los saldos</p>');
+            bolivaresInput.value = '0.00';
+            montoDestinoHidden.value = '0';
+            ocultarInfoConversionVenta();
         }
     }
     
-    // Simplificar la validación - solo requerir términos aceptados
-    $('#confirmar-terminos').change(function() {
-        const terminosAceptados = $(this).is(':checked');
-        $('.btn-confirmar-transaccion').prop('disabled', !terminosAceptados);
-    });
-    
-    // Actualizar display del monto destino
-    $(document).on('input', '.monto-origen', function() {
-        setTimeout(() => {
-            const montoDestino = $('.monto-destino').val();
-            $('.monto-destino-display').text(montoDestino || '0.00');
+    function mostrarInfoConversionVenta(cantidad, moneda, bolivares, tasa) {
+        const infoDiv = document.querySelector('.info-tasa');
+        if (infoDiv) {
+            infoDiv.style.display = 'block';
             
-            // Calcular valor bruto (antes de comisión)
-            const comision = parseFloat($('.comision-calculada').text()) || 0;
-            const montoNeto = parseFloat(montoDestino) || 0;
-            const valorBruto = montoNeto + comision;
-            $('.valor-bruto').text(valorBruto.toLocaleString('es-VE', {minimumFractionDigits: 2}));
-        }, 500);
-    });
+            // Actualizar valores
+            const montoOrigen = infoDiv.querySelector('.monto-origen-display');
+            const tasaAplicada = infoDiv.querySelector('.tasa-aplicada');
+            const totalAcreditado = infoDiv.querySelector('.total-acreditado');
+            
+            if (montoOrigen) montoOrigen.textContent = cantidad.toFixed(2);
+            if (tasaAplicada) tasaAplicada.textContent = tasa.toFixed(4);
+            if (totalAcreditado) totalAcreditado.textContent = bolivares.toFixed(2);
+        }
+    }
     
-    // Validación del formulario antes del envío
-    $('#form-venta-divisas').submit(function(e) {
-        const terminosAceptados = $('#confirmar-terminos').is(':checked');
-        const monto = $('.monto-origen').val();
-        const cuenta = $('.cuenta-selector').val();
-        const moneda = $('.moneda-origen').val();
-        
-        // Validaciones básicas
-        if (!terminosAceptados) {
-            e.preventDefault();
-            alert('Debe aceptar los términos y condiciones.');
-            return false;
+    function ocultarInfoConversionVenta() {
+        const infoDiv = document.querySelector('.info-tasa');
+        if (infoDiv) {
+            infoDiv.style.display = 'none';
         }
+    }
+    
+    function validarFondosDisponibles(cantidad, moneda) {
+        const cuentaSelect = document.getElementById('cuenta_id');
+        const selectedOption = cuentaSelect.options[cuentaSelect.selectedIndex];
         
-        if (!monto || parseFloat(monto) <= 0) {
-            e.preventDefault();
-            alert('Debe ingresar un monto válido.');
-            return false;
+        if (selectedOption && selectedOption.value) {
+            const saldoDisponible = parseFloat(selectedOption.getAttribute(`data-saldo-${moneda.toLowerCase()}`)) || 0;
+            
+            const validacionDiv = document.querySelector('.validacion-fondos');
+            if (validacionDiv) {
+                if (cantidad <= saldoDisponible) {
+                    validacionDiv.className = 'validacion-fondos alert alert-success';
+                    validacionDiv.innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Fondos suficientes</strong><br>
+                        <small>Saldo disponible: ${saldoDisponible.toFixed(2)} ${moneda}</small>
+                    `;
+                    validacionDiv.style.display = 'block';
+                } else {
+                    validacionDiv.className = 'validacion-fondos alert alert-danger';
+                    validacionDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Fondos insuficientes</strong><br>
+                        <small>Saldo disponible: ${saldoDisponible.toFixed(2)} ${moneda} | Necesita: ${cantidad.toFixed(2)} ${moneda}</small>
+                    `;
+                    validacionDiv.style.display = 'block';
+                }
+            }
         }
-        
-        if (!cuenta) {
-            e.preventDefault();
-            alert('Debe seleccionar una cuenta.');
-            return false;
-        }
-        
-        if (!moneda) {
-            e.preventDefault();
-            alert('Debe seleccionar la divisa a vender.');
-            return false;
-        }
-        
-        // Confirmación final
-        const confirmacion = confirm(
-            `¿Confirma la venta de ${monto} ${moneda}?`
-        );
-        
-        if (!confirmacion) {
-            e.preventDefault();
-            return false;
-        }
-        
-        // Deshabilitar botón para evitar doble envío
-        $('.btn-confirmar-transaccion').prop('disabled', true).html(
-            '<i class="fas fa-spinner fa-spin"></i> Procesando...'
-        );
-        
-        return true;
-    });
-});
+    }
+    
+    // Event listeners
+    if (cantidadInput) {
+        cantidadInput.addEventListener('input', calcular);
+    }
+    
+    if (monedaSelect) {
+        monedaSelect.addEventListener('change', function() {
+            // Actualizar símbolo
+            if (simboloDivisa) {
+                simboloDivisa.textContent = this.value || 'USD';
+            }
+            calcular();
+        });
+    }
+    
+    // Actualizar saldos cuando cambia la cuenta
+    const cuentaSelect = document.getElementById('cuenta_id');
+    if (cuentaSelect) {
+        cuentaSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const saldosDiv = document.getElementById('saldos-disponibles-venta');
+            
+            if (selectedOption && selectedOption.value && saldosDiv) {
+                const saldoUSD = parseFloat(selectedOption.getAttribute('data-saldo-usd')) || 0;
+                const saldoEUR = parseFloat(selectedOption.getAttribute('data-saldo-eur')) || 0;
+                const saldoUSDT = parseFloat(selectedOption.getAttribute('data-saldo-usdt')) || 0;
+                
+                saldosDiv.innerHTML = `
+                    <div class="saldo-item">
+                        <strong>USD:</strong> <span class="saldo-monto">${saldoUSD.toFixed(2)}</span>
+                    </div>
+                    <div class="saldo-item">
+                        <strong>EUR:</strong> <span class="saldo-monto">${saldoEUR.toFixed(2)}</span>
+                    </div>
+                    <div class="saldo-item">
+                        <strong>USDT:</strong> <span class="saldo-monto">${saldoUSDT.toFixed(2)}</span>
+                    </div>
+                `;
+            } else if (saldosDiv) {
+                saldosDiv.innerHTML = '<p class="text-muted small">Seleccione una cuenta para ver los saldos disponibles</p>';
+            }
+            
+            // Recalcular si hay valores
+            calcular();
+        });
+    }
+}
 </script>
+
+<style>
+/* Estilos específicos para la página de venta de divisas */
+.page-header {
+    background: linear-gradient(135deg, var(--color-primario, #2563eb) 0%, var(--color-secundario, #06b6d4) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: white !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin: 0;
+}
+
+/* Estilo especial para el campo de bolívares a recibir (verde) */
+.bg-success.text-white {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+}
+
+.saldo-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-superficie-elevada, #f1f5f9);
+}
+
+.saldo-item:last-child {
+    border-bottom: none;
+}
+</style>

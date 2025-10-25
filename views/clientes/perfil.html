@@ -1,331 +1,63 @@
 {{extend 'layout.html'}}
 
-{{block head}}
-<style>
-:root {
-    --color-fondo: #000000;
-    --color-menu: #FFA366;
-    --color-acento: #FFD700;
-    --color-texto: #FFFFFF;
-    --color-texto-secundario: #CCCCCC;
-}
-
-body {
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-}
-
-.card {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    color: var(--color-texto);
-}
-
-.card-header {
-    background-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.form-control {
-    background-color: #2a2a2a;
-    border: 1px solid #555;
-    color: var(--color-texto);
-}
-
-.form-control:focus {
-    background-color: #2a2a2a;
-    border-color: var(--color-acento);
-    color: var(--color-texto);
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
-}
-
-.form-control[readonly] {
-    background-color: #333;
-    color: var(--color-texto-secundario);
-}
-
-.btn-primary {
-    background-color: var(--color-menu);
-    border-color: var(--color-menu);
-    color: #000;
-    font-weight: bold;
-}
-
-.btn-primary:hover {
-    background-color: var(--color-acento);
-    border-color: var(--color-acento);
-    color: #000;
-}
-
-.btn-secondary {
-    background-color: #555;
-    border-color: #555;
-    color: var(--color-texto);
-}
-
-.btn-secondary:hover {
-    background-color: #666;
-    border-color: #666;
-}
-
-.btn-info {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-}
-
-.btn-info:hover {
-    background-color: #138496;
-    border-color: #117a8b;
-}
-
-.table-dark {
-    background-color: #1a1a1a;
-    color: var(--color-texto);
-}
-
-.table-dark th {
-    background-color: var(--color-menu);
-    color: #000;
-    border-color: #333;
-}
-
-.table-dark td {
-    border-color: #333;
-}
-
-.badge-success {
-    background-color: #28a745;
-}
-
-.badge-warning {
-    background-color: #ffc107;
-    color: #000;
-}
-
-.badge-danger {
-    background-color: #dc3545;
-}
-
-.info-section {
-    background-color: #2a2a2a;
-    border-radius: 0.375rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.info-label {
-    font-weight: bold;
-    color: var(--color-acento);
-}
-
-.info-value {
-    color: var(--color-texto);
-}
-
-label {
-    color: var(--color-texto);
-    font-weight: 500;
-}
-</style>
-{{end}}
-
-<div class="row">
-    <div class="col-md-4">
-        <!-- Información del Cliente -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-user"></i> Información del Cliente
-                </h5>
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-user-circle me-3"></i>Mi Perfil
+                </h1>
+                <p class="lead mb-0">Información personal y datos bancarios</p>
             </div>
-            <div class="card-body">
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Nombre:</div>
-                        <div class="col-sm-8 info-value">{{=usuario.first_name}} {{=usuario.last_name}}</div>
-                    </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Mi Perfil</li>
+        </ol>
+    </nav>
+
+    {{if response.flash:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Contenido principal -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>Información Personal
+                    </h5>
                 </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Cédula:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.cedula}}</div>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Email:</div>
-                        <div class="col-sm-8 info-value">{{=usuario.email}}</div>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Estado:</div>
-                        <div class="col-sm-8 info-value">
-                            {{if hasattr(usuario, 'estado') and usuario.estado == 'activo':}}
-                                <span class="badge badge-success">Activo</span>
-                            {{else:}}
-                                <span class="badge badge-danger">Inactivo</span>
-                            {{pass}}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-sm-4 info-label">Registro:</div>
-                        <div class="col-sm-8 info-value">{{=cliente.fecha_registro.strftime('%d/%m/%Y') if cliente.fecha_registro else 'N/A'}}</div>
-                    </div>
+                <div class="card-body">
+                    <!-- Aquí va la información del perfil -->
+                    <p>Información del perfil del cliente...</p>
                 </div>
             </div>
         </div>
         
-        <!-- Cuentas del Cliente -->
-        {{if cuentas:}}
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-credit-card"></i> Cuentas Bancarias
-                </h5>
-            </div>
-            <div class="card-body">
-                {{for cuenta in cuentas:}}
-                <div class="info-section">
-                    <div class="row">
-                        <div class="col-12">
-                            <strong>{{=cuenta.numero_cuenta}}</strong>
-                            {{if cuenta.estado == 'activa':}}
-                                <span class="badge badge-success float-right">{{=cuenta.estado.title()}}</span>
-                            {{elif cuenta.estado == 'inactiva':}}
-                                <span class="badge badge-warning float-right">{{=cuenta.estado.title()}}</span>
-                            {{else:}}
-                                <span class="badge badge-danger float-right">{{=cuenta.estado.title()}}</span>
-                            {{pass}}
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-4 text-center">
-                            <small class="text-muted">VES</small><br>
-                            <strong>{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</strong>
-                        </div>
-                        <div class="col-4 text-center">
-                            <small class="text-muted">USD</small><br>
-                            <strong>{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</strong>
-                        </div>
-                        <div class="col-4 text-center">
-                            <small class="text-muted">EUR</small><br>
-                            <strong>{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</strong>
-                        </div>
-                    </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Seguridad
+                    </h6>
                 </div>
-                {{pass}}
-            </div>
-        </div>
-        {{pass}}
-    </div>
-    
-    <div class="col-md-8">
-        <!-- Formulario de Edición -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-edit"></i> Editar Perfil
-                </h5>
-            </div>
-            <div class="card-body">
-                {{if response.flash:}}
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                    {{=response.flash}}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="card-body">
+                    <p class="small">Opciones de seguridad y privacidad...</p>
                 </div>
-                {{pass}}
-                
-                <form method="post" action="{{=URL('clientes', 'perfil', args=request.args)}}">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_first_name">Nombres *</label>
-                                <input type="text" class="form-control" id="no_table_first_name" name="first_name" 
-                                       value="{{=usuario.first_name}}" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_last_name">Apellidos *</label>
-                                <input type="text" class="form-control" id="no_table_last_name" name="last_name" 
-                                       value="{{=usuario.last_name}}" required>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_cedula">Cédula</label>
-                                <input type="text" class="form-control" id="no_table_cedula" name="cedula" 
-                                       value="{{=cliente.cedula}}" readonly>
-                                <small class="form-text text-muted">La cédula no se puede modificar</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="no_table_telefono">Teléfono *</label>
-                                <input type="tel" class="form-control" id="no_table_telefono" name="telefono" 
-                                       value="{{=usuario.telefono if hasattr(usuario, 'telefono') else ''}}" required>
-                                {{if form and form.errors.telefono:}}
-                                <div class="text-danger">{{=form.errors.telefono}}</div>
-                                {{pass}}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="no_table_email">Email *</label>
-                        <input type="email" class="form-control" id="no_table_email" name="email" 
-                               value="{{=usuario.email}}" required>
-                        {{if form and form.errors.email:}}
-                        <div class="text-danger">{{=form.errors.email}}</div>
-                        {{pass}}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="no_table_direccion">Dirección *</label>
-                        <textarea class="form-control" id="no_table_direccion" name="direccion" 
-                                  rows="3" required>{{=usuario.direccion if hasattr(usuario, 'direccion') else ''}}</textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="no_table_fecha_nacimiento">Fecha de Nacimiento *</label>
-                        <input type="date" class="form-control" id="no_table_fecha_nacimiento" name="fecha_nacimiento" 
-                               value="{{=usuario.fecha_nacimiento if hasattr(usuario, 'fecha_nacimiento') else ''}}" required>
-                    </div>
-                    
-                    <div class="form-group text-center mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fa fa-save"></i> Actualizar Perfil
-                        </button>
-                        {{if auth.has_membership('administrador') or auth.has_membership('operador'):}}
-                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary btn-lg ml-2">
-                            <i class="fa fa-arrow-left"></i> Volver a Lista
-                        </a>
-                        {{else:}}
-                        <a href="{{=URL('default', 'index')}}" class="btn btn-secondary btn-lg ml-2">
-                            <i class="fa fa-home"></i> Inicio
-                        </a>
-                        {{pass}}
-                        
-                        {{if auth.has_membership('administrador') or auth.has_membership('operador'):}}
-                        <a href="{{=URL('clientes', 'detalle', args=[cliente.id])}}" class="btn btn-info btn-lg ml-2">
-                            <i class="fa fa-eye"></i> Ver Detalles
-                        </a>
-                        {{pass}}
-                    </div>
-                </form>
             </div>
         </div>
     </div>

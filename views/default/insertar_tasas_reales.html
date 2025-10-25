@@ -1,0 +1,154 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-database me-3"></i>Insertar Tasas Reales
+                </h1>
+                <p class="lead mb-0">Insertar las tasas reales del BCV que se ven en el widget</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>Insertar Tasas Actuales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Tasas a Insertar:</h6>
+                        <p><strong>USD/VES:</strong> 214.1798</p>
+                        <p><strong>EUR/VES:</strong> 248.6534</p>
+                        <p><strong>Fuente:</strong> BCV - Tasas reales actualizadas</p>
+                    </div>
+                    
+                    <div id="resultado-insercion">
+                        <p>Haga clic en el botón para insertar estas tasas en la base de datos.</p>
+                    </div>
+                    
+                    <button id="btn-insertar" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus me-2"></i>Insertar Tasas Reales
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>¿Por qué hacer esto?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">
+                        <strong>Problema actual:</strong>
+                    </p>
+                    <ul class="small">
+                        <li>Widget muestra: USD 214.1798</li>
+                        <li>Calculadora usa: USD 36.50</li>
+                        <li>Resultado: Cálculos incorrectos</li>
+                    </ul>
+                    
+                    <p class="small">
+                        <strong>Después de insertar:</strong>
+                    </p>
+                    <ul class="small">
+                        <li>Widget y calculadora usarán las mismas tasas</li>
+                        <li>Cálculos serán precisos</li>
+                        <li>1 USD = 214.18 VES (aprox)</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <div class="mt-3">
+                        <a href="{{=URL('default', 'verificar_tasas_bd')}}" class="btn btn-info btn-sm">
+                            <i class="fas fa-database me-1"></i>Ver BD
+                        </a>
+                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-shopping-cart me-1"></i>Probar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('btn-insertar').addEventListener('click', async function() {
+    const btn = this;
+    const resultado = document.getElementById('resultado-insercion');
+    
+    // Deshabilitar botón y mostrar loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Insertando...';
+    
+    resultado.innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            Insertando tasas en la base de datos...
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('{{=URL("default", "insertar_tasas_reales")}}', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            resultado.innerHTML = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>¡Tasas insertadas correctamente!</h6>
+                    <p><strong>USD/VES:</strong> ${data.tasas.usd_ves}</p>
+                    <p><strong>EUR/VES:</strong> ${data.tasas.eur_ves}</p>
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Fuente:</strong> ${data.fuente}</p>
+                </div>
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Importante:</h6>
+                    <p>Ahora ve a la calculadora de compra y verifica que:</p>
+                    <ul>
+                        <li>1 USD = ~214.18 VES (no 36.50)</li>
+                        <li>Las tasas del widget coincidan con los cálculos</li>
+                    </ul>
+                </div>
+                <div class="mt-3">
+                    <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary me-2">
+                        <i class="fas fa-shopping-cart me-1"></i>Probar Calculadora
+                    </a>
+                    <a href="{{=URL('default', 'verificar_tasas_bd')}}" class="btn btn-info">
+                        <i class="fas fa-database me-1"></i>Verificar en BD
+                    </a>
+                </div>
+            `;
+        } else {
+            resultado.innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Error al insertar</h6>
+                    <p>${data.error}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        resultado.innerHTML = `
+            <div class="alert alert-danger">
+                <h6><i class="fas fa-times-circle me-2"></i>Error de conexión</h6>
+                <p>No se pudo conectar con el servidor: ${error.message}</p>
+            </div>
+        `;
+    }
+    
+    // Rehabilitar botón
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus me-2"></i>Insertar Tasas Reales';
+});
+</script>

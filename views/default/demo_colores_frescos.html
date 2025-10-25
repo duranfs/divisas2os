@@ -1,0 +1,443 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+  <!-- Header de demostración -->
+  <div class="dashboard-header fade-in-up">
+    <div class="row align-items-center">
+      <div class="col-12 text-center">
+        <h1>
+          <i class="fas fa-palette me-3"></i>Nueva Paleta de Colores Fresca
+        </h1>
+        <p class="lead mb-0">Diseño moderno con tonos azules, verdes menta y blancos elegantes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paleta de colores -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-swatchbook me-2"></i>Paleta de Colores Principal
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-2 mb-3">
+              <div class="text-center">
+                <div style="background: #2563eb; height: 80px; border-radius: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
+                <strong>Azul Primario</strong>
+                <br><small class="text-muted">#2563eb</small>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="text-center">
+                <div style="background: #06b6d4; height: 80px; border-radius: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
+                <strong>Cyan Fresco</strong>
+                <br><small class="text-muted">#06b6d4</small>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="text-center">
+                <div style="background: #10b981; height: 80px; border-radius: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
+                <strong>Verde Menta</strong>
+                <br><small class="text-muted">#10b981</small>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="text-center">
+                <div style="background: #f8fafc; height: 80px; border-radius: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;"></div>
+                <strong>Fondo Suave</strong>
+                <br><small class="text-muted">#f8fafc</small>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="text-center">
+                <div style="background: #ffffff; height: 80px; border-radius: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;"></div>
+                <strong>Blanco Puro</strong>
+                <br><small class="text-muted">#ffffff</small>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="text-center">
+                <div style="background: #1e293b; height: 80px; border-radius: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
+                <strong>Texto Oscuro</strong>
+                <br><small class="text-muted">#1e293b</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjetas de demostración -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card-resumen slide-in-right">
+        <div class="card-header">
+          <i class="fas fa-chart-line me-2"></i>Estadísticas
+        </div>
+        <div class="card-body text-center">
+          <div class="saldo-amount">1,234</div>
+          <small class="text-muted">Transacciones este mes</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+      <div class="card-resumen slide-in-right" style="animation-delay: 0.1s;">
+        <div class="card-header">
+          <i class="fas fa-users me-2"></i>Usuarios
+        </div>
+        <div class="card-body text-center">
+          <div class="saldo-amount">567</div>
+          <small class="text-muted">Clientes activos</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+      <div class="card-resumen slide-in-right" style="animation-delay: 0.2s;">
+        <div class="card-header">
+          <i class="fas fa-dollar-sign me-2"></i>Volumen
+        </div>
+        <div class="card-body text-center">
+          <div class="saldo-amount">$89K</div>
+          <small class="text-muted">Volumen total</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget de tasas -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="widget-tasas">
+        <h4>
+          <i class="fas fa-exchange-alt me-2"></i>Tasas de Cambio
+        </h4>
+        <div class="tasa-item">
+          <span class="tasa-moneda">USD/VES</span>
+          <span class="tasa-valor">36.50</span>
+        </div>
+        <div class="tasa-item">
+          <span class="tasa-moneda">EUR/VES</span>
+          <span class="tasa-valor">39.75</span>
+        </div>
+        <div class="tasa-actualizacion">
+          Actualizado: hace 5 minutos
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="calculadora-divisas">
+        <h4>Calculadora de Ejemplo</h4>
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="fas fa-dollar-sign"></i>Monto en USD
+          </label>
+          <input type="number" class="form-control" placeholder="Ingrese cantidad" value="100">
+        </div>
+        <div class="info-tasa">
+          <h6><i class="fas fa-calculator"></i>Resultado del Cálculo</h6>
+          <div class="row">
+            <div class="col-md-6">
+              <strong>Monto en VES</strong>
+              <span class="monto-destino-display">3,650.00</span>
+            </div>
+            <div class="col-md-6">
+              <strong>Tasa Aplicada</strong>
+              <span class="tasa-aplicada">36.50</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de demostración -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-mouse-pointer me-2"></i>Botones y Elementos Interactivos
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-2 mb-2">
+              <button class="btn btn-primary w-100">
+                <i class="fas fa-plus me-1"></i>Primario
+              </button>
+            </div>
+            <div class="col-md-2 mb-2">
+              <button class="btn btn-success w-100">
+                <i class="fas fa-check me-1"></i>Éxito
+              </button>
+            </div>
+            <div class="col-md-2 mb-2">
+              <button class="btn btn-warning w-100">
+                <i class="fas fa-exclamation me-1"></i>Advertencia
+              </button>
+            </div>
+            <div class="col-md-2 mb-2">
+              <button class="btn btn-danger w-100">
+                <i class="fas fa-times me-1"></i>Peligro
+              </button>
+            </div>
+            <div class="col-md-2 mb-2">
+              <button class="btn btn-info w-100">
+                <i class="fas fa-info me-1"></i>Información
+              </button>
+            </div>
+            <div class="col-md-2 mb-2">
+              <button class="btn btn-secondary w-100">
+                <i class="fas fa-cog me-1"></i>Secundario
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas de demostración -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>¡Éxito!</strong> La operación se completó correctamente.
+      </div>
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Información:</strong> Las tasas se actualizan cada 5 minutos.
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Advertencia:</strong> Verifique los datos antes de continuar.
+      </div>
+      <div class="alert alert-danger">
+        <i class="fas fa-times-circle me-2"></i>
+        <strong>Error:</strong> No se pudo procesar la transacción.
+      </div>
+    </div>
+  </div>
+
+  <!-- Accesos rápidos -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">Accesos Rápidos Modernos</h4>
+    </div>
+    <div class="col-md-3 mb-3">
+      <a href="#" class="acceso-rapido">
+        <i class="fas fa-shopping-cart"></i>
+        <h5>Comprar Divisas</h5>
+        <p>Adquiere USD y EUR con las mejores tasas</p>
+      </a>
+    </div>
+    <div class="col-md-3 mb-3">
+      <a href="#" class="acceso-rapido">
+        <i class="fas fa-hand-holding-usd"></i>
+        <h5>Vender Divisas</h5>
+        <p>Convierte tus divisas a bolívares</p>
+      </a>
+    </div>
+    <div class="col-md-3 mb-3">
+      <a href="#" class="acceso-rapido">
+        <i class="fas fa-chart-bar"></i>
+        <h5>Reportes</h5>
+        <p>Consulta estadísticas y análisis</p>
+      </a>
+    </div>
+    <div class="col-md-3 mb-3">
+      <a href="#" class="acceso-rapido">
+        <i class="fas fa-cog"></i>
+        <h5>Configuración</h5>
+        <p>Ajusta las preferencias del sistema</p>
+      </a>
+    </div>
+  </div>
+
+  <!-- Tabla de demostración -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-table me-2"></i>Tabla de Ejemplo
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Moneda</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>24/10/2025</td>
+                  <td><span class="badge bg-success">Compra</span></td>
+                  <td>USD</td>
+                  <td>$100.00</td>
+                  <td><span class="badge bg-success">Completada</span></td>
+                </tr>
+                <tr>
+                  <td>23/10/2025</td>
+                  <td><span class="badge bg-warning">Venta</span></td>
+                  <td>EUR</td>
+                  <td>€50.00</td>
+                  <td><span class="badge bg-warning">Pendiente</span></td>
+                </tr>
+                <tr>
+                  <td>22/10/2025</td>
+                  <td><span class="badge bg-success">Compra</span></td>
+                  <td>USD</td>
+                  <td>$200.00</td>
+                  <td><span class="badge bg-success">Completada</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de demostración -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-edit me-2"></i>Formulario de Ejemplo
+          </h5>
+        </div>
+        <div class="card-body">
+          <form>
+            <div class="mb-3">
+              <label class="form-label">
+                <i class="fas fa-user"></i>Nombre completo
+              </label>
+              <input type="text" class="form-control" placeholder="Ingrese su nombre">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">
+                <i class="fas fa-envelope"></i>Correo electrónico
+              </label>
+              <input type="email" class="form-control" placeholder="correo@ejemplo.com">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">
+                <i class="fas fa-list"></i>Tipo de cuenta
+              </label>
+              <select class="form-control">
+                <option>Seleccione una opción</option>
+                <option>Cuenta Corriente</option>
+                <option>Cuenta de Ahorros</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-1"></i>Guardar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-lightbulb me-2"></i>Características del Nuevo Diseño
+          </h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              <strong>Colores frescos y modernos</strong> - Azul, cyan y verde menta
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              <strong>Mejor legibilidad</strong> - Contraste optimizado para todos los usuarios
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              <strong>Animaciones suaves</strong> - Transiciones elegantes y naturales
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              <strong>Diseño responsive</strong> - Perfecto en móviles y escritorio
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              <strong>Elementos interactivos</strong> - Hover effects y feedback visual
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              <strong>Accesibilidad mejorada</strong> - Cumple estándares WCAG
+            </li>
+          </ul>
+          
+          <div class="mt-3">
+            <a href="{{=URL('default', 'dashboard')}}" class="btn btn-primary me-2">
+              <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+            </a>
+            <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-success">
+              <i class="fas fa-shopping-cart me-1"></i>Probar Compra
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+/* Animaciones adicionales para la demo */
+@keyframes colorShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.dashboard-header {
+  background: linear-gradient(-45deg, #2563eb, #06b6d4, #10b981, #34d399);
+  background-size: 400% 400%;
+  animation: colorShift 8s ease infinite;
+}
+
+/* Efecto hover mejorado para las tarjetas de colores */
+.col-md-2:hover div[style*="background"] {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+/* Badges con mejor estilo */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.5em 0.75em;
+  border-radius: 0.5rem;
+}
+
+.bg-success {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+}
+
+.bg-warning {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+}
+</style>

@@ -347,25 +347,27 @@ def gestionar():
         session.flash = "Debe especificar una cuenta"
         redirect(URL('cuentas', 'listar_todas'))
     
-    # Obtener cuenta con datos del cliente
-    cuenta = db(
-        (db.cuentas.id == cuenta_id) &
-        (db.cuentas.cliente_id == db.clientes.id) &
-        (db.clientes.user_id == db.auth_user.id)
-    ).select(
-        db.cuentas.ALL,
-        db.clientes.cedula,
-        db.auth_user.first_name,
-        db.auth_user.last_name,
-        db.auth_user.email
-    ).first()
+    # Obtener cuenta
+    cuenta_record = db(db.cuentas.id == cuenta_id).select().first()
     
-    if not cuenta:
+    if not cuenta_record:
         session.flash = "Cuenta no encontrada"
         redirect(URL('cuentas', 'listar_todas'))
     
+    # Obtener cliente asociado
+    cliente = db(db.clientes.id == cuenta_record.cliente_id).select().first()
+    if not cliente:
+        session.flash = "Cliente no encontrado"
+        redirect(URL('cuentas', 'listar_todas'))
+    
+    # Obtener usuario asociado
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    if not usuario:
+        session.flash = "Usuario no encontrado"
+        redirect(URL('cuentas', 'listar_todas'))
+    
     # Formulario para editar estado y saldos
-    form = SQLFORM(db.cuentas, cuenta.cuentas.id, 
+    form = SQLFORM(db.cuentas, cuenta_record.id, 
                    fields=['estado', 'saldo_ves', 'saldo_usd', 'saldo_eur'],
                    showid=False)
     
@@ -382,7 +384,9 @@ def gestionar():
     )
     
     return dict(
-        cuenta=cuenta,
+        cuenta=cuenta_record,
+        cliente=cliente,
+        usuario=usuario,
         form=form,
         transacciones=transacciones
     )

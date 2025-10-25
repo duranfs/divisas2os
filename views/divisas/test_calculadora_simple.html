@@ -1,0 +1,201 @@
+{{extend 'layout.html'}}
+
+<div class="container">
+    <h2>Prueba Simple de Calculadora</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Calculadora de Compra</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label>Divisa:</label>
+                        <select id="moneda_destino" class="form-control">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label>Cantidad de Divisa:</label>
+                        <input type="number" id="cantidad_divisa" class="form-control" 
+                               placeholder="0.00" step="0.01">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label>Bolívares a Pagar:</label>
+                        <input type="text" id="monto_bolivares_calculado" class="form-control" 
+                               readonly placeholder="0.00">
+                    </div>
+                    
+                    <input type="hidden" id="monto_origen" value="0">
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Estado de la Calculadora</h5>
+                </div>
+                <div class="card-body">
+                    <div id="estado-calculadora">
+                        <p><strong>Tasas Cargadas:</strong> <span id="tasas-status">❌</span></p>
+                        <p><strong>Calculadora Lista:</strong> <span id="calc-status">❌</span></p>
+                        <p><strong>Último Cálculo:</strong> <span id="ultimo-calculo">--</span></p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Tasas Actuales:</h6>
+                    <div id="tasas-display">
+                        <p>USD: <span id="tasa-usd-display">--</span></p>
+                        <p>EUR: <span id="tasa-eur-display">--</span></p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <button type="button" class="btn btn-primary btn-sm" onclick="probarCalculo()">
+                        Probar Cálculo Manual
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tasas simples para prueba
+let tasasActuales = {
+    USD: 36.50,
+    EUR: 40.25
+};
+
+// Función para cargar tasas (simulada)
+async function cargarTasasActuales() {
+    console.log('🔄 Cargando tasas...');
+    
+    try {
+        // Simular carga de tasas
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Usar tasas por defecto por ahora
+        tasasActuales = {
+            USD: 36.50,
+            EUR: 40.25
+        };
+        
+        console.log('✅ Tasas cargadas:', tasasActuales);
+        
+        // Actualizar UI
+        document.getElementById('tasas-status').textContent = '✅';
+        document.getElementById('tasa-usd-display').textContent = tasasActuales.USD;
+        document.getElementById('tasa-eur-display').textContent = tasasActuales.EUR;
+        
+        return tasasActuales;
+    } catch (error) {
+        console.error('❌ Error cargando tasas:', error);
+        document.getElementById('tasas-status').textContent = '❌';
+        return null;
+    }
+}
+
+// Función de calculadora simple
+function configurarCalculadoraSimple() {
+    console.log('🧮 Configurando calculadora simple...');
+    
+    const cantidadInput = document.getElementById('cantidad_divisa');
+    const monedaSelect = document.getElementById('moneda_destino');
+    const bolivaresInput = document.getElementById('monto_bolivares_calculado');
+    const montoOrigenHidden = document.getElementById('monto_origen');
+    
+    console.log('📊 Elementos encontrados:', {
+        cantidadInput: !!cantidadInput,
+        monedaSelect: !!monedaSelect,
+        bolivaresInput: !!bolivaresInput,
+        montoOrigenHidden: !!montoOrigenHidden
+    });
+    
+    if (!cantidadInput || !monedaSelect || !bolivaresInput) {
+        console.error('❌ No se encontraron todos los elementos necesarios');
+        return;
+    }
+    
+    function calcular() {
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        const moneda = monedaSelect.value;
+        
+        console.log('🧮 Calculando:', {cantidad, moneda, tasasActuales});
+        
+        if (cantidad > 0 && moneda && tasasActuales[moneda]) {
+            const tasa = tasasActuales[moneda];
+            const bolivares = cantidad * tasa;
+            
+            console.log(`✅ Resultado: ${cantidad} ${moneda} × ${tasa} = ${bolivares.toFixed(2)} VES`);
+            
+            bolivaresInput.value = bolivares.toLocaleString('es-ES', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            if (montoOrigenHidden) {
+                montoOrigenHidden.value = bolivares.toFixed(2);
+            }
+            
+            // Actualizar UI
+            document.getElementById('ultimo-calculo').textContent = 
+                `${cantidad} ${moneda} = ${bolivares.toFixed(2)} VES`;
+            
+        } else {
+            console.log('⚠️ No se puede calcular:', {cantidad, moneda, tasasDisponibles: Object.keys(tasasActuales)});
+            bolivaresInput.value = '0.00';
+            if (montoOrigenHidden) {
+                montoOrigenHidden.value = '0';
+            }
+            document.getElementById('ultimo-calculo').textContent = 'Sin cálculo válido';
+        }
+    }
+    
+    // Event listeners
+    cantidadInput.addEventListener('input', calcular);
+    monedaSelect.addEventListener('change', calcular);
+    
+    console.log('✅ Calculadora configurada');
+    document.getElementById('calc-status').textContent = '✅';
+    
+    // Hacer un cálculo inicial si hay valores
+    calcular();
+}
+
+// Función para probar manualmente
+function probarCalculo() {
+    console.log('🧪 Prueba manual iniciada...');
+    
+    const cantidadInput = document.getElementById('cantidad_divisa');
+    const monedaSelect = document.getElementById('moneda_destino');
+    
+    // Establecer valores de prueba
+    cantidadInput.value = '100';
+    monedaSelect.value = 'USD';
+    
+    // Disparar evento
+    cantidadInput.dispatchEvent(new Event('input'));
+    
+    console.log('✅ Prueba manual completada');
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Iniciando prueba simple...');
+    
+    // Cargar tasas
+    await cargarTasasActuales();
+    
+    // Configurar calculadora
+    configurarCalculadoraSimple();
+    
+    console.log('✅ Prueba simple lista');
+});
+</script>

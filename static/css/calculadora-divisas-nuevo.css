@@ -1,0 +1,163 @@
+/* =========================================================================
+   Calculadora de Divisas - Diseño Moderno
+   ========================================================================= */
+
+/* Campo calculado de bolívares - Compra */
+#monto_bolivares_calculado.bg-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    border: 2px solid #f59e0b !important;
+    color: #92400e !important;
+    font-weight: 700;
+    font-size: 1.2em;
+    text-align: right;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1);
+}
+
+/* Campo calculado de bolívares - Venta */
+#monto_bolivares_calculado.bg-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+    border: 2px solid #10b981 !important;
+    color: #047857 !important;
+    font-weight: 700;
+    font-size: 1.2em;
+    text-align: right;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+}
+
+/* Símbolos de divisa modernos */
+#simbolo-divisa, #simbolo-divisa-compra, #simbolo-divisa-venta {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+    color: white !important;
+    font-weight: 700;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Animaciones suaves para cambios de valor */
+#monto_bolivares_calculado, #monto_bolivares_compra, #monto_bolivares_venta {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#monto_bolivares_calculado:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: scale(1.02);
+}
+
+/* Iconos en los campos calculados */
+.input-group-text i.fas {
+    margin-right: 0.5rem;
+    font-size: 1.1em;
+}
+
+/* Texto explicativo mejorado */
+.form-text.text-muted {
+    color: #64748b !important;
+    font-weight: 500;
+}
+
+.form-text.text-muted i.fas {
+    color: #06b6d4 !important;
+    margin-right: 0.5rem;
+}
+
+/* Efectos hover mejorados */
+#cantidad_divisa:hover, #cantidad_divisa_compra:hover, #cantidad_divisa_venta:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Campos de entrada de divisa */
+.cantidad-divisa {
+    font-size: 1.1em;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Indicadores de cálculo */
+.calculando {
+    opacity: 0.7;
+    pointer-events: none;
+    position: relative;
+}
+
+.calculando::after {
+    content: "🔄";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Efectos de pulsación para campos calculados */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+.campo-actualizado {
+    animation: pulse 0.6s ease-out;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    #monto_bolivares_calculado, #monto_bolivares_compra, #monto_bolivares_venta {
+        font-size: 1em;
+        text-align: center;
+    }
+    
+    .input-group-text {
+        font-size: 0.9em;
+        padding: 0.5rem;
+    }
+    
+    .cantidad-divisa {
+        font-size: 1em;
+    }
+}
+
+/* Estados de validación */
+.campo-valido {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+.campo-invalido {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Tooltips personalizados */
+.tooltip-calculadora {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip-calculadora::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.tooltip-calculadora:hover::after {
+    opacity: 1;
+}

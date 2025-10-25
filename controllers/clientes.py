@@ -560,25 +560,327 @@ def detalle():
         redirect(URL('clientes', 'listar'))
     
     # Obtener información completa del cliente
-    cliente = db((db.clientes.id == cliente_id) & 
-                (db.clientes.user_id == db.auth_user.id)).select(
-                    db.clientes.ALL, db.auth_user.ALL).first()
+    cliente = db(db.clientes.id == cliente_id).select().first()
     
     if not cliente:
         session.flash = "Cliente no encontrado"
         redirect(URL('clientes', 'listar'))
     
+    # Obtener información del usuario asociado
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    
+    if not usuario:
+        # Si no se encuentra el usuario, crear un objeto con valores por defecto
+        from gluon.storage import Storage
+        usuario = Storage({
+            'first_name': 'No disponible',
+            'last_name': '',
+            'email': 'No disponible',
+            'telefono': 'No especificado',
+            'direccion': 'No especificada',
+            'fecha_nacimiento': None,
+            'estado': 'inactivo'
+        })
+    
     # Obtener cuentas del cliente
     cuentas = db(db.cuentas.cliente_id == cliente_id).select()
     
     # Obtener últimas transacciones
-    ultimas_transacciones = db((db.transacciones.cuenta_id.belongs([c.id for c in cuentas]))).select(
-        orderby=~db.transacciones.fecha_transaccion,
-        limitby=(0, 10)
-    )
+    ultimas_transacciones = []
+    if cuentas:
+        ultimas_transacciones = db(
+            db.transacciones.cuenta_id.belongs([c.id for c in cuentas])
+        ).select(
+            orderby=~db.transacciones.fecha_transaccion,
+            limitby=(0, 10)
+        )
+    
+    # Preparar datos seguros para la vista
+    from gluon.storage import Storage
+    datos_seguros = Storage()
+    datos_seguros['nombre_completo'] = f"{usuario.get('first_name', 'N/A')} {usuario.get('last_name', '')}".strip() if usuario else 'No disponible'
+    datos_seguros['email'] = usuario.get('email', 'No disponible') if usuario else 'No disponible'
+    datos_seguros['telefono'] = usuario.get('telefono', 'No especificado') if usuario else 'No especificado'
+    datos_seguros['direccion'] = usuario.get('direccion', 'No especificada') if usuario else 'No especificada'
+    datos_seguros['fecha_nacimiento_str'] = usuario.fecha_nacimiento.strftime('%d/%m/%Y') if usuario and usuario.get('fecha_nacimiento') else 'No especificada'
+    datos_seguros['estado'] = usuario.get('estado', 'inactivo') if usuario else 'inactivo'
+    datos_seguros['estado_activo'] = (usuario.get('estado', 'inactivo') == 'activo') if usuario else False
     
     return dict(
         cliente=cliente,
+        usuario=usuario,
+        datos_seguros=datos_seguros,
         cuentas=cuentas,
         ultimas_transacciones=ultimas_transacciones
+    )
+
+@auth.requires_membership('administrador')
+def diagnosticar_detalle():
+    """
+    Función de diagnóstico para verificar la vista de detalle
+    """
+    cliente_id = request.args(0) or 1  # Usar ID 1 por defecto
+    
+    try:
+        # Obtener cliente
+        cliente = db(db.clientes.id == cliente_id).select().first()
+        
+        if not cliente:
+            return dict(
+                error=f"Cliente con ID {cliente_id} no encontrado",
+                clientes_disponibles=db(db.clientes.id > 0).select()
+            )
+        
+        # Obtener usuario
+        usuario = db(db.auth_user.id == cliente.user_id).select().first()
+        
+        # Obtener cuentas
+        cuentas = db(db.cuentas.cliente_id == cliente_id).select()
+        
+        return dict(
+            cliente=cliente,
+            usuario=usuario,
+            cuentas=cuentas,
+            diagnostico={
+                'cliente_existe': bool(cliente),
+                'usuario_existe': bool(usuario),
+                'num_cuentas': len(cuentas),
+                'campos_cliente': list(cliente.keys()) if cliente else [],
+                'campos_usuario': list(usuario.keys()) if usuario else []
+            }
+        )
+        
+    except Exception as e:
+        return dict(
+            error=str(e),
+            cliente_id=cliente_id
+        )
+
+@auth.requires_membership('administrador')
+def test_detalle():
+    """
+    Función de prueba rápida para verificar que la vista de detalle funciona
+    """
+    # Buscar el primer cliente disponible
+    cliente = db(db.clientes.id > 0).select().first()
+    
+    if not cliente:
+        return dict(
+            mensaje="No hay clientes en el sistema para probar",
+            url_crear=URL('clientes', 'registrar')
+        )
+    
+    # Redirigir a la vista de detalle
+    redirect(URL('clientes', 'detalle', args=[cliente.id]))
+
+@auth.requires_login()
+def detalle_simple():
+    """
+    Versión simplificada de la vista de detalle de cliente
+    Sin problemas de sintaxis complejos
+    """
+    
+    if not (auth.has_membership('administrador') or auth.has_membership('operador')):
+        session.flash = "No tiene permisos para ver detalles de clientes"
+        redirect(URL('default', 'index'))
+    
+    cliente_id = request.args(0)
+    if not cliente_id:
+        session.flash = "ID de cliente requerido"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener información completa del cliente
+    cliente = db(db.clientes.id == cliente_id).select().first()
+    
+    if not cliente:
+        session.flash = "Cliente no encontrado"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener información del usuario asociado
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    
+    if not usuario:
+        # Si no se encuentra el usuario, crear un objeto con valores por defecto
+        from gluon.storage import Storage
+        usuario = Storage({
+            'first_name': 'No disponible',
+            'last_name': '',
+            'email': 'No disponible',
+            'telefono': 'No especificado',
+            'direccion': 'No especificada',
+            'fecha_nacimiento': None,
+            'estado': 'inactivo'
+        })
+    
+    # Obtener cuentas del cliente
+    cuentas = db(db.cuentas.cliente_id == cliente_id).select()
+    
+    # Obtener últimas transacciones
+    ultimas_transacciones = []
+    if cuentas:
+        ultimas_transacciones = db(
+            db.transacciones.cuenta_id.belongs([c.id for c in cuentas])
+        ).select(
+            orderby=~db.transacciones.fecha_transaccion,
+            limitby=(0, 10)
+        )
+    
+    # Preparar datos seguros para la vista
+    from gluon.storage import Storage
+    datos_seguros = Storage()
+    datos_seguros['nombre_completo'] = f"{usuario.get('first_name', 'N/A')} {usuario.get('last_name', '')}".strip() if usuario else 'No disponible'
+    datos_seguros['email'] = usuario.get('email', 'No disponible') if usuario else 'No disponible'
+    datos_seguros['telefono'] = usuario.get('telefono', 'No especificado') if usuario else 'No especificado'
+    datos_seguros['direccion'] = usuario.get('direccion', 'No especificada') if usuario else 'No especificada'
+    datos_seguros['fecha_nacimiento_str'] = usuario.fecha_nacimiento.strftime('%d/%m/%Y') if usuario and usuario.get('fecha_nacimiento') else 'No especificada'
+    datos_seguros['estado'] = usuario.get('estado', 'inactivo') if usuario else 'inactivo'
+    datos_seguros['estado_activo'] = (usuario.get('estado', 'inactivo') == 'activo') if usuario else False
+    
+    return dict(
+        cliente=cliente,
+        usuario=usuario,
+        datos_seguros=datos_seguros,
+        cuentas=cuentas,
+        ultimas_transacciones=ultimas_transacciones
+    )
+
+@auth.requires_login()
+def detalle_debug():
+    """
+    Versión de debug para diagnosticar problemas con la vista de detalle
+    """
+    
+    if not (auth.has_membership('administrador') or auth.has_membership('operador')):
+        return dict(error="No tiene permisos para ver detalles de clientes")
+    
+    cliente_id = request.args(0)
+    if not cliente_id:
+        return dict(error="ID de cliente requerido")
+    
+    try:
+        # Obtener información completa del cliente
+        cliente = db(db.clientes.id == cliente_id).select().first()
+        
+        if not cliente:
+            return dict(error=f"Cliente con ID {cliente_id} no encontrado")
+        
+        # Obtener información del usuario asociado
+        usuario = db(db.auth_user.id == cliente.user_id).select().first()
+        
+        # Obtener cuentas del cliente
+        cuentas = db(db.cuentas.cliente_id == cliente_id).select()
+        
+        # Obtener últimas transacciones
+        ultimas_transacciones = []
+        if cuentas:
+            ultimas_transacciones = db(
+                db.transacciones.cuenta_id.belongs([c.id for c in cuentas])
+            ).select(
+                orderby=~db.transacciones.fecha_transaccion,
+                limitby=(0, 10)
+            )
+        
+        # Preparar datos seguros para la vista
+        from gluon.storage import Storage
+        datos_seguros = Storage()
+        datos_seguros['nombre_completo'] = f"{usuario.get('first_name', 'N/A')} {usuario.get('last_name', '')}".strip() if usuario else 'No disponible'
+        datos_seguros['email'] = usuario.get('email', 'No disponible') if usuario else 'No disponible'
+        datos_seguros['telefono'] = usuario.get('telefono', 'No especificado') if usuario else 'No especificado'
+        datos_seguros['direccion'] = usuario.get('direccion', 'No especificada') if usuario else 'No especificada'
+        datos_seguros['fecha_nacimiento_str'] = usuario.fecha_nacimiento.strftime('%d/%m/%Y') if usuario and usuario.get('fecha_nacimiento') else 'No especificada'
+        datos_seguros['estado'] = usuario.get('estado', 'inactivo') if usuario else 'inactivo'
+        datos_seguros['estado_activo'] = (usuario.get('estado', 'inactivo') == 'activo') if usuario else False
+        
+        return dict(
+            success=True,
+            cliente=cliente,
+            usuario=usuario,
+            datos_seguros=datos_seguros,
+            cuentas=cuentas,
+            ultimas_transacciones=ultimas_transacciones,
+            debug_info={
+                'cliente_id': cliente_id,
+                'cliente_existe': bool(cliente),
+                'usuario_existe': bool(usuario),
+                'num_cuentas': len(cuentas),
+                'num_transacciones': len(ultimas_transacciones)
+            }
+        )
+        
+    except Exception as e:
+        return dict(
+            error=f"Error en detalle_debug: {str(e)}",
+            cliente_id=cliente_id
+        )
+
+@auth.requires_login()
+def detalle_minimo():
+    """
+    Versión mínima para probar que la vista funciona
+    """
+    
+    if not (auth.has_membership('administrador') or auth.has_membership('operador')):
+        session.flash = "No tiene permisos para ver detalles de clientes"
+        redirect(URL('default', 'index'))
+    
+    cliente_id = request.args(0)
+    if not cliente_id:
+        session.flash = "ID de cliente requerido"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener información completa del cliente
+    cliente = db(db.clientes.id == cliente_id).select().first()
+    
+    if not cliente:
+        session.flash = "Cliente no encontrado"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener información del usuario asociado
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    
+    # Preparar datos seguros básicos
+    from gluon.storage import Storage
+    datos_seguros = Storage()
+    datos_seguros['nombre_completo'] = f"{usuario.get('first_name', 'N/A')} {usuario.get('last_name', '')}".strip() if usuario else 'No disponible'
+    datos_seguros['email'] = usuario.get('email', 'No disponible') if usuario else 'No disponible'
+    
+    return dict(
+        cliente=cliente,
+        datos_seguros=datos_seguros
+    )
+
+@auth.requires_login()
+def detalle_test():
+    """
+    Versión de prueba para diagnosticar la vista principal
+    """
+    
+    if not (auth.has_membership('administrador') or auth.has_membership('operador')):
+        session.flash = "No tiene permisos para ver detalles de clientes"
+        redirect(URL('default', 'index'))
+    
+    cliente_id = request.args(0)
+    if not cliente_id:
+        session.flash = "ID de cliente requerido"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener información completa del cliente
+    cliente = db(db.clientes.id == cliente_id).select().first()
+    
+    if not cliente:
+        session.flash = "Cliente no encontrado"
+        redirect(URL('clientes', 'listar'))
+    
+    # Obtener información del usuario asociado
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    
+    # Preparar datos seguros básicos
+    from gluon.storage import Storage
+    datos_seguros = Storage()
+    datos_seguros['nombre_completo'] = f"{usuario.get('first_name', 'N/A')} {usuario.get('last_name', '')}".strip() if usuario else 'No disponible'
+    datos_seguros['email'] = usuario.get('email', 'No disponible') if usuario else 'No disponible'
+    
+    return dict(
+        cliente=cliente,
+        datos_seguros=datos_seguros
     )

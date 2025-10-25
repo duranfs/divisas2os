@@ -1,217 +1,148 @@
 {{extend 'layout.html'}}
 
-<style>
-/* SOLUCIÓN INTELIGENTE DE VISIBILIDAD */
-body { background-color: #000000 !important; }
-
-/* Texto negro en fondos blancos */
-.card, .card *, .card-body, .card-body * { 
-    background-color: #FFFFFF !important; 
-    color: #000000 !important; 
-}
-
-/* Texto blanco en fondos oscuros */
-.container-fluid > * { color: #FFFFFF !important; }
-h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; font-weight: bold !important; }
-.lead { color: #CCCCCC !important; }
-
-/* Headers de tarjetas */
-.card-header { color: #FFFFFF !important; }
-.card-header.bg-warning { background-color: #ffc107 !important; color: #000000 !important; }
-.card-header.bg-primary { background-color: #007bff !important; color: #FFFFFF !important; }
-
-/* Enlaces */
-a { color: #FFA366 !important; }
-.card a { color: #007bff !important; }
-
-/* Botones */
-.btn { color: #FFFFFF !important; font-weight: bold !important; }
-.btn-success { background-color: #28a745 !important; }
-.btn-info { background-color: #17a2b8 !important; }
-.btn-outline-secondary { 
-    background-color: transparent !important; 
-    color: #6c757d !important; 
-    border: 2px solid #6c757d !important; 
-}
-
-/* Alertas */
-.alert { background-color: #FFFFFF !important; color: #000000 !important; }
-</style>
-
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h2><i class="fas fa-exchange-alt"></i> Sistema de Divisas</h2>
-            <p class="lead">Compra y venta de divisas con tasas oficiales del BCV</p>
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-exchange-alt me-3"></i>Sistema de Divisas
+                </h1>
+                <p class="lead mb-0">Compra y venta de divisas con tasas oficiales del BCV</p>
+            </div>
         </div>
     </div>
 
-    <!-- Widget de Tasas Actuales -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div id="widget-tasas-principales"></div>
-        </div>
-        <div class="col-md-6">
-            {{if auth.user:}}
-                <div class="card border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-user"></i> Acceso Rápido
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-success btn-block">
-                                    <i class="fas fa-shopping-cart"></i><br>
-                                    Comprar Divisas
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="{{=URL('divisas', 'vender')}}" class="btn btn-info btn-block">
-                                    <i class="fas fa-hand-holding-usd"></i><br>
-                                    Vender Divisas
-                                </a>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-outline-secondary btn-block">
-                                    <i class="fas fa-history"></i><br>
-                                    Historial
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="{{=URL('cuentas', 'consultar')}}" class="btn btn-outline-secondary btn-block">
-                                    <i class="fas fa-wallet"></i><br>
-                                    Mis Cuentas
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {{else:}}
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-sign-in-alt"></i> Acceso al Sistema
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Para realizar transacciones de divisas debe iniciar sesión.</p>
-                        <a href="{{=URL('default', 'user', args=['login'])}}" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                        </a>
-                        <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-outline-primary">
-                            <i class="fas fa-user-plus"></i> Registrarse
-                        </a>
-                    </div>
-                </div>
-            {{pass}}
-        </div>
-    </div>
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Divisas</li>
+        </ol>
+    </nav>
 
-    {{if auth.user and cuentas:}}
-    <!-- Resumen de Cuentas del Cliente -->
+    {{if response.flash:}}
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-wallet"></i> Resumen de Cuentas
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {{for cuenta in cuentas:}}
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-secondary">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{=cuenta.numero_cuenta}}</h6>
-                                    <div class="row text-center">
-                                        <div class="col-4">
-                                            <strong>VES</strong><br>
-                                            <span class="text-success">{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</span>
-                                        </div>
-                                        <div class="col-4">
-                                            <strong>USD</strong><br>
-                                            <span class="text-primary">{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</span>
-                                        </div>
-                                        <div class="col-4">
-                                            <strong>EUR</strong><br>
-                                            <span class="text-info">{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{pass}}
-                    </div>
-                </div>
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </div>
     </div>
     {{pass}}
 
-    <!-- Información del Sistema -->
-    <div class="row">
-        <div class="col-md-8">
+    <!-- Widget de Tasas Actuales -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="widget-tasas">
+                <h4>
+                    <i class="fas fa-chart-line me-2"></i>Tasas de Cambio Actuales
+                </h4>
+                <div class="tasa-item">
+                    <span class="tasa-moneda">USD/VES</span>
+                    <span class="tasa-valor">Cargando...</span>
+                </div>
+                <div class="tasa-item">
+                    <span class="tasa-moneda">EUR/VES</span>
+                    <span class="tasa-valor">Cargando...</span>
+                </div>
+                <div class="tasa-actualizacion">
+                    Actualizando tasas...
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i> Información del Sistema
-                    </h5>
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información Importante
+                    </h6>
                 </div>
                 <div class="card-body">
-                    <h6>¿Cómo funciona?</h6>
-                    <ul>
-                        <li><strong>Compra de Divisas:</strong> Cambie sus bolívares (VES) por dólares (USD) o euros (EUR)</li>
-                        <li><strong>Venta de Divisas:</strong> Convierta sus dólares o euros a bolívares</li>
-                        <li><strong>Tasas Oficiales:</strong> Utilizamos las tasas oficiales del Banco Central de Venezuela</li>
-                        <li><strong>Comisiones:</strong> Se aplica una comisión del 0.5% por operación</li>
-                        <li><strong>Tiempo Real:</strong> Las tasas se actualizan automáticamente cada hora</li>
-                    </ul>
-                    
-                    <h6>Requisitos:</h6>
-                    <ul>
-                        <li>Tener una cuenta registrada y verificada</li>
-                        <li>Contar con al menos una cuenta bancaria activa</li>
-                        <li>Fondos suficientes para la operación deseada</li>
+                    <ul class="small">
+                        <li>Las tasas se actualizan automáticamente desde el BCV</li>
+                        <li>Comisión del 0.5% en todas las operaciones</li>
+                        <li>Operaciones disponibles 24/7</li>
+                        <li>Comprobantes electrónicos automáticos</li>
                     </ul>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-info">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-headset"></i> Soporte
+    </div>
+
+    <!-- Accesos Rápidos -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <a href="{{=URL('divisas', 'comprar')}}" class="acceso-rapido">
+                <i class="fas fa-shopping-cart"></i>
+                <h5>Comprar Divisas</h5>
+                <p>Adquiere USD y EUR con bolívares usando las tasas oficiales del BCV</p>
+            </a>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <a href="{{=URL('divisas', 'vender')}}" class="acceso-rapido">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h5>Vender Divisas</h5>
+                <p>Convierte tus USD y EUR a bolívares al mejor precio del mercado</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Historial Reciente -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Acciones Rápidas
                     </h5>
                 </div>
                 <div class="card-body">
-                    <p>¿Necesita ayuda con sus transacciones?</p>
-                    <p><strong>Horario de Atención:</strong><br>
-                    Lunes a Viernes: 8:00 AM - 6:00 PM<br>
-                    Sábados: 8:00 AM - 12:00 PM</p>
-                    
-                    <p><strong>Contacto:</strong><br>
-                    <i class="fas fa-phone"></i> 0212-555-0123<br>
-                    <i class="fas fa-envelope"></i> soporte@banco.com</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-list me-2"></i>Ver Historial
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{=URL('api', 'index')}}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="fas fa-chart-bar me-2"></i>Gráficos de Tasas
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{=URL('cuentas', 'index')}}" class="btn btn-outline-success w-100 mb-2">
+                                <i class="fas fa-university me-2"></i>Mis Cuentas
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-$(document).ready(function() {
-    // Crear widget de tasas
-    crearWidgetTasas('widget-tasas-principales');
-    
-    // Inicializar calculadora si está disponible
-    if (typeof inicializarCalculadora === 'function') {
-        inicializarCalculadora();
-    }
-});
-</script>
+<style>
+/* Estilos específicos para el índice de divisas */
+.page-header {
+    background: linear-gradient(135deg, var(--color-primario, #2563eb) 0%, var(--color-secundario, #06b6d4) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: white !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin: 0;
+}
+</style>

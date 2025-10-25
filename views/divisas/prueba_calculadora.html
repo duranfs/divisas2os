@@ -1,0 +1,340 @@
+{{extend 'layout.html'}}
+
+<link rel="stylesheet" href="{{=URL('static', 'css/calculadora-divisas.css')}}">
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-calculator"></i> Prueba de Calculadora de Divisas</h4>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Prueba de Compra -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5>Simulación de Compra de Divisas</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-prueba-compra">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="moneda_destino_compra">Divisa a Comprar:</label>
+                                            <select id="moneda_destino_compra" name="moneda_destino" class="form-control">
+                                                <option value="USD">Dólares (USD)</option>
+                                                <option value="EUR">Euros (EUR)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="cantidad_divisa_compra">Cantidad a Comprar:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="simbolo-divisa-compra">USD</span>
+                                                </div>
+                                                <input type="number" id="cantidad_divisa_compra" name="cantidad_divisa" 
+                                                       class="form-control" placeholder="0.00" step="0.01" min="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campo Calculado -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="monto_bolivares_compra">
+                                                <i class="fas fa-calculator text-warning"></i> 
+                                                Monto a Pagar en Bolívares:
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-warning text-dark font-weight-bold">
+                                                        <i class="fas fa-coins"></i> VES
+                                                    </span>
+                                                </div>
+                                                <input type="text" id="monto_bolivares_compra" 
+                                                       class="form-control bg-warning text-dark font-weight-bold text-right" 
+                                                       style="font-size: 1.1em;" 
+                                                       placeholder="0.00" readonly>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text bg-warning text-dark">
+                                                        <i class="fas fa-eye"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                <i class="fas fa-info-circle text-info"></i> 
+                                                Calculado automáticamente usando la <strong>tasa de compra</strong>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Prueba de Venta -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5>Simulación de Venta de Divisas</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-prueba-venta">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="moneda_origen_venta">Divisa a Vender:</label>
+                                            <select id="moneda_origen_venta" name="moneda_origen" class="form-control">
+                                                <option value="USD">Dólares (USD)</option>
+                                                <option value="EUR">Euros (EUR)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="cantidad_divisa_venta">Cantidad a Vender:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="simbolo-divisa-venta">USD</span>
+                                                </div>
+                                                <input type="number" id="cantidad_divisa_venta" name="cantidad_divisa" 
+                                                       class="form-control" placeholder="0.00" step="0.01" min="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campo Calculado -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="monto_bolivares_venta">
+                                                <i class="fas fa-calculator text-success"></i> 
+                                                Monto a Recibir en Bolívares:
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-success text-white font-weight-bold">
+                                                        <i class="fas fa-money-bill-wave"></i> VES
+                                                    </span>
+                                                </div>
+                                                <input type="text" id="monto_bolivares_venta" 
+                                                       class="form-control bg-success text-white font-weight-bold text-right" 
+                                                       style="font-size: 1.1em;" 
+                                                       placeholder="0.00" readonly>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text bg-success text-white">
+                                                        <i class="fas fa-eye"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                <i class="fas fa-info-circle text-info"></i> 
+                                                Calculado automáticamente usando la <strong>tasa de venta</strong>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Widget de Tasas -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-exchange-alt"></i> Tasas Actuales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-12 mb-3">
+                            <h6>USD/VES</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Compra</small><br>
+                                    <strong class="text-primary" id="tasa-usd-compra">36.50</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small>Venta</small><br>
+                                    <strong class="text-danger" id="tasa-usd-venta">36.80</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <h6>EUR/VES</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Compra</small><br>
+                                    <strong class="text-primary" id="tasa-eur-compra">40.25</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small>Venta</small><br>
+                                    <strong class="text-danger" id="tasa-eur-venta">40.60</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <small class="text-muted">
+                        <i class="fas fa-clock"></i> 
+                        Última actualización: <span id="ultima-actualizacion">--</span>
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Log de Cálculos -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-list"></i> Log de Cálculos</h6>
+                </div>
+                <div class="card-body">
+                    <div id="log-calculos" style="max-height: 300px; overflow-y: auto;">
+                        <p class="text-muted small">Los cálculos aparecerán aquí...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript personalizado para la prueba -->
+<script src="{{=URL('static', 'js/calculadora_divisas.js')}}"></script>
+
+<script>
+class PruebaCalculadora {
+    constructor() {
+        this.tasas = {
+            USD: { compra: 36.50, venta: 36.80 },
+            EUR: { compra: 40.25, venta: 40.60 }
+        };
+        this.init();
+    }
+    
+    init() {
+        this.cargarTasas();
+        this.configurarEventListeners();
+        this.actualizarWidgetTasas();
+    }
+    
+    configurarEventListeners() {
+        // Eventos para compra
+        $('#cantidad_divisa_compra').on('input', () => this.calcularCompra());
+        $('#moneda_destino_compra').on('change', () => {
+            this.actualizarSimboloCompra();
+            this.calcularCompra();
+        });
+        
+        // Eventos para venta
+        $('#cantidad_divisa_venta').on('input', () => this.calcularVenta());
+        $('#moneda_origen_venta').on('change', () => {
+            this.actualizarSimboloVenta();
+            this.calcularVenta();
+        });
+        
+        // Inicializar símbolos
+        this.actualizarSimboloCompra();
+        this.actualizarSimboloVenta();
+    }
+    
+    actualizarSimboloCompra() {
+        const moneda = $('#moneda_destino_compra').val();
+        $('#simbolo-divisa-compra').text(moneda);
+    }
+    
+    actualizarSimboloVenta() {
+        const moneda = $('#moneda_origen_venta').val();
+        $('#simbolo-divisa-venta').text(moneda);
+    }
+    
+    calcularCompra() {
+        const cantidad = parseFloat($('#cantidad_divisa_compra').val()) || 0;
+        const moneda = $('#moneda_destino_compra').val();
+        
+        if (cantidad > 0 && this.tasas[moneda]) {
+            const tasa = this.tasas[moneda].compra;
+            const bolivares = cantidad * tasa;
+            
+            $('#monto_bolivares_compra').val(this.formatearMonto(bolivares));
+            
+            this.agregarLog(`Compra: ${cantidad} ${moneda} × ${tasa} = ${bolivares.toFixed(2)} VES`);
+        } else {
+            $('#monto_bolivares_compra').val('0.00');
+        }
+    }
+    
+    calcularVenta() {
+        const cantidad = parseFloat($('#cantidad_divisa_venta').val()) || 0;
+        const moneda = $('#moneda_origen_venta').val();
+        
+        if (cantidad > 0 && this.tasas[moneda]) {
+            const tasa = this.tasas[moneda].venta;
+            const bolivares = cantidad * tasa;
+            
+            $('#monto_bolivares_venta').val(this.formatearMonto(bolivares));
+            
+            this.agregarLog(`Venta: ${cantidad} ${moneda} × ${tasa} = ${bolivares.toFixed(2)} VES`);
+        } else {
+            $('#monto_bolivares_venta').val('0.00');
+        }
+    }
+    
+    formatearMonto(monto) {
+        return new Intl.NumberFormat('es-VE', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(monto);
+    }
+    
+    agregarLog(mensaje) {
+        const tiempo = new Date().toLocaleTimeString();
+        const logDiv = $('#log-calculos');
+        
+        logDiv.prepend(`
+            <div class="small mb-1">
+                <span class="text-muted">${tiempo}</span> - ${mensaje}
+            </div>
+        `);
+        
+        // Mantener solo los últimos 10 logs
+        const logs = logDiv.children();
+        if (logs.length > 10) {
+            logs.last().remove();
+        }
+    }
+    
+    async cargarTasas() {
+        try {
+            const response = await fetch('/sistema_divisas/api/tasas_actuales');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.tasas) {
+                    this.tasas = data.tasas;
+                    this.actualizarWidgetTasas();
+                    console.log('Tasas cargadas desde API:', this.tasas);
+                }
+            }
+        } catch (error) {
+            console.log('Usando tasas por defecto:', error);
+        }
+    }
+    
+    actualizarWidgetTasas() {
+        $('#tasa-usd-compra').text(this.tasas.USD.compra.toFixed(4));
+        $('#tasa-usd-venta').text(this.tasas.USD.venta.toFixed(4));
+        $('#tasa-eur-compra').text(this.tasas.EUR.compra.toFixed(4));
+        $('#tasa-eur-venta').text(this.tasas.EUR.venta.toFixed(4));
+        $('#ultima-actualizacion').text(new Date().toLocaleString());
+    }
+}
+
+$(document).ready(function() {
+    window.pruebaCalculadora = new PruebaCalculadora();
+});
+</script>

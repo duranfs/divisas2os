@@ -1,0 +1,146 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-white mb-4">
+                <i class="fas fa-bug"></i> Debug - Detalle del Cliente
+            </h2>
+        </div>
+    </div>
+    
+    {{if 'error' in globals():}}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
+                    <p><strong>{{=error}}</strong></p>
+                    <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    {{elif 'success' in globals() and success:}}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-check"></i> Datos del Cliente</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Información Básica:</h6>
+                        <ul>
+                            <li><strong>ID:</strong> {{=cliente.id if cliente else 'N/A'}}</li>
+                            <li><strong>Cédula:</strong> {{=cliente.cedula if cliente else 'N/A'}}</li>
+                            <li><strong>User ID:</strong> {{=cliente.user_id if cliente else 'N/A'}}</li>
+                            <li><strong>Fecha Registro:</strong> {{=cliente.fecha_registro if cliente else 'N/A'}}</li>
+                        </ul>
+                        
+                        <h6>Datos del Usuario:</h6>
+                        {{if usuario:}}
+                            <ul>
+                                <li><strong>Email:</strong> {{=usuario.email}}</li>
+                                <li><strong>Nombre:</strong> {{=usuario.first_name}} {{=usuario.last_name}}</li>
+                                <li><strong>Estado:</strong> {{=usuario.get('estado', 'N/A')}}</li>
+                            </ul>
+                        {{else:}}
+                            <p class="text-warning">No se encontró usuario asociado</p>
+                        {{pass}}
+                        
+                        <h6>Datos Seguros Procesados:</h6>
+                        <ul>
+                            <li><strong>Nombre Completo:</strong> {{=datos_seguros['nombre_completo']}}</li>
+                            <li><strong>Email:</strong> {{=datos_seguros['email']}}</li>
+                            <li><strong>Teléfono:</strong> {{=datos_seguros['telefono']}}</li>
+                            <li><strong>Estado Activo:</strong> {{=datos_seguros['estado_activo']}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-info"></i> Información de Debug</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li><strong>Cliente ID:</strong> {{=debug_info['cliente_id']}}</li>
+                            <li><strong>Cliente Existe:</strong> {{=debug_info['cliente_existe']}}</li>
+                            <li><strong>Usuario Existe:</strong> {{=debug_info['usuario_existe']}}</li>
+                            <li><strong>Número de Cuentas:</strong> {{=debug_info['num_cuentas']}}</li>
+                            <li><strong>Número de Transacciones:</strong> {{=debug_info['num_transacciones']}}</li>
+                        </ul>
+                        
+                        <h6>Enlaces de Prueba:</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{=URL('clientes', 'detalle', args=[cliente.id])}}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Vista Normal
+                            </a>
+                            <a href="{{=URL('clientes', 'detalle_simple', args=[cliente.id])}}" 
+                               class="btn btn-success btn-sm">
+                                <i class="fas fa-eye"></i> Vista Simple
+                            </a>
+                            <a href="{{=URL('clientes', 'diagnosticar_detalle', args=[cliente.id])}}" 
+                               class="btn btn-warning btn-sm">
+                                <i class="fas fa-stethoscope"></i> Diagnóstico Completo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {{if cuentas:}}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-credit-card"></i> Cuentas ({{=len(cuentas)}})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Número</th>
+                                        <th>VES</th>
+                                        <th>USD</th>
+                                        <th>EUR</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{for cuenta in cuentas:}}
+                                    <tr>
+                                        <td>{{=cuenta.id}}</td>
+                                        <td>{{=cuenta.numero_cuenta}}</td>
+                                        <td>{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</td>
+                                        <td>{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</td>
+                                        <td>{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</td>
+                                        <td>{{=cuenta.estado}}</td>
+                                    </tr>
+                                    {{pass}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{pass}}
+        
+    {{else:}}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <h4><i class="fas fa-question"></i> Estado Desconocido</h4>
+                    <p>No se pudo determinar el estado de la función.</p>
+                </div>
+            </div>
+        </div>
+    {{pass}}
+</div>

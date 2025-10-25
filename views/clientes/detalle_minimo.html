@@ -1,0 +1,23 @@
+{{extend 'layout.html'}}
+
+<h1>PRUEBA - Detalle del Cliente</h1>
+
+<p>Esta es una prueba básica para verificar que la vista funciona.</p>
+
+{{if cliente:}}
+    <h2>Cliente Encontrado</h2>
+    <p><strong>ID:</strong> {{=cliente.id}}</p>
+    <p><strong>Cédula:</strong> {{=cliente.cedula}}</p>
+{{else:}}
+    <h2>No se encontró cliente</h2>
+{{pass}}
+
+{{if datos_seguros:}}
+    <h2>Datos Seguros</h2>
+    <p><strong>Nombre:</strong> {{=datos_seguros['nombre_completo']}}</p>
+    <p><strong>Email:</strong> {{=datos_seguros['email']}}</p>
+{{else:}}
+    <h2>No hay datos seguros</h2>
+{{pass}}
+
+<p><a href="{{=URL('clientes', 'listar')}}">Volver a Lista</a></p>

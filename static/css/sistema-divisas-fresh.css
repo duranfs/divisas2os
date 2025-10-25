@@ -1,0 +1,1218 @@
+/* =========================================================================
+   Sistema de Divisas Bancario - Paleta Fresca y Moderna
+   Colores: Azul Profundo, Verde Menta, Blanco Puro, Grises Suaves
+   ========================================================================= */
+
+:root {
+    /* Paleta Principal - Tonos Frescos */
+    --color-primario: #2563eb;           /* Azul vibrante */
+    --color-secundario: #06b6d4;        /* Cyan fresco */
+    --color-acento: #10b981;            /* Verde menta */
+    --color-acento-claro: #34d399;      /* Verde menta claro */
+    
+    /* Fondos y Superficies */
+    --color-fondo: #f8fafc;             /* Blanco azulado muy suave */
+    --color-superficie: #ffffff;         /* Blanco puro */
+    --color-superficie-elevada: #f1f5f9; /* Gris muy claro */
+    --color-superficie-hover: #e2e8f0;   /* Gris claro para hover */
+    
+    /* Textos */
+    --color-texto-primario: #1e293b;     /* Gris oscuro azulado */
+    --color-texto-secundario: #64748b;   /* Gris medio */
+    --color-texto-terciario: #94a3b8;    /* Gris claro */
+    --color-texto-inverso: #ffffff;      /* Blanco para fondos oscuros */
+    
+    /* Estados */
+    --color-success: #059669;            /* Verde éxito */
+    --color-warning: #d97706;            /* Naranja advertencia */
+    --color-danger: #dc2626;             /* Rojo error */
+    --color-info: #0284c7;               /* Azul información */
+    
+    /* Sombras y Bordes */
+    --sombra-suave: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --sombra-media: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --sombra-fuerte: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --sombra-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    --border-radius: 0.75rem;
+    --border-radius-sm: 0.5rem;
+    --border-radius-lg: 1rem;
+}
+
+/* =========================================================================
+   ESTILOS GENERALES
+   ========================================================================= */
+
+body {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: var(--color-texto-primario);
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+.main-container {
+    min-height: calc(100vh - 200px);
+    padding-top: 2rem;
+}
+
+/* =========================================================================
+   NAVEGACIÓN MODERNA
+   ========================================================================= */
+
+.navbar {
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%) !important;
+    border: none;
+    box-shadow: var(--sombra-media);
+    backdrop-filter: blur(10px);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    color: var(--color-texto-inverso) !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    margin: 0 0.25rem;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--color-texto-inverso) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-item.active .nav-link {
+    color: var(--color-texto-inverso) !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    font-weight: 600;
+}
+
+.dropdown-menu {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-superficie-elevada);
+    box-shadow: var(--sombra-fuerte);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    color: var(--color-texto-primario) !important;
+    transition: all 0.2s ease;
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 0.75rem;
+    margin: 0.125rem 0;
+}
+
+.dropdown-item:hover {
+    background-color: var(--color-superficie-elevada);
+    color: var(--color-primario) !important;
+}
+
+/* =========================================================================
+   SIDEBAR ELEGANTE
+   ========================================================================= */
+
+.sidebar {
+    background: var(--color-superficie);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem 0;
+    border-right: 1px solid var(--color-superficie-elevada);
+    box-shadow: var(--sombra-suave);
+}
+
+.sidebar .nav-link {
+    color: var(--color-texto-secundario);
+    padding: 0.75rem 1.5rem;
+    margin: 0.25rem 1rem;
+    border-radius: var(--border-radius);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 3px solid transparent;
+    font-weight: 500;
+}
+
+.sidebar .nav-link:hover {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    color: var(--color-primario);
+    border-left-color: var(--color-acento);
+    transform: translateX(4px);
+}
+
+.sidebar .nav-link.active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+    color: var(--color-primario);
+    border-left-color: var(--color-primario);
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+/* =========================================================================
+   DASHBOARD MODERNO
+   ========================================================================= */
+
+.dashboard-header {
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%);
+    color: var(--color-texto-inverso);
+    padding: 2.5rem;
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 2rem;
+    box-shadow: var(--sombra-fuerte);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2.5rem;
+    letter-spacing: -0.025em;
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-header .lead {
+    margin: 1rem 0 0 0;
+    opacity: 0.9;
+    font-size: 1.125rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Tarjetas de resumen modernas */
+.card-resumen {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-superficie-elevada);
+    border-radius: var(--border-radius-lg);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    box-shadow: var(--sombra-suave);
+}
+
+.card-resumen:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-xl);
+    border-color: var(--color-acento);
+}
+
+.card-resumen .card-header {
+    background: linear-gradient(135deg, var(--color-acento) 0%, var(--color-acento-claro) 100%);
+    color: var(--color-texto-inverso);
+    border: none;
+    font-weight: 600;
+    padding: 1.25rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.card-resumen .card-body {
+    color: var(--color-texto-primario);
+    padding: 1.5rem;
+}
+
+.saldo-amount {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--color-primario);
+    letter-spacing: -0.025em;
+}
+
+.saldo-currency {
+    font-size: 1rem;
+    color: var(--color-texto-secundario);
+    margin-left: 0.5rem;
+    font-weight: 500;
+}
+
+/* =========================================================================
+   WIDGET DE TASAS ELEGANTE
+   ========================================================================= */
+
+.widget-tasas {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-superficie-elevada);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--sombra-media);
+    transition: all 0.3s ease;
+}
+
+.widget-tasas:hover {
+    box-shadow: var(--sombra-fuerte);
+}
+
+.widget-tasas h4 {
+    color: var(--color-primario);
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.tasa-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-superficie-elevada);
+    transition: all 0.2s ease;
+}
+
+.tasa-item:last-child {
+    border-bottom: none;
+}
+
+.tasa-item:hover {
+    background-color: var(--color-superficie-elevada);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: var(--border-radius-sm);
+}
+
+.tasa-moneda {
+    font-weight: 600;
+    color: var(--color-texto-primario);
+    font-size: 1.1rem;
+}
+
+.tasa-valor {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-acento);
+}
+
+.tasa-actualizacion {
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+    margin-top: 1rem;
+    font-style: italic;
+}
+
+/* =========================================================================
+   ACCESOS RÁPIDOS MODERNOS
+   ========================================================================= */
+
+.accesos-rapidos {
+    margin-top: 2rem;
+}
+
+.acceso-rapido {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-superficie-elevada);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: var(--color-texto-primario);
+    display: block;
+    height: 100%;
+    box-shadow: var(--sombra-suave);
+    position: relative;
+    overflow: hidden;
+}
+
+.acceso-rapido::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primario) 0%, var(--color-acento) 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.acceso-rapido:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--sombra-xl);
+    border-color: var(--color-acento);
+    text-decoration: none;
+    color: var(--color-texto-primario);
+}
+
+.acceso-rapido:hover::before {
+    transform: scaleX(1);
+}
+
+.acceso-rapido i {
+    font-size: 3rem;
+    color: var(--color-primario);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.acceso-rapido:hover i {
+    color: var(--color-acento);
+    transform: scale(1.1);
+}
+
+.acceso-rapido h5 {
+    color: var(--color-texto-primario);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 1.125rem;
+}
+
+.acceso-rapido p {
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* =========================================================================
+   FORMULARIOS MODERNOS
+   ========================================================================= */
+
+.form-control {
+    background-color: var(--color-superficie);
+    border: 2px solid var(--color-superficie-elevada);
+    color: var(--color-texto-primario);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--sombra-suave);
+}
+
+.form-control:focus {
+    background-color: var(--color-superficie);
+    border-color: var(--color-primario);
+    color: var(--color-texto-primario);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--color-texto-terciario);
+}
+
+.form-label {
+    color: var(--color-texto-primario);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* =========================================================================
+   BOTONES MODERNOS
+   ========================================================================= */
+
+.btn {
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%);
+    color: var(--color-texto-inverso);
+    box-shadow: var(--sombra-suave);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-acento) 100%);
+    color: var(--color-texto-inverso);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--color-warning) 0%, #ea580c 100%);
+    color: var(--color-texto-inverso);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--color-danger) 0%, #b91c1c 100%);
+    color: var(--color-texto-inverso);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--color-info) 0%, var(--color-secundario) 100%);
+    color: var(--color-texto-inverso);
+}
+
+/* =========================================================================
+   TABLAS ELEGANTES
+   ========================================================================= */
+
+.table {
+    color: var(--color-texto-primario);
+    background-color: var(--color-superficie);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--sombra-suave);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%);
+    color: var(--color-texto-inverso);
+    border: none;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.025em;
+}
+
+.table tbody tr {
+    background-color: var(--color-superficie);
+    border-bottom: 1px solid var(--color-superficie-elevada);
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--color-superficie-hover);
+    transform: scale(1.01);
+}
+
+.table td {
+    border: none;
+    vertical-align: middle;
+    padding: 1rem 1.25rem;
+}
+
+/* =========================================================================
+   ALERTAS MODERNAS
+   ========================================================================= */
+
+.alert {
+    border-radius: var(--border-radius-lg);
+    border: none;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--sombra-suave);
+    position: relative;
+    overflow: hidden;
+}
+
+.alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+    color: var(--color-success);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.alert-success::before {
+    background: var(--color-success);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    color: var(--color-warning);
+    border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.alert-warning::before {
+    background: var(--color-warning);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+    color: var(--color-danger);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.alert-danger::before {
+    background: var(--color-danger);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+    color: var(--color-info);
+    border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.alert-info::before {
+    background: var(--color-info);
+}
+
+/* =========================================================================
+   BREADCRUMBS ELEGANTES
+   ========================================================================= */
+
+.breadcrumb {
+    background: var(--color-superficie);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--color-superficie-elevada);
+}
+
+.breadcrumb-item {
+    color: var(--color-texto-secundario);
+    font-weight: 500;
+}
+
+.breadcrumb-item.active {
+    color: var(--color-primario);
+    font-weight: 600;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--color-texto-terciario);
+    content: "›";
+    font-size: 1.2rem;
+}
+
+.breadcrumb-item a {
+    color: var(--color-primario);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--color-acento);
+}
+
+/* =========================================================================
+   FOOTER MODERNO
+   ========================================================================= */
+
+.footer {
+    background: linear-gradient(135deg, var(--color-superficie) 0%, var(--color-superficie-elevada) 100%);
+    border-top: 1px solid var(--color-superficie-elevada);
+    color: var(--color-texto-secundario);
+    padding: 2rem 0;
+    margin-top: 3rem;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.footer a {
+    color: var(--color-primario);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: var(--color-acento);
+}
+
+/* =========================================================================
+   CARDS ESPECIALES
+   ========================================================================= */
+
+.card {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-superficie-elevada);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--sombra-suave);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--sombra-media);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--color-superficie-elevada) 0%, var(--color-superficie-hover) 100%);
+    border-bottom: 1px solid var(--color-superficie-elevada);
+    font-weight: 600;
+    color: var(--color-texto-primario);
+}
+
+.card-body {
+    color: var(--color-texto-primario);
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-superficie-elevada);
+    }
+    
+    .dashboard-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2rem;
+    }
+    
+    .saldo-amount {
+        font-size: 1.75rem;
+    }
+    
+    .acceso-rapido {
+        margin-bottom: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .widget-tasas {
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .card-resumen {
+        margin-bottom: 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .btn {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* =========================================================================
+   ANIMACIONES SUAVES
+   ========================================================================= */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* =========================================================================
+   UTILIDADES
+   ========================================================================= */
+
+.text-primary-fresh {
+    color: var(--color-primario) !important;
+}
+
+.text-secondary-fresh {
+    color: var(--color-secundario) !important;
+}
+
+.text-accent-fresh {
+    color: var(--color-acento) !important;
+}
+
+.bg-surface {
+    background-color: var(--color-superficie) !important;
+}
+
+.bg-surface-elevated {
+    background-color: var(--color-superficie-elevada) !important;
+}
+
+.border-primary-fresh {
+    border-color: var(--color-primario) !important;
+}
+
+.border-accent-fresh {
+    border-color: var(--color-acento) !important;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-superficie-elevada);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primario);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-acento);
+}
+
+/* =========================================================================
+   ESTILOS ESPECÍFICOS PARA FORMULARIOS
+   ========================================================================= */
+
+/* Formularios de autenticación */
+#web2py_user_form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#web2py_user_form label {
+    font-weight: 600;
+    color: var(--color-texto-primario);
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.95rem;
+}
+
+#web2py_user_form input[type="text"],
+#web2py_user_form input[type="email"],
+#web2py_user_form input[type="password"],
+#web2py_user_form input[type="date"],
+#web2py_user_form input[type="tel"],
+#web2py_user_form textarea,
+#web2py_user_form select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--color-superficie-elevada);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: var(--color-superficie);
+    color: var(--color-texto-primario);
+    box-shadow: var(--sombra-suave);
+    height: calc(1.5em + 1.5rem + 4px);
+    line-height: 1.5;
+}
+
+/* Ajuste específico para select boxes en web2py */
+#web2py_user_form select {
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+}
+
+#web2py_user_form input:focus,
+#web2py_user_form textarea:focus,
+#web2py_user_form select:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: 0;
+}
+
+#web2py_user_form .form-control.is-invalid {
+    border-color: var(--color-danger);
+}
+
+#web2py_user_form .invalid-feedback {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Comentarios de ayuda en formularios */
+#web2py_user_form .form-text {
+    color: var(--color-texto-terciario);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Botones de formulario */
+#web2py_user_form input[type="submit"],
+#web2py_user_form button[type="submit"] {
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%);
+    border: none;
+    color: var(--color-texto-inverso);
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 1rem;
+    box-shadow: var(--sombra-suave);
+}
+
+#web2py_user_form input[type="submit"]:hover,
+#web2py_user_form button[type="submit"]:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+}
+
+/* Estilos específicos para web2py forms */
+.web2py_form table {
+    width: 100%;
+}
+
+.web2py_form td {
+    padding: 0.75rem 0;
+    vertical-align: top;
+}
+
+.web2py_form .w2p_fl {
+    font-weight: 600;
+    color: var(--color-texto-primario);
+    padding-right: 1rem;
+    width: 30%;
+    font-size: 0.95rem;
+}
+
+.web2py_form .w2p_fw {
+    width: 70%;
+}
+
+.web2py_form .w2p_fc {
+    color: var(--color-texto-terciario);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+/* Mensajes de error */
+.web2py_form .error {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Campos requeridos */
+.web2py_form .required {
+    color: var(--color-danger);
+}
+
+/* Select boxes mejorados */
+select.form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    height: calc(1.5em + 1.5rem + 4px);
+    line-height: 1.5;
+}
+
+/* Input groups */
+.input-group-text {
+    background-color: var(--color-superficie-elevada);
+    color: var(--color-texto-primario);
+    border: 2px solid var(--color-superficie-elevada);
+    font-weight: 600;
+    border-radius: var(--border-radius);
+}
+
+/* =========================================================================
+   ESTILOS PARA CALCULADORA DE DIVISAS
+   ========================================================================= */
+
+.calculadora-divisas {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-superficie-elevada);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--sombra-media);
+}
+
+.info-tasa {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-top: 1rem;
+}
+
+.info-tasa h6 {
+    color: var(--color-primario);
+    border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.info-tasa .row .col-md-3 strong {
+    color: var(--color-texto-primario);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.info-tasa .row .col-md-3 span {
+    color: var(--color-primario);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Validación de fondos */
+.validacion-fondos {
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-top: 1rem;
+    border: none;
+    box-shadow: var(--sombra-suave);
+}
+
+.validacion-fondos.alert-success {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+    border-left: 4px solid var(--color-success);
+    color: var(--color-success);
+}
+
+.validacion-fondos.alert-danger {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+    border-left: 4px solid var(--color-danger);
+    color: var(--color-danger);
+}
+
+.validacion-fondos.alert-warning {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    border-left: 4px solid var(--color-warning);
+    color: var(--color-warning);
+}
+
+/* Indicadores de carga */
+.calculando-indicator {
+    color: var(--color-acento);
+    font-weight: 600;
+}
+
+.error-calculadora {
+    color: var(--color-danger);
+    background-color: rgba(220, 38, 38, 0.1);
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--color-danger);
+}
+
+/* =========================================================================
+   MEJORAS ESPECÍFICAS PARA ELEMENTOS DE TEXTO
+   ========================================================================= */
+
+/* Asegurar buena legibilidad en todos los contextos */
+.container-fluid h1,
+.container-fluid h2,
+.container-fluid h3,
+.container-fluid h4,
+.container-fluid h5,
+.container-fluid h6 {
+    color: var(--color-texto-primario);
+    font-weight: 600;
+}
+
+.container-fluid p,
+.container-fluid .lead {
+    color: var(--color-texto-secundario);
+}
+
+.container-fluid ol li,
+.container-fluid ul li {
+    color: var(--color-texto-secundario);
+}
+
+.container-fluid strong,
+.container-fluid b {
+    color: var(--color-texto-primario);
+    font-weight: 600;
+}
+
+.container-fluid small,
+.container-fluid .form-text {
+    color: var(--color-texto-terciario);
+}
+
+/* Enlaces */
+a {
+    color: var(--color-primario);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--color-acento);
+}
+
+/* Estados de texto */
+.text-success {
+    color: var(--color-success) !important;
+}
+
+.text-danger {
+    color: var(--color-danger) !important;
+}
+
+.text-warning {
+    color: var(--color-warning) !important;
+}
+
+.text-info {
+    color: var(--color-info) !important;
+}
+
+.text-primary {
+    color: var(--color-primario) !important;
+}
+
+.text-muted {
+    color: var(--color-texto-terciario) !important;
+}
+
+.text-secondary {
+    color: var(--color-texto-secundario) !important;
+}
+
+/* Elementos específicos de la aplicación */
+.monto-destino-display,
+.moneda-destino-display,
+.tasa-aplicada,
+.comision-calculada,
+.total-debitado,
+.fecha-tasa {
+    color: var(--color-primario) !important;
+    font-weight: 600 !important;
+}
+
+#saldos-disponibles strong {
+    color: var(--color-texto-primario) !important;
+}
+
+#saldos-disponibles small {
+    color: var(--color-texto-terciario) !important;
+}
+/* =
+========================================================================
+   AJUSTES ADICIONALES PARA SELECT BOXES - ALTURA UNIFORME
+   ========================================================================= */
+
+/* Asegurar que todos los select boxes tengan la misma altura que los inputs */
+.form-control,
+select.form-control,
+.calculadora-divisas .form-control,
+.calculadora-divisas select.form-control {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    line-height: 1.5 !important;
+    padding: 0.75rem 1rem !important;
+}
+
+/* Ajuste específico para select boxes con padding derecho para la flecha */
+select.form-control,
+.calculadora-divisas select.form-control {
+    padding-right: 2.5rem !important;
+}
+
+/* Asegurar que los input-group tengan la misma altura */
+.input-group .form-control {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+}
+
+.input-group-text {
+    height: calc(1.5em + 1.5rem + 4px) !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.75rem 1rem !important;
+}
+
+/* Específico para la calculadora de divisas */
+.calculadora-divisas .input-group .form-control,
+.calculadora-divisas .input-group-text {
+    height: calc(1.5em + 1.75rem + 4px) !important;
+    padding: 0.875rem 1rem !important;
+}
+
+.calculadora-divisas select.form-control {
+    padding: 0.875rem 3rem 0.875rem 1rem !important;
+    height: calc(1.5em + 1.75rem + 4px) !important;
+}
+
+/* Asegurar que textarea mantenga su comportamiento natural */
+textarea.form-control {
+    height: auto !important;
+    min-height: calc(1.5em + 1.5rem + 4px) !important;
+}
+
+.calculadora-divisas textarea.form-control {
+    height: auto !important;
+    min-height: calc(1.5em + 1.75rem + 4px) !important;
+}

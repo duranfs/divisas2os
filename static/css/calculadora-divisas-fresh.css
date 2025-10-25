@@ -1,0 +1,620 @@
+/* =========================================================================
+   Calculadora de Divisas - Estilos Frescos y Modernos
+   Complementa el sistema principal con colores azul/verde menta
+   ========================================================================= */
+
+/* =========================================================================
+   CALCULADORA PRINCIPAL
+   ========================================================================= */
+
+.calculadora-divisas {
+    background: var(--color-superficie, #ffffff);
+    border: 1px solid var(--color-superficie-elevada, #f1f5f9);
+    border-radius: var(--border-radius-lg, 1rem);
+    padding: 2rem;
+    box-shadow: var(--sombra-media, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.calculadora-divisas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primario, #2563eb) 0%, var(--color-acento, #10b981) 100%);
+}
+
+.calculadora-divisas:hover {
+    box-shadow: var(--sombra-fuerte, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
+    transform: translateY(-2px);
+}
+
+/* =========================================================================
+   ENCABEZADOS Y TÍTULOS
+   ========================================================================= */
+
+.calculadora-divisas h3,
+.calculadora-divisas h4,
+.calculadora-divisas h5 {
+    color: var(--color-texto-primario, #1e293b);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.calculadora-divisas h3 {
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--color-superficie-elevada, #f1f5f9);
+    padding-bottom: 0.75rem;
+    position: relative;
+}
+
+.calculadora-divisas h3::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-primario, #2563eb) 0%, var(--color-acento, #10b981) 100%);
+}
+
+/* =========================================================================
+   CAMPOS DE ENTRADA
+   ========================================================================= */
+
+.calculadora-divisas .form-control {
+    background-color: var(--color-superficie, #ffffff);
+    border: 2px solid var(--color-superficie-elevada, #f1f5f9);
+    color: var(--color-texto-primario, #1e293b);
+    border-radius: var(--border-radius, 0.75rem);
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: var(--sombra-suave, 0 1px 3px 0 rgba(0, 0, 0, 0.1));
+}
+
+.calculadora-divisas .form-control:focus {
+    background-color: var(--color-superficie, #ffffff);
+    border-color: var(--color-primario, #2563eb);
+    color: var(--color-texto-primario, #1e293b);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.calculadora-divisas .form-control::placeholder {
+    color: var(--color-texto-terciario, #94a3b8);
+    font-weight: 400;
+}
+
+/* Select boxes especiales */
+.calculadora-divisas select.form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2337a2eb' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding: 0.875rem 3rem 0.875rem 1rem;
+    height: calc(1.5em + 1.75rem + 4px);
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.calculadora-divisas select.form-control:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2310b981' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* =========================================================================
+   ETIQUETAS Y TEXTO
+   ========================================================================= */
+
+.calculadora-divisas .form-label {
+    color: var(--color-texto-primario, #1e293b);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.calculadora-divisas .form-label i {
+    margin-right: 0.5rem;
+    color: var(--color-primario, #2563eb);
+    font-size: 1rem;
+}
+
+.calculadora-divisas .form-text {
+    color: var(--color-texto-terciario, #94a3b8);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+/* =========================================================================
+   INFORMACIÓN DE TASAS
+   ========================================================================= */
+
+.info-tasa {
+    background: linear-gradient(135deg, 
+        rgba(37, 99, 235, 0.03) 0%, 
+        rgba(6, 182, 212, 0.03) 50%, 
+        rgba(16, 185, 129, 0.03) 100%);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    border-radius: var(--border-radius, 0.75rem);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-tasa::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-primario, #2563eb) 0%, var(--color-acento, #10b981) 100%);
+}
+
+.info-tasa h6 {
+    color: var(--color-primario, #2563eb);
+    border-bottom: 1px solid rgba(37, 99, 235, 0.15);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.info-tasa h6 i {
+    margin-right: 0.5rem;
+    color: var(--color-acento, #10b981);
+}
+
+.info-tasa .row .col-md-3 {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--border-radius-sm, 0.5rem);
+    border-left: 3px solid var(--color-acento, #10b981);
+    transition: all 0.2s ease;
+}
+
+.info-tasa .row .col-md-3:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateX(3px);
+}
+
+.info-tasa .row .col-md-3 strong {
+    color: var(--color-texto-secundario, #64748b);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.info-tasa .row .col-md-3 span {
+    color: var(--color-primario, #2563eb);
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: block;
+    letter-spacing: -0.025em;
+}
+
+/* Valores específicos con colores diferenciados */
+.monto-destino-display {
+    color: var(--color-acento, #10b981) !important;
+}
+
+.tasa-aplicada {
+    color: var(--color-secundario, #06b6d4) !important;
+}
+
+.comision-calculada {
+    color: var(--color-warning, #d97706) !important;
+}
+
+.total-debitado {
+    color: var(--color-primario, #2563eb) !important;
+    font-size: 1.3rem !important;
+}
+
+/* =========================================================================
+   VALIDACIÓN DE FONDOS
+   ========================================================================= */
+
+.validacion-fondos {
+    border-radius: var(--border-radius, 0.75rem);
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+    border: none;
+    box-shadow: var(--sombra-suave, 0 1px 3px 0 rgba(0, 0, 0, 0.1));
+    position: relative;
+    overflow: hidden;
+}
+
+.validacion-fondos::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.validacion-fondos.alert-success {
+    background: linear-gradient(135deg, 
+        rgba(5, 150, 105, 0.08) 0%, 
+        rgba(16, 185, 129, 0.04) 100%);
+    color: var(--color-success, #059669);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.validacion-fondos.alert-success::before {
+    background: var(--color-success, #059669);
+}
+
+.validacion-fondos.alert-danger {
+    background: linear-gradient(135deg, 
+        rgba(220, 38, 38, 0.08) 0%, 
+        rgba(220, 38, 38, 0.04) 100%);
+    color: var(--color-danger, #dc2626);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.validacion-fondos.alert-danger::before {
+    background: var(--color-danger, #dc2626);
+}
+
+.validacion-fondos.alert-warning {
+    background: linear-gradient(135deg, 
+        rgba(217, 119, 6, 0.08) 0%, 
+        rgba(217, 119, 6, 0.04) 100%);
+    color: var(--color-warning, #d97706);
+    border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.validacion-fondos.alert-warning::before {
+    background: var(--color-warning, #d97706);
+}
+
+.validacion-fondos strong {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.validacion-fondos small {
+    opacity: 0.8;
+    font-size: 0.875rem;
+}
+
+/* =========================================================================
+   INDICADORES DE ESTADO
+   ========================================================================= */
+
+.calculando-indicator {
+    color: var(--color-acento, #10b981);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, 
+        rgba(16, 185, 129, 0.05) 0%, 
+        rgba(52, 211, 153, 0.05) 100%);
+    border-radius: var(--border-radius-sm, 0.5rem);
+    border-left: 3px solid var(--color-acento, #10b981);
+    margin: 1rem 0;
+}
+
+.calculando-indicator i {
+    margin-right: 0.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.error-calculadora {
+    color: var(--color-danger, #dc2626);
+    background: linear-gradient(135deg, 
+        rgba(220, 38, 38, 0.08) 0%, 
+        rgba(220, 38, 38, 0.04) 100%);
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius, 0.75rem);
+    border-left: 4px solid var(--color-danger, #dc2626);
+    margin: 1rem 0;
+    font-weight: 500;
+}
+
+.error-calculadora i {
+    margin-right: 0.5rem;
+    color: var(--color-danger, #dc2626);
+}
+
+/* =========================================================================
+   SALDOS DISPONIBLES
+   ========================================================================= */
+
+#saldos-disponibles {
+    background: var(--color-superficie, #ffffff);
+    border: 1px solid var(--color-superficie-elevada, #f1f5f9);
+    border-radius: var(--border-radius, 0.75rem);
+    padding: 1.25rem;
+    margin-top: 1rem;
+    box-shadow: var(--sombra-suave, 0 1px 3px 0 rgba(0, 0, 0, 0.1));
+}
+
+#saldos-disponibles h6 {
+    color: var(--color-texto-primario, #1e293b);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+#saldos-disponibles h6 i {
+    margin-right: 0.5rem;
+    color: var(--color-primario, #2563eb);
+}
+
+#saldos-disponibles .saldo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-superficie-elevada, #f1f5f9);
+    transition: all 0.2s ease;
+}
+
+#saldos-disponibles .saldo-item:last-child {
+    border-bottom: none;
+}
+
+#saldos-disponibles .saldo-item:hover {
+    background: var(--color-superficie-elevada, #f1f5f9);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: var(--border-radius-sm, 0.5rem);
+}
+
+#saldos-disponibles strong {
+    color: var(--color-texto-primario, #1e293b);
+    font-weight: 600;
+}
+
+#saldos-disponibles small {
+    color: var(--color-texto-terciario, #94a3b8);
+    font-size: 0.875rem;
+}
+
+#saldos-disponibles .saldo-monto {
+    color: var(--color-primario, #2563eb);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* =========================================================================
+   BOTONES DE ACCIÓN
+   ========================================================================= */
+
+.calculadora-divisas .btn {
+    font-weight: 600;
+    border-radius: var(--border-radius, 0.75rem);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+    text-transform: none;
+    letter-spacing: 0.025em;
+}
+
+.calculadora-divisas .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.calculadora-divisas .btn:hover::before {
+    left: 100%;
+}
+
+.calculadora-divisas .btn-primary {
+    background: linear-gradient(135deg, var(--color-primario, #2563eb) 0%, var(--color-secundario, #06b6d4) 100%);
+    color: var(--color-texto-inverso, #ffffff);
+    box-shadow: var(--sombra-suave, 0 1px 3px 0 rgba(0, 0, 0, 0.1));
+}
+
+.calculadora-divisas .btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+}
+
+.calculadora-divisas .btn-success {
+    background: linear-gradient(135deg, var(--color-success, #059669) 0%, var(--color-acento, #10b981) 100%);
+    color: var(--color-texto-inverso, #ffffff);
+}
+
+.calculadora-divisas .btn-success:hover {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    transform: translateY(-2px);
+}
+
+/* =========================================================================
+   INPUT GROUPS
+   ========================================================================= */
+
+.calculadora-divisas .input-group-text {
+    background: linear-gradient(135deg, var(--color-superficie-elevada, #f1f5f9) 0%, var(--color-superficie-hover, #e2e8f0) 100%);
+    color: var(--color-texto-primario, #1e293b);
+    border: 2px solid var(--color-superficie-elevada, #f1f5f9);
+    font-weight: 600;
+    border-radius: var(--border-radius, 0.75rem);
+    padding: 0.875rem 1rem;
+}
+
+.calculadora-divisas .input-group .form-control {
+    border-left: none;
+}
+
+.calculadora-divisas .input-group:focus-within .input-group-text {
+    border-color: var(--color-primario, #2563eb);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    color: var(--color-primario, #2563eb);
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .calculadora-divisas {
+        padding: 1.5rem 1rem;
+        margin: 0 -0.5rem;
+    }
+    
+    .calculadora-divisas h3 {
+        font-size: 1.25rem;
+        text-align: center;
+    }
+    
+    .info-tasa .row .col-md-3 {
+        margin-bottom: 0.75rem;
+    }
+    
+    .info-tasa .row .col-md-3 span {
+        font-size: 1.1rem;
+    }
+    
+    .calculadora-divisas .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .calculadora-divisas {
+        padding: 1rem 0.75rem;
+    }
+    
+    .info-tasa {
+        padding: 1rem;
+    }
+    
+    .info-tasa .row .col-md-3 {
+        padding: 0.5rem;
+    }
+    
+    .validacion-fondos {
+        padding: 1rem;
+    }
+    
+    #saldos-disponibles {
+        padding: 1rem;
+    }
+}
+
+/* =========================================================================
+   ANIMACIONES ESPECÍFICAS
+   ========================================================================= */
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.info-tasa {
+    animation: slideInFromTop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.validacion-fondos {
+    animation: fadeInScale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================================
+   ESTADOS ESPECIALES
+   ========================================================================= */
+
+.calculadora-divisas .form-control:disabled {
+    background-color: var(--color-superficie-elevada, #f1f5f9);
+    color: var(--color-texto-terciario, #94a3b8);
+    border-color: var(--color-superficie-hover, #e2e8f0);
+    cursor: not-allowed;
+}
+
+.calculadora-divisas .form-control.is-valid {
+    border-color: var(--color-success, #059669);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.calculadora-divisas .form-control.is-invalid {
+    border-color: var(--color-danger, #dc2626);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* =========================================================================
+   MEJORAS DE ACCESIBILIDAD
+   ========================================================================= */
+
+.calculadora-divisas .form-control:focus,
+.calculadora-divisas .btn:focus {
+    outline: 2px solid var(--color-primario, #2563eb);
+    outline-offset: 2px;
+}
+
+.calculadora-divisas .btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Mejorar contraste para usuarios con problemas de visión */
+@media (prefers-contrast: high) {
+    .calculadora-divisas .form-control {
+        border-width: 3px;
+    }
+    
+    .info-tasa {
+        border-width: 2px;
+    }
+    
+    .validacion-fondos::before {
+        width: 6px;
+    }
+}

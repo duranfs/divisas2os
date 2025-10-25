@@ -1,0 +1,225 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-white mb-4">
+                <i class="fas fa-user"></i> Detalle del Cliente
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Información Personal -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Nombre Completo:</strong></td>
+                            <td>{{=datos_seguros['nombre_completo']}}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cédula:</strong></td>
+                            <td>{{=cliente.cedula}}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>
+                                <a href="mailto:{{=datos_seguros['email']}}" class="text-info">
+                                    {{=datos_seguros['email']}}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Teléfono:</strong></td>
+                            <td>{{=datos_seguros['telefono']}}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dirección:</strong></td>
+                            <td>{{=datos_seguros['direccion']}}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha de Nacimiento:</strong></td>
+                            <td>{{=datos_seguros['fecha_nacimiento_str']}}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estado:</strong></td>
+                            <td>
+                                {{if datos_seguros['estado_activo']:}}
+                                    <span class="badge badge-success">Activo</span>
+                                {{else:}}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {{pass}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha de Registro:</strong></td>
+                            <td>{{=cliente.fecha_registro.strftime('%d/%m/%Y %H:%M')}}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acciones -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs"></i> Acciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{=URL('clientes', 'editar', args=[cliente.id])}}" 
+                           class="btn btn-warning btn-block">
+                            <i class="fas fa-edit"></i> Editar Cliente
+                        </a>
+                        
+                        {{if auth.has_membership('administrador'):}}
+                            {{if datos_seguros['estado_activo']:}}
+                                <a href="{{=URL('clientes', 'cambiar_estado', args=[cliente.id, 'inactivo'])}}" 
+                                   class="btn btn-danger btn-block">
+                                    <i class="fas fa-ban"></i> Desactivar Cliente
+                                </a>
+                            {{else:}}
+                                <a href="{{=URL('clientes', 'cambiar_estado', args=[cliente.id, 'activo'])}}" 
+                                   class="btn btn-success btn-block">
+                                    <i class="fas fa-check"></i> Activar Cliente
+                                </a>
+                            {{pass}}
+                        {{pass}}
+                        
+                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-secondary btn-block">
+                            <i class="fas fa-arrow-left"></i> Volver a Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cuentas Bancarias -->
+    {{if cuentas:}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card"></i> Cuentas Bancarias ({{=len(cuentas)}})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Número de Cuenta</th>
+                                    <th>Tipo</th>
+                                    <th>VES</th>
+                                    <th>USD</th>
+                                    <th>EUR</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for cuenta in cuentas:}}
+                                <tr>
+                                    <td>{{=cuenta.numero_cuenta}}</td>
+                                    <td>{{=cuenta.tipo_cuenta.title()}}</td>
+                                    <td>{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</td>
+                                    <td>{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</td>
+                                    <td>{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</td>
+                                    <td>
+                                        <span class="badge badge-{{='success' if cuenta.estado == 'activa' else 'danger'}}">
+                                            {{=cuenta.estado.title()}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+    
+    <!-- Últimas Transacciones -->
+    {{if ultimas_transacciones:}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Últimas Transacciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Comprobante</th>
+                                    <th>Monto Origen</th>
+                                    <th>Monto Destino</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for transaccion in ultimas_transacciones:}}
+                                <tr>
+                                    <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M')}}</td>
+                                    <td>
+                                        <span class="badge badge-{{='primary' if transaccion.tipo_operacion == 'compra' else 'success'}}">
+                                            {{=transaccion.tipo_operacion.title()}}
+                                        </span>
+                                    </td>
+                                    <td>{{=transaccion.numero_comprobante}}</td>
+                                    <td>{{="{:,.2f}".format(float(transaccion.monto_origen))}} {{=transaccion.moneda_origen}}</td>
+                                    <td>{{="{:,.2f}".format(float(transaccion.monto_destino))}} {{=transaccion.moneda_destino}}</td>
+                                    <td>
+                                        <span class="badge badge-{{='success' if transaccion.estado == 'completada' else 'warning'}}">
+                                            {{=transaccion.estado.title()}}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+</div>
+
+<script>
+$(document).ready(function() {
+    // Confirmaciones para cambios de estado
+    $('a[href*="cambiar_estado"]').click(function(e) {
+        const accion = $(this).attr('href').includes('activo') ? 'activar' : 'desactivar';
+        if (!confirm('¿Está seguro de ' + accion + ' este cliente?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
