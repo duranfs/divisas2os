@@ -6,9 +6,9 @@
         <div class="row align-items-center">
             <div class="col-12">
                 <h1>
-                    <i class="fas fa-cogs me-3"></i>Gestionar Cuentas
+                    <i class="fas fa-cogs me-3"></i>Gestionar Cuenta
                 </h1>
-                <p class="lead mb-0">Administración y configuración de cuentas bancarias</p>
+                <p class="lead mb-0">Administración y configuración de cuenta bancaria</p>
             </div>
         </div>
     </div>
@@ -18,7 +18,11 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{{=URL('cuentas', 'listar_todas')}}">Todas las Cuentas</a></li>
-            <li class="breadcrumb-item active">Gestionar</li>
+            {{if cuenta:}}
+                <li class="breadcrumb-item active">Gestionar {{=cuenta.numero_cuenta}}</li>
+            {{else:}}
+                <li class="breadcrumb-item active">Gestionar</li>
+            {{pass}}
         </ol>
     </nav>
 
@@ -33,20 +37,230 @@
     </div>
     {{pass}}
 
-    <!-- Contenido principal -->
+    {{if cuenta and cliente and usuario:}}
     <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+        <!-- Formulario de edición -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-tools me-2"></i>Gestión de Cuentas
+                        <i class="fas fa-edit me-2"></i>Editar Cuenta
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Aquí va el contenido específico de gestión -->
-                    <p>Contenido de gestión de cuentas...</p>
+                    {{=form}}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de información -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información de la Cuenta
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Número de Cuenta:</small>
+                        <div class="fw-bold">
+                            <code>{{=cuenta.numero_cuenta}}</code>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Tipo de Cuenta:</small>
+                        <div>
+                            <span class="badge bg-info">{{=cuenta.tipo_cuenta.title() if cuenta.tipo_cuenta else 'N/A'}}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Estado Actual:</small>
+                        <div>
+                            {{if cuenta.estado == 'activa':}}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Activa
+                                </span>
+                            {{elif cuenta.estado == 'inactiva':}}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>Inactiva
+                                </span>
+                            {{elif cuenta.estado == 'bloqueada':}}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-lock me-1"></i>Bloqueada
+                                </span>
+                            {{else:}}
+                                <span class="badge bg-secondary">{{=cuenta.estado.title() if cuenta.estado else 'N/A'}}</span>
+                            {{pass}}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Fecha de Creación:</small>
+                        <div class="fw-bold">
+                            {{=cuenta.fecha_creacion.strftime('%d/%m/%Y %H:%M') if cuenta.fecha_creacion else 'No disponible'}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información del cliente -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Propietario de la Cuenta
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Cliente:</small>
+                        <div class="fw-bold">{{=usuario.first_name}} {{=usuario.last_name}}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Cédula:</small>
+                        <div>{{=cliente.cedula}}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Email:</small>
+                        <div>{{=usuario.email}}</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{=URL('clientes', 'detalle', args=[cliente.id])}}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-user me-1"></i>Ver Cliente
+                        </a>
+                        <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Detalles
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Saldos actuales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-coins me-2"></i>Saldos Actuales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-coins fa-2x text-primary mb-2"></i>
+                                    <h4 class="text-primary">{{="{:,.2f}".format(float(cuenta.saldo_ves)) if cuenta.saldo_ves else '0.00'}}</h4>
+                                    <small class="text-muted">Bolívares (VES)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                                    <h4 class="text-success">{{="{:,.2f}".format(float(cuenta.saldo_usd)) if cuenta.saldo_usd else '0.00'}}</h4>
+                                    <small class="text-muted">Dólares (USD)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-euro-sign fa-2x text-warning mb-2"></i>
+                                    <h4 class="text-warning">{{="{:,.2f}".format(float(cuenta.saldo_eur)) if cuenta.saldo_eur else '0.00'}}</h4>
+                                    <small class="text-muted">Euros (EUR)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
+                                    <h4 class="text-info">{{="{:,.2f}".format(float(cuenta.saldo_usdt)) if cuenta.saldo_usdt else '0.00'}}</h4>
+                                    <small class="text-muted">Tether (USDT)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{else:}}
+    <!-- Error: Cuenta no encontrada -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Cuenta No Encontrada
+                    </h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-university fa-5x text-danger mb-4"></i>
+                    <h4 class="text-danger mb-3">Cuenta No Disponible</h4>
+                    <p class="text-muted mb-4">
+                        No se pudo cargar la información de la cuenta solicitada.
+                        <br>
+                        Esto puede deberse a permisos insuficientes o que la cuenta no exista.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{=URL('cuentas', 'listar_todas')}}" class="btn btn-primary me-3">
+                            <i class="fas fa-arrow-left me-1"></i>Volver a Todas las Cuentas
+                        </a>
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-1"></i>Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
 </div>
+
+<style>
+/* Estilos específicos para gestión de cuenta */
+.page-header {
+    background: linear-gradient(135deg, #FFA366 0%, #FFD700 100%);
+    color: #000;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: #000 !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(0, 0, 0, 0.8) !important;
+    margin: 0;
+}
+
+.card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+</style>

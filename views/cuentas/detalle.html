@@ -6,9 +6,9 @@
         <div class="row align-items-center">
             <div class="col-12">
                 <h1>
-                    <i class="fas fa-info-circle me-3"></i>Detalle de Cuenta
+                    <i class="fas fa-info-circle me-3"></i>Detalles de Cuenta
                 </h1>
-                <p class="lead mb-0">Información completa y movimientos de la cuenta</p>
+                <p class="lead mb-0">Información completa y movimientos de la cuenta bancaria</p>
             </div>
         </div>
     </div>
@@ -17,8 +17,12 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{=URL('cuentas', 'index')}}">Cuentas</a></li>
-            <li class="breadcrumb-item active">Detalle</li>
+            <li class="breadcrumb-item"><a href="{{=URL('cuentas', 'index')}}">Mis Cuentas</a></li>
+            {{if cuenta:}}
+                <li class="breadcrumb-item active">{{=cuenta.numero_cuenta}}</li>
+            {{else:}}
+                <li class="breadcrumb-item active">Detalle</li>
+            {{pass}}
         </ol>
     </nav>
 
@@ -33,20 +37,422 @@
     </div>
     {{pass}}
 
-    <!-- Contenido principal -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    {{if cuenta and cliente:}}
+    <!-- Información de la cuenta -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-file-alt me-2"></i>Información de la Cuenta
+                        <i class="fas fa-university me-2"></i>Información de la Cuenta
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Aquí va el contenido específico del detalle -->
-                    <p>Contenido del detalle de cuenta...</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">Número de Cuenta</label>
+                                <div class="p-2 bg-light rounded">
+                                    <code class="fs-5">{{=cuenta.numero_cuenta}}</code>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">Tipo de Cuenta</label>
+                                <div>
+                                    {{if cuenta.tipo_cuenta == 'corriente':}}
+                                        <span class="badge bg-info fs-6">
+                                            <i class="fas fa-credit-card me-1"></i>Cuenta Corriente
+                                        </span>
+                                    {{elif cuenta.tipo_cuenta == 'ahorro':}}
+                                        <span class="badge bg-warning fs-6">
+                                            <i class="fas fa-piggy-bank me-1"></i>Cuenta de Ahorro
+                                        </span>
+                                    {{else:}}
+                                        <span class="badge bg-secondary fs-6">{{=cuenta.tipo_cuenta.title() if cuenta.tipo_cuenta else 'N/A'}}</span>
+                                    {{pass}}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">Estado</label>
+                                <div>
+                                    {{if cuenta.estado == 'activa':}}
+                                        <span class="badge bg-success fs-6">
+                                            <i class="fas fa-check-circle me-1"></i>Activa
+                                        </span>
+                                    {{elif cuenta.estado == 'inactiva':}}
+                                        <span class="badge bg-danger fs-6">
+                                            <i class="fas fa-times-circle me-1"></i>Inactiva
+                                        </span>
+                                    {{elif cuenta.estado == 'bloqueada':}}
+                                        <span class="badge bg-warning text-dark fs-6">
+                                            <i class="fas fa-lock me-1"></i>Bloqueada
+                                        </span>
+                                    {{else:}}
+                                        <span class="badge bg-secondary fs-6">{{=cuenta.estado.title() if cuenta.estado else 'N/A'}}</span>
+                                    {{pass}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">Fecha de Creación</label>
+                                <div class="p-2 bg-light rounded">
+                                    <i class="fas fa-calendar me-2 text-muted"></i>
+                                    {{=cuenta.fecha_creacion.strftime('%d/%m/%Y %H:%M') if cuenta.fecha_creacion else 'No disponible'}}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">Última Actualización</label>
+                                <div class="p-2 bg-light rounded">
+                                    <i class="fas fa-clock me-2 text-muted"></i>
+                                    {{=cuenta.fecha_modificacion.strftime('%d/%m/%Y %H:%M') if hasattr(cuenta, 'fecha_modificacion') and cuenta.fecha_modificacion else 'No disponible'}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de acciones -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Acciones Disponibles
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Comprar Divisas
+                        </a>
+                        <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success">
+                            <i class="fas fa-hand-holding-usd me-2"></i>Vender Divisas
+                        </a>
+                        <hr>
+                        <a href="{{=URL('cuentas', 'index')}}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Mis Cuentas
+                        </a>
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Saldos actuales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-coins me-2"></i>Saldos Actuales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-light border-primary">
+                                <div class="card-body">
+                                    <i class="fas fa-coins fa-3x text-primary mb-3"></i>
+                                    <h3 class="text-primary mb-2">{{="{:,.2f}".format(float(cuenta.saldo_ves)) if cuenta.saldo_ves else '0.00'}}</h3>
+                                    <h6 class="text-muted mb-0">Bolívares</h6>
+                                    <small class="text-muted">VES</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light border-success">
+                                <div class="card-body">
+                                    <i class="fas fa-dollar-sign fa-3x text-success mb-3"></i>
+                                    <h3 class="text-success mb-2">{{="{:,.2f}".format(float(cuenta.saldo_usd)) if cuenta.saldo_usd else '0.00'}}</h3>
+                                    <h6 class="text-muted mb-0">Dólares</h6>
+                                    <small class="text-muted">USD</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light border-warning">
+                                <div class="card-body">
+                                    <i class="fas fa-euro-sign fa-3x text-warning mb-3"></i>
+                                    <h3 class="text-warning mb-2">{{="{:,.2f}".format(float(cuenta.saldo_eur)) if cuenta.saldo_eur else '0.00'}}</h3>
+                                    <h6 class="text-muted mb-0">Euros</h6>
+                                    <small class="text-muted">EUR</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light border-info">
+                                <div class="card-body">
+                                    <i class="fas fa-coins fa-3x text-info mb-3"></i>
+                                    <h3 class="text-info mb-2">{{="{:,.2f}".format(float(cuenta.saldo_usdt)) if cuenta.saldo_usdt else '0.00'}}</h3>
+                                    <h6 class="text-muted mb-0">Tether</h6>
+                                    <small class="text-muted">USDT</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del mes -->
+    {{if estadisticas_mes:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Estadísticas del Mes Actual
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-exchange-alt fa-2x text-primary mb-2"></i>
+                                    <h4 class="text-primary">{{=estadisticas_mes['total_transacciones'] or 0}}</h4>
+                                    <small class="text-muted">Total Transacciones</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-shopping-cart fa-2x text-success mb-2"></i>
+                                    <h4 class="text-success">{{=estadisticas_mes['compras'] or 0}}</h4>
+                                    <small class="text-muted">Compras</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-hand-holding-usd fa-2x text-warning mb-2"></i>
+                                    <h4 class="text-warning">{{=estadisticas_mes['ventas'] or 0}}</h4>
+                                    <small class="text-muted">Ventas</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
+                                    <h4 class="text-info">{{="{:,.2f}".format(float(estadisticas_mes['monto_total_ves'])) if estadisticas_mes['monto_total_ves'] else '0.00'}}</h4>
+                                    <small class="text-muted">Monto Total VES</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Últimas transacciones -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Últimas Transacciones
+                        {{if ultimas_transacciones:}}
+                            <span class="badge bg-dark ms-2">{{=len(ultimas_transacciones)}}</span>
+                        {{pass}}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{if ultimas_transacciones:}}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th><i class="fas fa-calendar me-1"></i>Fecha</th>
+                                        <th><i class="fas fa-tag me-1"></i>Tipo</th>
+                                        <th><i class="fas fa-exchange-alt me-1"></i>Operación</th>
+                                        <th class="text-end"><i class="fas fa-money-bill me-1"></i>Monto Origen</th>
+                                        <th class="text-end"><i class="fas fa-money-bill me-1"></i>Monto Destino</th>
+                                        <th class="text-end"><i class="fas fa-percentage me-1"></i>Tasa</th>
+                                        <th><i class="fas fa-receipt me-1"></i>Comprobante</th>
+                                        <th><i class="fas fa-info-circle me-1"></i>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{for transaccion in ultimas_transacciones:}}
+                                    <tr>
+                                        <td>
+                                            <small>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y') if transaccion.fecha_transaccion else 'N/A'}}</small>
+                                            <br>
+                                            <small class="text-muted">{{=transaccion.fecha_transaccion.strftime('%H:%M') if transaccion.fecha_transaccion else ''}}</small>
+                                        </td>
+                                        <td>
+                                            {{if transaccion.tipo_operacion == 'compra':}}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-shopping-cart me-1"></i>Compra
+                                                </span>
+                                            {{elif transaccion.tipo_operacion == 'venta':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-hand-holding-usd me-1"></i>Venta
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">{{=transaccion.tipo_operacion.title() if transaccion.tipo_operacion else 'N/A'}}</span>
+                                            {{pass}}
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <strong class="text-danger">{{=transaccion.moneda_origen if transaccion.moneda_origen else 'N/A'}}</strong>
+                                                <i class="fas fa-arrow-right mx-1"></i>
+                                                <strong class="text-success">{{=transaccion.moneda_destino if transaccion.moneda_destino else 'N/A'}}</strong>
+                                            </small>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong>{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else '0.00'}}</strong>
+                                            <br>
+                                            <small class="text-muted">{{=transaccion.moneda_origen if transaccion.moneda_origen else ''}}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong>{{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else '0.00'}}</strong>
+                                            <br>
+                                            <small class="text-muted">{{=transaccion.moneda_destino if transaccion.moneda_destino else ''}}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <small>{{="{:,.4f}".format(float(transaccion.tasa_aplicada)) if transaccion.tasa_aplicada else 'N/A'}}</small>
+                                        </td>
+                                        <td>
+                                            <code class="small">{{=transaccion.numero_comprobante if transaccion.numero_comprobante else 'N/A'}}</code>
+                                        </td>
+                                        <td>
+                                            {{if transaccion.estado == 'completada':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Completada
+                                                </span>
+                                            {{elif transaccion.estado == 'pendiente':}}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pendiente
+                                                </span>
+                                            {{elif transaccion.estado == 'cancelada':}}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Cancelada
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">{{=transaccion.estado.title() if transaccion.estado else 'N/A'}}</span>
+                                            {{pass}}
+                                        </td>
+                                    </tr>
+                                    {{pass}}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-outline-primary">
+                                <i class="fas fa-history me-1"></i>Ver Historial Completo
+                            </a>
+                        </div>
+                    {{else:}}
+                        <div class="text-center py-5">
+                            <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Sin Transacciones</h5>
+                            <p class="text-muted mb-4">Esta cuenta no tiene transacciones registradas aún.</p>
+                            <div class="mt-3">
+                                <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary me-2">
+                                    <i class="fas fa-shopping-cart me-1"></i>Realizar Primera Compra
+                                </a>
+                                <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>Realizar Primera Venta
+                                </a>
+                            </div>
+                        </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{else:}}
+    <!-- Error: Cuenta no encontrada -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Cuenta No Encontrada
+                    </h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-university fa-5x text-danger mb-4"></i>
+                    <h4 class="text-danger mb-3">Cuenta No Disponible</h4>
+                    <p class="text-muted mb-4">
+                        No se pudo cargar la información de la cuenta solicitada.
+                        <br>
+                        Esto puede deberse a permisos insuficientes o que la cuenta no exista.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{=URL('cuentas', 'index')}}" class="btn btn-primary me-3">
+                            <i class="fas fa-arrow-left me-1"></i>Volver a Mis Cuentas
+                        </a>
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-1"></i>Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
 </div>
+
+<style>
+.page-header {
+    background: linear-gradient(135deg, #FFA366 0%, #FFD700 100%);
+    color: #000;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: #000 !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(0, 0, 0, 0.8) !important;
+    margin: 0;
+}
+
+.card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.badge.fs-6 {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 1rem;
+}
+
+.form-label.fw-bold {
+    color: var(--bs-primary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+</style>

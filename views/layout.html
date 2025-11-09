@@ -19,6 +19,8 @@
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap4.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/sistema-divisas-fresh.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/logo-r4.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/fix-dropdown-menu.css')}}"/>
     
     <!-- Favicons -->
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
@@ -41,9 +43,8 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg">
        <div class="container-fluid">
-         <a href="{{=URL('default','index')}}" class="navbar-brand">
-           <i class="fas fa-university me-2"></i>Sistema de Divisas Bancario
-         </a>
+         <!-- Logo R4 Banco Microfinanciero -->
+         {{include '_logo_r4.html'}}
          
          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                  aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,54 +65,74 @@
              {{if cliente or auth.has_membership('administrador') or auth.has_membership('operador'):}}
              <!-- Menu de divisas para clientes y administradores -->
              <li class="nav-item dropdown">
-               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDivisas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                  <i class="fas fa-exchange-alt me-1"></i>Divisas
                </a>
-               <div class="dropdown-menu">
-                 <a class="dropdown-item" href="{{=URL('divisas','comprar')}}">
+               <ul class="dropdown-menu" aria-labelledby="navbarDropdownDivisas">
+                 <li><a class="dropdown-item" href="{{=URL('divisas','comprar')}}">
                    <i class="fas fa-shopping-cart me-2"></i>Comprar Divisas
-                 </a>
-                 <a class="dropdown-item" href="{{=URL('divisas','vender')}}">
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('divisas','vender')}}">
                    <i class="fas fa-hand-holding-usd me-2"></i>Vender Divisas
-                 </a>
-                 <a class="dropdown-item" href="{{=URL('divisas','historial_transacciones')}}">
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('divisas','historial_transacciones')}}">
                    <i class="fas fa-history me-2"></i>Historial
-                 </a>
-               </div>
+                 </a></li>
+               </ul>
              </li>
              {{pass}}
              
              {{if cliente:}}
              <!-- Menu específico para clientes -->
              <li class="nav-item dropdown">
-               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCuentas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                  <i class="fas fa-university me-1"></i>Cuentas
                </a>
-               <div class="dropdown-menu">
-                 <a class="dropdown-item" href="{{=URL('cuentas','index')}}">
+               <ul class="dropdown-menu" aria-labelledby="navbarDropdownCuentas">
+                 <li><a class="dropdown-item" href="{{=URL('cuentas','index')}}">
                    <i class="fas fa-university me-2"></i>Mis Cuentas y Saldos
-                 </a>
-               </div>
+                 </a></li>
+               </ul>
              </li>
              {{pass}}
              
              {{if auth.has_membership('administrador') or auth.has_membership('operador'):}}
              <!-- Menu para administradores -->
              <li class="nav-item dropdown">
-               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownGestion" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                  <i class="fas fa-users me-1"></i>Gestión
                </a>
-               <div class="dropdown-menu">
-                 <a class="dropdown-item" href="{{=URL('clientes','listar')}}">
+               <ul class="dropdown-menu" aria-labelledby="navbarDropdownGestion">
+                 <li><a class="dropdown-item" href="{{=URL('clientes','listar')}}">
                    <i class="fas fa-users me-2"></i>Clientes
-                 </a>
-                 <a class="dropdown-item" href="{{=URL('cuentas','listar_todas')}}">
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('cuentas','listar_todas')}}">
                    <i class="fas fa-university me-2"></i>Cuentas
-                 </a>
-                 <a class="dropdown-item" href="{{=URL('reportes','index')}}">
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('reportes','index')}}">
                    <i class="fas fa-chart-bar me-2"></i>Reportes
-                 </a>
-               </div>
+                 </a></li>
+               </ul>
+             </li>
+             
+             <li class="nav-item dropdown">
+               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRemesas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                 <i class="fas fa-money-bill-wave me-1"></i>Remesas
+               </a>
+               <ul class="dropdown-menu" aria-labelledby="navbarDropdownRemesas">
+                 <li><a class="dropdown-item" href="{{=URL('remesas','index')}}">
+                   <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('remesas','registrar_remesa')}}">
+                   <i class="fas fa-plus-circle me-2"></i>Registrar Remesa
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('remesas','configurar_limites')}}">
+                   <i class="fas fa-cog me-2"></i>Configurar Límites
+                 </a></li>
+                 <li><a class="dropdown-item" href="{{=URL('remesas','historial_movimientos')}}">
+                   <i class="fas fa-history me-2"></i>Historial
+                 </a></li>
+               </ul>
              </li>
              
              <li class="nav-item">
@@ -135,27 +156,22 @@
              </li>
              
              <li class="nav-item dropdown">
-               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                  <i class="fas fa-user me-1"></i>{{=auth.user.first_name or 'Usuario'}}
                </a>
-               <div class="dropdown-menu dropdown-menu-end">
-                 <a class="dropdown-item" href="{{=URL('default','user/profile')}}">
+               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
+                 <li><a class="dropdown-item" href="{{=URL('default','user/profile')}}">
                    <i class="fas fa-user-edit me-2"></i>Mi Perfil
-                 </a>
-                 {{if cliente:}}
-                 <a class="dropdown-item" href="{{=URL('clientes','perfil')}}">
-                   <i class="fas fa-id-card me-2"></i>Datos Bancarios
-                 </a>
-                 {{pass}}
-                 <div class="dropdown-divider"></div>
-                 <a class="dropdown-item" href="{{=URL('default','user/change_password')}}">
+                 </a></li>
+                 <li><hr class="dropdown-divider"></li>
+                 <li><a class="dropdown-item" href="{{=URL('default','user/change_password')}}">
                    <i class="fas fa-key me-2"></i>Cambiar Contraseña
-                 </a>
-                 <a class="dropdown-item text-danger" href="{{=URL('default','user/logout')}}"
+                 </a></li>
+                 <li><a class="dropdown-item text-danger" href="{{=URL('default','user/logout')}}"
                     onclick="return confirm('¿Está seguro que desea cerrar sesión?')">
                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                 </a>
-               </div>
+                 </a></li>
+               </ul>
              </li>
              {{else:}}
              <li class="nav-item">
@@ -240,6 +256,25 @@
                   <i class="fas fa-chart-line"></i>Tasas BCV
                 </a>
               </div>
+              
+              <!-- Enlaces de Remesas y Límites -->
+              <div class="nav-section">
+                <h6 class="nav-header text-orange mt-3 mb-2">
+                  <i class="fas fa-money-bill-wave me-2"></i>Remesas y Límites
+                </h6>
+                <a class="nav-link" href="{{=URL('remesas','index')}}">
+                  <i class="fas fa-tachometer-alt"></i>Dashboard Remesas
+                </a>
+                <a class="nav-link" href="{{=URL('remesas','registrar_remesa')}}">
+                  <i class="fas fa-plus-circle"></i>Registrar Remesa
+                </a>
+                <a class="nav-link" href="{{=URL('remesas','configurar_limites')}}">
+                  <i class="fas fa-cog"></i>Configurar Límites
+                </a>
+                <a class="nav-link" href="{{=URL('remesas','historial_movimientos')}}">
+                  <i class="fas fa-history"></i>Historial
+                </a>
+              </div>
               {{pass}}
               
               <div class="nav-section">
@@ -249,11 +284,6 @@
                 <a class="nav-link" href="{{=URL('default','user/profile')}}">
                   <i class="fas fa-user-edit"></i>Mi Perfil
                 </a>
-                {{if cliente:}}
-                <a class="nav-link" href="{{=URL('clientes','perfil')}}">
-                  <i class="fas fa-id-card"></i>Datos Bancarios
-                </a>
-                {{pass}}
                 <a class="nav-link" href="{{=URL('default','user/change_password')}}">
                   <i class="fas fa-key"></i>Cambiar Contraseña
                 </a>
@@ -295,10 +325,10 @@
         <div class="row">
           <div class="col-md-6">
             <div class="copyright">
-              <i class="fas fa-copyright me-1"></i>{{=request.now.year}} Sistema de Divisas Bancario
+              <i class="fas fa-copyright me-1"></i>{{=request.now.year}} R4 Banco Microfinanciero
             </div>
             <small class="text-muted">
-              Tasas oficiales del Banco Central de Venezuela
+              Sistema de Divisas - Tasas oficiales del BCV
             </small>
           </div>
           <div class="col-md-6 text-end">
@@ -322,6 +352,21 @@
     <script src="{{=URL('static','js/bootstrap.bundle.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap4.js')}}"></script>
     <script src="{{=URL('static','js/navegacion.js')}}"></script>
+    
+    <!-- Fix para dropdowns -->
+    <script>
+      // Forzar inicialización de dropdowns al cargar
+      document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar todos los dropdowns
+        var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+          return new bootstrap.Dropdown(dropdownToggleEl, {
+            autoClose: true
+          });
+        });
+        console.log('Dropdowns inicializados:', dropdownList.length);
+      });
+    </script>
     
     <!-- Custom JavaScript for Sistema de Divisas -->
     <script>

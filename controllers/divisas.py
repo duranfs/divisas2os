@@ -13,6 +13,35 @@ import json
 # Configurar logging
 logger = logging.getLogger("web2py.app.divisas")
 
+def get_user_roles(user_id=None):
+    """
+    Obtiene los roles del usuario de forma segura
+    Requisitos: 7.1
+    """
+    if not user_id:
+        user_id = auth.user_id
+    
+    if not user_id:
+        return []
+    
+    try:
+        if hasattr(auth, 'user_groups') and auth.user_groups:
+            # Si user_groups contiene objetos con atributo role
+            first_value = list(auth.user_groups.values())[0] if auth.user_groups.values() else None
+            if first_value and hasattr(first_value, 'role'):
+                return [g.role for g in auth.user_groups.values()]
+            else:
+                # Si user_groups contiene strings directamente
+                return list(auth.user_groups.values())
+        else:
+            # Método alternativo: consultar directamente la base de datos
+            user_groups = db((db.auth_membership.user_id == user_id) & 
+                           (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role)
+            return [g.role for g in user_groups]
+    except Exception as e:
+        # Si hay error, asumir que no tiene roles
+        return []
+
 def index():
     """
     Página principal del módulo de divisas
@@ -56,7 +85,7 @@ def comprar():
         # Procesamiento de compra
         if request.vars.confirmar_compra:
             try:
-                logger.info(f"Procesando compra para usuario: {auth.user.email}")
+                logger.info(f"Procesando compra REAL para usuario: {auth.user.email}")
                 
                 # Obtener datos del formulario
                 cuenta_id = request.vars.cuenta_id
@@ -67,17 +96,23 @@ def comprar():
                 if not cuenta_id or not moneda_destino or not cantidad_divisa:
                     response.flash = "❌ Faltan datos requeridos"
                 else:
-                    # Simular compra exitosa
-                    import uuid
-                    comprobante = f"COMP-{str(uuid.uuid4())[:8].upper()}"
-                    logger.info(f"Compra exitosa - Comprobante: {comprobante}")
+                    # PROCESAR COMPRA REAL - no simular
+                    logger.info(f"Llamando a procesar_compra_divisa() con datos: cuenta_id={cuenta_id}, moneda_destino={moneda_destino}, cantidad_divisa={cantidad_divisa}")
                     
-                    # Usar session para pasar datos
-                    session.ultimo_comprobante = comprobante
-                    response.flash = f"✅ Compra realizada exitosamente! Comprobante: {comprobante}"
+                    resultado = procesar_compra_divisa()
+                    logger.info(f"Resultado de procesar_compra_divisa(): {resultado}")
                     
-                    # Usar raise HTTP en lugar de redirect para evitar el error 303
-                    raise HTTP(303, "See Other", Location=URL('divisas', 'compra_exitosa', vars={'comprobante': comprobante}))
+                    if resultado.get('success'):
+                        comprobante = resultado.get('comprobante')
+                        session.ultimo_comprobante = comprobante
+                        response.flash = f"✅ Compra realizada exitosamente! Comprobante: {comprobante}"
+                        
+                        # Usar raise HTTP en lugar de redirect para evitar el error 303
+                        raise HTTP(303, "See Other", Location=URL('divisas', 'compra_exitosa', vars={'comprobante': comprobante}))
+                    else:
+                        error_msg = resultado.get('error', 'Error desconocido')
+                        logger.error(f"Error en compra: {error_msg}")
+                        response.flash = f"❌ Error en la compra: {error_msg}"
                     
             except HTTP:
                 # Re-raise HTTP exceptions (redirects)
@@ -160,8 +195,15 @@ def vender():
             # Procesar la venta
             resultado = procesar_venta_divisa()
             if resultado['success']:
-                response.flash = f"Venta realizada exitosamente. Comprobante: {resultado['comprobante']}"
-                redirect(URL('divisas', 'comprobante', args=[resultado['transaccion_id']]))
+                comprobante = resultado.get('comprobante', 'N/A')
+                transaccion_id = resultado.get('transaccion_id')
+                
+                response.flash = f"✅ Venta realizada exitosamente. Comprobante: {comprobante}"
+                
+                # Temporalmente deshabilitado el redirect al comprobante
+                # Mostrar mensaje de éxito en la misma página
+                logger.info(f"Venta exitosa - Transacción ID: {transaccion_id}, Comprobante: {comprobante}")
+                # No hacer redirect, quedarse en la página con mensaje de éxito
             else:
                 response.flash = f"Error en la venta: {resultado['error']}"
         else:
@@ -248,11 +290,30 @@ def procesar_compra_divisa():
         if not tasas:
             return {'success': False, 'error': 'No se pudieron obtener las tasas de cambio'}
         
-        tasa_aplicada = tasas['usd_ves'] if moneda_destino == 'USD' else tasas['eur_ves']
+        if moneda_destino == 'USD':
+            tasa_aplicada = tasas['usd_ves']
+        elif moneda_destino == 'EUR':
+            tasa_aplicada = tasas['eur_ves']
+        elif moneda_destino == 'USDT':
+            tasa_aplicada = tasas['usdt_ves']
+        else:
+            return {'success': False, 'error': f'Moneda destino no soportada: {moneda_destino}'}
         
         # Calcular monto destino
         monto_destino = monto_origen / Decimal(str(tasa_aplicada))
         monto_destino = monto_destino.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        # *** VALIDAR LÍMITES DE VENTA ANTES DE PROCESAR ***
+        validacion = validar_limite_venta(moneda_destino, float(monto_destino))
+        
+        if not validacion['puede_vender']:
+            logger.warning(f"Venta rechazada por límites: {validacion['razon']}")
+            return {
+                'success': False, 
+                'error': f"Venta rechazada: {validacion['razon']}"
+            }
+        
+        logger.info(f"Validación de límites OK - Disponible: ${validacion['limite_disponible']:,.2f}")
         
         # Calcular comisión
         comision = calcular_comision(monto_origen, 'compra')
@@ -292,11 +353,18 @@ def procesar_compra_divisa():
                     saldo_ves=nuevo_saldo_ves,
                     saldo_usd=nuevo_saldo_usd
                 )
-            else:  # EUR
+            elif moneda_destino == 'EUR':
                 nuevo_saldo_eur = cuenta.saldo_eur + monto_destino
                 db(db.cuentas.id == cuenta_id).update(
                     saldo_ves=nuevo_saldo_ves,
                     saldo_eur=nuevo_saldo_eur
+                )
+            elif moneda_destino == 'USDT':
+                saldo_usdt_actual = cuenta.saldo_usdt if cuenta.saldo_usdt is not None else Decimal('0.0')
+                nuevo_saldo_usdt = saldo_usdt_actual + monto_destino
+                db(db.cuentas.id == cuenta_id).update(
+                    saldo_ves=nuevo_saldo_ves,
+                    saldo_usdt=nuevo_saldo_usdt
                 )
             
             # Registrar en historial de movimientos (log adicional para auditoría)
@@ -334,6 +402,18 @@ def procesar_compra_divisa():
             )
             
             logger.info(f"Compra exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}, Monto: {monto_origen} VES -> {monto_destino} {moneda_destino}")
+            
+            # *** ACTUALIZAR LÍMITES Y REMESAS ***
+            resultado_limite = procesar_venta_con_limites(
+                moneda=moneda_destino,
+                monto_venta=float(monto_destino),
+                transaccion_id=transaccion_id
+            )
+            
+            if resultado_limite['success']:
+                logger.info(f"Límites actualizados: {resultado_limite['mensaje']}")
+            else:
+                logger.warning(f"Error actualizando límites: {resultado_limite['mensaje']}")
             
             # Convertir transaccion_id para el return
             try:
@@ -410,8 +490,8 @@ def procesar_venta_divisa():
         if not cuenta_id or not moneda_origen or not monto_origen:
             return {'success': False, 'error': 'Faltan parámetros requeridos'}
         
-        if moneda_origen not in ['USD', 'EUR']:
-            return {'success': False, 'error': 'Moneda origen debe ser USD o EUR'}
+        if moneda_origen not in ['USD', 'EUR', 'USDT']:
+            return {'success': False, 'error': 'Moneda origen debe ser USD, EUR o USDT'}
         
         if monto_origen <= 0:
             return {'success': False, 'error': 'El monto debe ser mayor a cero'}
@@ -447,7 +527,14 @@ def procesar_venta_divisa():
             return {'success': False, 'error': 'Cuenta no válida o inactiva'}
         
         # Verificar fondos suficientes en la divisa origen
-        saldo_disponible = cuenta.saldo_usd if moneda_origen == 'USD' else cuenta.saldo_eur
+        if moneda_origen == 'USD':
+            saldo_disponible = cuenta.saldo_usd
+        elif moneda_origen == 'EUR':
+            saldo_disponible = cuenta.saldo_eur
+        elif moneda_origen == 'USDT':
+            saldo_disponible = cuenta.saldo_usdt if cuenta.saldo_usdt is not None else Decimal('0.0')
+        else:
+            return {'success': False, 'error': f'Moneda origen no soportada: {moneda_origen}'}
         if saldo_disponible < monto_origen:
             return {'success': False, 'error': f'Fondos insuficientes. Saldo disponible: {saldo_disponible} {moneda_origen}'}
         
@@ -456,7 +543,14 @@ def procesar_venta_divisa():
         if not tasas:
             return {'success': False, 'error': 'No se pudieron obtener las tasas de cambio'}
         
-        tasa_aplicada = tasas['usd_ves'] if moneda_origen == 'USD' else tasas['eur_ves']
+        if moneda_origen == 'USD':
+            tasa_aplicada = tasas['usd_ves']
+        elif moneda_origen == 'EUR':
+            tasa_aplicada = tasas['eur_ves']
+        elif moneda_origen == 'USDT':
+            tasa_aplicada = tasas['usdt_ves']
+        else:
+            return {'success': False, 'error': f'Moneda origen no soportada: {moneda_origen}'}
         
         # Calcular monto destino en VES
         monto_destino = monto_origen * Decimal(str(tasa_aplicada))
@@ -511,11 +605,18 @@ def procesar_venta_divisa():
                     saldo_ves=nuevo_saldo_ves,
                     saldo_usd=nuevo_saldo_usd
                 )
-            else:  # EUR
+            elif moneda_origen == 'EUR':
                 nuevo_saldo_eur = cuenta.saldo_eur - monto_origen
                 db(db.cuentas.id == cuenta_id).update(
                     saldo_ves=nuevo_saldo_ves,
                     saldo_eur=nuevo_saldo_eur
+                )
+            elif moneda_origen == 'USDT':
+                saldo_usdt_actual = cuenta.saldo_usdt if cuenta.saldo_usdt is not None else Decimal('0.0')
+                nuevo_saldo_usdt = saldo_usdt_actual - monto_origen
+                db(db.cuentas.id == cuenta_id).update(
+                    saldo_ves=nuevo_saldo_ves,
+                    saldo_usdt=nuevo_saldo_usdt
                 )
             
             # Registrar en historial de movimientos (log adicional para auditoría)
@@ -718,6 +819,7 @@ def obtener_tasas_actuales():
             return {
                 'usd_ves': float(tasa_activa.usd_ves),
                 'eur_ves': float(tasa_activa.eur_ves),
+                'usdt_ves': float(tasa_activa.usdt_ves) if tasa_activa.usdt_ves else float(tasa_activa.usd_ves),
                 'fecha': tasa_activa.fecha,
                 'hora': tasa_activa.hora,
                 'fuente': tasa_activa.fuente
@@ -734,6 +836,7 @@ def obtener_tasas_actuales():
                 return {
                     'usd_ves': float(tasa_reciente.usd_ves),
                     'eur_ves': float(tasa_reciente.eur_ves),
+                    'usdt_ves': float(tasa_reciente.usdt_ves) if tasa_reciente.usdt_ves else float(tasa_reciente.usd_ves),
                     'fecha': tasa_reciente.fecha,
                     'hora': tasa_reciente.hora,
                     'fuente': f"{tasa_reciente.fuente} (Histórica)"
@@ -763,6 +866,10 @@ def obtener_tasas_para_transacciones():
                 'EUR': {
                     'compra': 40.25,
                     'venta': 40.60
+                },
+                'USDT': {
+                    'compra': 36.50,
+                    'venta': 36.80
                 }
             }
         
@@ -773,6 +880,7 @@ def obtener_tasas_para_transacciones():
         
         usd_base = tasas_base['usd_ves']
         eur_base = tasas_base['eur_ves']
+        usdt_base = tasas_base['usdt_ves']
         
         return {
             'USD': {
@@ -783,6 +891,10 @@ def obtener_tasas_para_transacciones():
                 'compra': eur_base * (1 + margen),
                 'venta': eur_base * (1 - margen)
             },
+            'USDT': {
+                'compra': usdt_base * (1 + margen),
+                'venta': usdt_base * (1 - margen)
+            },
             'usd': {  # También en minúsculas para compatibilidad
                 'compra': usd_base * (1 + margen),
                 'venta': usd_base * (1 - margen)
@@ -790,6 +902,10 @@ def obtener_tasas_para_transacciones():
             'eur': {
                 'compra': eur_base * (1 + margen),
                 'venta': eur_base * (1 - margen)
+            },
+            'usdt': {
+                'compra': usdt_base * (1 + margen),
+                'venta': usdt_base * (1 - margen)
             }
         }
         
@@ -805,6 +921,10 @@ def obtener_tasas_para_transacciones():
                 'compra': 40.25,
                 'venta': 40.60
             },
+            'USDT': {
+                'compra': 36.50,  # Usar misma tasa que USD por defecto
+                'venta': 36.80
+            },
             'usd': {
                 'compra': 36.50,
                 'venta': 36.80
@@ -812,6 +932,10 @@ def obtener_tasas_para_transacciones():
             'eur': {
                 'compra': 40.25,
                 'venta': 40.60
+            },
+            'usdt': {
+                'compra': 36.50,
+                'venta': 36.80
             }
         }
 
@@ -827,8 +951,18 @@ def comprobante():
         
         transaccion_id = request.args(0)
         
-        # Verificar que la transacción pertenece al usuario actual
+        # Verificar que la transacción pertenece al usuario actual o es administrador
         cliente = db(db.clientes.user_id == auth.user.id).select().first()
+        
+        # Si no es cliente pero es administrador, permitir ver cualquier transacción
+        if not cliente and (auth.has_membership('administrador') or auth.has_membership('operador')):
+            # Para administradores, obtener el cliente de la transacción
+            transaccion_temp = db(db.transacciones.id == transaccion_id).select().first()
+            if transaccion_temp:
+                cuenta_temp = db(db.cuentas.id == transaccion_temp.cuenta_id).select().first()
+                if cuenta_temp:
+                    cliente = db(db.clientes.id == cuenta_temp.cliente_id).select().first()
+        
         if not cliente:
             response.flash = "Acceso no autorizado"
             redirect(URL('divisas', 'index'))
@@ -840,13 +974,18 @@ def comprobante():
             response.flash = "Transacción no encontrada"
             redirect(URL('divisas', 'index'))
         
-        # Verificar que la cuenta pertenece al cliente
-        cuenta = db(
-            (db.cuentas.id == transaccion.cuenta_id) &
-            (db.cuentas.cliente_id == cliente.id)
-        ).select().first()
+        # Verificar que la cuenta pertenece al cliente (o es administrador)
+        cuenta = db(db.cuentas.id == transaccion.cuenta_id).select().first()
         
         if not cuenta:
+            response.flash = "Cuenta no encontrada"
+            redirect(URL('divisas', 'index'))
+        
+        # Verificar permisos: debe ser el dueño de la cuenta o administrador
+        es_propietario = cuenta.cliente_id == cliente.id
+        es_admin = auth.has_membership('administrador') or auth.has_membership('operador')
+        
+        if not (es_propietario or es_admin):
             response.flash = "Acceso no autorizado a esta transacción"
             redirect(URL('divisas', 'index'))
         
@@ -890,8 +1029,8 @@ def calcular_cambio():
         # Calcular conversión según el tipo de operación
         if tipo_operacion == 'compra':
             # Compra: VES -> USD/EUR
-            if moneda_origen != 'VES' or moneda_destino not in ['USD', 'EUR']:
-                return response.json({'error': 'Para compra: origen debe ser VES, destino USD o EUR'})
+            if moneda_origen != 'VES' or moneda_destino not in ['USD', 'EUR', 'USDT']:
+                return response.json({'error': 'Para compra: origen debe ser VES, destino USD, EUR o USDT'})
             
             tasa = tasas['usd_ves'] if moneda_destino == 'USD' else tasas['eur_ves']
             monto_convertido = monto_decimal / Decimal(str(tasa))
@@ -900,8 +1039,8 @@ def calcular_cambio():
             
         else:  # venta
             # Venta: USD/EUR -> VES
-            if moneda_origen not in ['USD', 'EUR'] or moneda_destino != 'VES':
-                return response.json({'error': 'Para venta: origen debe ser USD o EUR, destino VES'})
+            if moneda_origen not in ['USD', 'EUR', 'USDT'] or moneda_destino != 'VES':
+                return response.json({'error': 'Para venta: origen debe ser USD, EUR o USDT, destino VES'})
             
             tasa = tasas['usd_ves'] if moneda_origen == 'USD' else tasas['eur_ves']
             monto_bruto = monto_decimal * Decimal(str(tasa))
@@ -984,14 +1123,21 @@ def validar_fondos():
 @auth.requires_login()
 def historial_transacciones():
     """
-    Muestra el historial de transacciones del cliente
+    Muestra el historial de transacciones del cliente o administrador
     """
     try:
-        # Verificar que el usuario tenga un perfil de cliente
-        cliente = db(db.clientes.user_id == auth.user.id).select().first()
-        if not cliente:
-            response.flash = "Debe completar su registro como cliente"
-            redirect(URL('clientes', 'registrar'))
+        # Obtener roles del usuario
+        user_roles = get_user_roles()
+        
+        # Si es administrador u operador, puede ver todas las transacciones
+        if 'administrador' in user_roles or 'operador' in user_roles:
+            cliente = None  # Los administradores no necesitan perfil de cliente
+        else:
+            # Para clientes, verificar que tengan perfil
+            cliente = db(db.clientes.user_id == auth.user.id).select().first()
+            if not cliente:
+                response.flash = "Debe completar su registro como cliente"
+                redirect(URL('clientes', 'registrar'))
         
         # Obtener parámetros de filtro
         fecha_desde = request.vars.fecha_desde
@@ -1000,7 +1146,12 @@ def historial_transacciones():
         moneda = request.vars.moneda
         
         # Construir query base
-        query = (db.transacciones.cuenta_id == db.cuentas.id) & (db.cuentas.cliente_id == cliente.id)
+        if cliente:
+            # Para clientes: solo sus transacciones
+            query = (db.transacciones.cuenta_id == db.cuentas.id) & (db.cuentas.cliente_id == cliente.id)
+        else:
+            # Para administradores: todas las transacciones
+            query = (db.transacciones.cuenta_id == db.cuentas.id)
         
         # Aplicar filtros
         if fecha_desde:
@@ -1012,11 +1163,18 @@ def historial_transacciones():
         if moneda and moneda != 'todas':
             query &= ((db.transacciones.moneda_origen == moneda) | (db.transacciones.moneda_destino == moneda))
         
-        # Obtener transacciones
+        # Obtener transacciones con información de cuenta y cliente
         transacciones = db(query).select(
             db.transacciones.ALL,
             db.cuentas.numero_cuenta,
-            join=db.cuentas.on(db.transacciones.cuenta_id == db.cuentas.id),
+            db.clientes.cedula,
+            db.auth_user.first_name,
+            db.auth_user.last_name,
+            left=[
+                db.cuentas.on(db.transacciones.cuenta_id == db.cuentas.id),
+                db.clientes.on(db.cuentas.cliente_id == db.clientes.id),
+                db.auth_user.on(db.clientes.user_id == db.auth_user.id)
+            ],
             orderby=~db.transacciones.fecha_transaccion,
             limitby=(0, 50)  # Limitar a 50 registros
         )
@@ -1406,7 +1564,7 @@ def comprar_simple():
     try:
         # Procesamiento de compra
         if request.vars.confirmar_compra:
-            logger.info(f"Procesando compra simple para usuario: {auth.user.email}")
+            logger.info(f"Procesando compra REAL (simple) para usuario: {auth.user.email}")
             
             # Obtener datos del formulario
             cuenta_id = request.vars.cuenta_id
@@ -1417,17 +1575,23 @@ def comprar_simple():
             if not cuenta_id or not moneda_destino or not cantidad_divisa:
                 response.flash = "❌ Faltan datos requeridos"
             else:
-                # Simular compra exitosa
-                import uuid
-                comprobante = f"COMP-{str(uuid.uuid4())[:8].upper()}"
-                logger.info(f"Compra exitosa - Comprobante: {comprobante}")
+                # PROCESAR COMPRA REAL - no simular
+                logger.info(f"Llamando a procesar_compra_divisa() con datos: cuenta_id={cuenta_id}, moneda_destino={moneda_destino}, cantidad_divisa={cantidad_divisa}")
                 
-                # Usar session para pasar datos
-                session.flash = f"✅ Compra realizada exitosamente! Comprobante: {comprobante}"
-                session.ultimo_comprobante = comprobante
+                resultado = procesar_compra_divisa()
+                logger.info(f"Resultado de procesar_compra_divisa(): {resultado}")
                 
-                # Redirect directo
-                redirect(URL('divisas', 'compra_exitosa', vars={'comprobante': comprobante}))
+                if resultado.get('success'):
+                    comprobante = resultado.get('comprobante')
+                    session.flash = f"✅ Compra realizada exitosamente! Comprobante: {comprobante}"
+                    session.ultimo_comprobante = comprobante
+                    
+                    # Redirect directo
+                    redirect(URL('divisas', 'compra_exitosa', vars={'comprobante': comprobante}))
+                else:
+                    error_msg = resultado.get('error', 'Error desconocido')
+                    logger.error(f"Error en compra simple: {error_msg}")
+                    response.flash = f"❌ Error en la compra: {error_msg}"
         
         # Obtener datos para mostrar el formulario
         cliente = db(db.clientes.user_id == auth.user.id).select().first()

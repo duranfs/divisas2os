@@ -1,0 +1,137 @@
+
+/* Estilos para el logo de R4 Banco Microfinanciero */
+.logo-r4 {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #1a365d 0%, #2d5a87 100%);
+    border-radius: 8px;
+    border: 1px solid #2d5a87;
+    box-shadow: 0 2px 8px rgba(26, 54, 93, 0.3);
+    transition: all 0.3s ease;
+    text-decoration: none !important;
+}
+
+.logo-r4:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 54, 93, 0.4);
+    text-decoration: none !important;
+}
+
+.logo-r4-icon {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.logo-r4-bars {
+    display: flex;
+    align-items: end;
+    gap: 2px;
+    margin-right: 8px;
+}
+
+.logo-r4-bar {
+    border-radius: 1px;
+}
+
+.logo-r4-bar-1 {
+    width: 3px;
+    height: 20px;
+    background: #ffa366;
+}
+
+.logo-r4-bar-2 {
+    width: 3px;
+    height: 16px;
+    background: #ffd700;
+}
+
+.logo-r4-bar-3 {
+    width: 3px;
+    height: 12px;
+    background: #ffa366;
+}
+
+.logo-r4-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.logo-r4-main {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+.logo-r4-sub {
+    font-size: 10px;
+    font-weight: 600;
+    color: #ffa366;
+    margin: 0;
+    margin-top: 2px;
+}
+
+.logo-r4-desc {
+    font-size: 8px;
+    color: #ffd700;
+    margin: 0;
+    margin-top: 1px;
+}
+
+/* Versión compacta para navbar */
+.navbar-brand .logo-r4 {
+    padding: 4px 12px;
+    font-size: 0.9em;
+}
+
+.navbar-brand .logo-r4-main {
+    font-size: 16px;
+}
+
+.navbar-brand .logo-r4-sub {
+    font-size: 9px;
+}
+
+.navbar-brand .logo-r4-desc {
+    font-size: 7px;
+}
+
+/* Versión para sidebar */
+.sidebar .logo-r4 {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 12px 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logo-r4-desc {
+        display: none;
+    }
+    
+    .navbar-brand .logo-r4 {
+        padding: 4px 8px;
+    }
+    
+    .navbar-brand .logo-r4-main {
+        font-size: 14px;
+    }
+    
+    .navbar-brand .logo-r4-sub {
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .logo-r4-sub {
+        display: none;
+    }
+    
+    .logo-r4-bars {
+        margin-right: 6px;
+    }
+}

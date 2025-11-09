@@ -161,7 +161,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Función para inicializar dropdowns de Bootstrap
+    function initializeDropdowns() {
+        const dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+        dropdownElementList.map(function (dropdownToggleEl) {
+            return new bootstrap.Dropdown(dropdownToggleEl);
+        });
+    }
+    
     // Inicializar todas las funciones
+    initializeDropdowns();
     highlightActiveNavigation();
     handleSidebarToggle();
     enableSmoothScroll();

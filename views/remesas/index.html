@@ -1,0 +1,341 @@
+{{extend 'layout.html'}}
+
+<div class="dashboard-header">
+  <h1><i class="fas fa-money-bill-wave me-3"></i>Gestión de Remesas y Límites</h1>
+  <p class="lead">Control de liquidez y disponibilidad de divisas - {{=fecha_hoy.strftime('%d/%m/%Y')}}</p>
+</div>
+
+<!-- Resumen de Disponibilidad por Moneda -->
+<div class="row mb-4">
+  <!-- USD -->
+  <div class="col-md-4 mb-3">
+    <div class="card-resumen {{='border-success' if disponibilidad_usd['puede_vender'] else 'border-danger'}}">
+      <div class="card-header bg-success text-white">
+        <h5><i class="fas fa-dollar-sign me-2"></i>USD - Dólar</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <h6 class="text-muted">Remesa Disponible</h6>
+            <h3 class="text-success">{{="{:,.2f}".format(disponibilidad_usd['remesa_disponible'])}}</h3>
+            <small>de {{="{:,.2f}".format(disponibilidad_usd['remesa_total'])}}</small>
+          </div>
+          <div class="col-6">
+            <h6 class="text-muted">Límite Disponible</h6>
+            <h3 class="text-primary">{{="{:,.2f}".format(disponibilidad_usd['limite_disponible'])}}</h3>
+            <small>de {{="{:,.2f}".format(disponibilidad_usd['limite_diario'])}}</small>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <div class="progress" style="height: 25px;">
+            <div class="progress-bar {{='bg-success' if disponibilidad_usd['porcentaje_limite'] < 80 else 'bg-warning' if disponibilidad_usd['porcentaje_limite'] < 95 else 'bg-danger'}}" 
+                 style="width: {{=disponibilidad_usd['porcentaje_limite']}}%">
+              {{="{:.1f}".format(disponibilidad_usd['porcentaje_limite'])}}%
+            </div>
+          </div>
+          <small class="text-muted">Utilización del límite diario</small>
+        </div>
+        
+        {{if not disponibilidad_usd['puede_vender']:}}
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{=disponibilidad_usd.get('razon', 'No disponible para venta')}}
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+  
+  <!-- EUR -->
+  <div class="col-md-4 mb-3">
+    <div class="card-resumen {{='border-primary' if disponibilidad_eur['puede_vender'] else 'border-danger'}}">
+      <div class="card-header bg-primary text-white">
+        <h5><i class="fas fa-euro-sign me-2"></i>EUR - Euro</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <h6 class="text-muted">Remesa Disponible</h6>
+            <h3 class="text-success">{{="{:,.2f}".format(disponibilidad_eur['remesa_disponible'])}}</h3>
+            <small>de {{="{:,.2f}".format(disponibilidad_eur['remesa_total'])}}</small>
+          </div>
+          <div class="col-6">
+            <h6 class="text-muted">Límite Disponible</h6>
+            <h3 class="text-primary">{{="{:,.2f}".format(disponibilidad_eur['limite_disponible'])}}</h3>
+            <small>de {{="{:,.2f}".format(disponibilidad_eur['limite_diario'])}}</small>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <div class="progress" style="height: 25px;">
+            <div class="progress-bar {{='bg-success' if disponibilidad_eur['porcentaje_limite'] < 80 else 'bg-warning' if disponibilidad_eur['porcentaje_limite'] < 95 else 'bg-danger'}}" 
+                 style="width: {{=disponibilidad_eur['porcentaje_limite']}}%">
+              {{="{:.1f}".format(disponibilidad_eur['porcentaje_limite'])}}%
+            </div>
+          </div>
+          <small class="text-muted">Utilización del límite diario</small>
+        </div>
+        
+        {{if not disponibilidad_eur['puede_vender']:}}
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{=disponibilidad_eur.get('razon', 'No disponible para venta')}}
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+  
+  <!-- USDT -->
+  <div class="col-md-4 mb-3">
+    <div class="card-resumen {{='border-warning' if disponibilidad_usdt['puede_vender'] else 'border-danger'}}">
+      <div class="card-header bg-warning text-dark">
+        <h5><i class="fas fa-coins me-2"></i>USDT - Tether</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <h6 class="text-muted">Remesa Disponible</h6>
+            <h3 class="text-success">{{="{:,.2f}".format(disponibilidad_usdt['remesa_disponible'])}}</h3>
+            <small>de {{="{:,.2f}".format(disponibilidad_usdt['remesa_total'])}}</small>
+          </div>
+          <div class="col-6">
+            <h6 class="text-muted">Límite Disponible</h6>
+            <h3 class="text-primary">{{="{:,.2f}".format(disponibilidad_usdt['limite_disponible'])}}</h3>
+            <small>de {{="{:,.2f}".format(disponibilidad_usdt['limite_diario'])}}</small>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <div class="progress" style="height: 25px;">
+            <div class="progress-bar {{='bg-success' if disponibilidad_usdt['porcentaje_limite'] < 80 else 'bg-warning' if disponibilidad_usdt['porcentaje_limite'] < 95 else 'bg-danger'}}" 
+                 style="width: {{=disponibilidad_usdt['porcentaje_limite']}}%">
+              {{="{:.1f}".format(disponibilidad_usdt['porcentaje_limite'])}}%
+            </div>
+          </div>
+          <small class="text-muted">Utilización del límite diario</small>
+        </div>
+        
+        {{if not disponibilidad_usdt['puede_vender']:}}
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{=disponibilidad_usdt.get('razon', 'No disponible para venta')}}
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Acciones Rápidas -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-bolt me-2"></i>Acciones Rápidas</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 mb-2">
+            <a href="{{=URL('registrar_remesa')}}" class="btn btn-success btn-block">
+              <i class="fas fa-plus-circle me-2"></i>Registrar Remesa
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{=URL('configurar_limites')}}" class="btn btn-primary btn-block">
+              <i class="fas fa-cog me-2"></i>Configurar Límites
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{=URL('historial_movimientos')}}" class="btn btn-info btn-block">
+              <i class="fas fa-history me-2"></i>Historial
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{=URL('reportes')}}" class="btn btn-warning btn-block">
+              <i class="fas fa-chart-bar me-2"></i>Reportes
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remesas del Día -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-inbox me-2"></i>Remesas del Día</h5>
+      </div>
+      <div class="card-body">
+        {{if remesas_hoy:}}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Moneda</th>
+                <th>Recibido</th>
+                <th>Disponible</th>
+                <th>Vendido</th>
+                <th>Fuente</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for remesa in remesas_hoy:}}
+              <tr>
+                <td><strong>{{=remesa.moneda}}</strong></td>
+                <td>{{="{:,.2f}".format(float(remesa.monto_recibido))}}</td>
+                <td class="text-success">{{="{:,.2f}".format(float(remesa.monto_disponible))}}</td>
+                <td class="text-danger">{{="{:,.2f}".format(float(remesa.monto_vendido))}}</td>
+                <td><small>{{=remesa.fuente_remesa or 'N/A'}}</small></td>
+                <td>
+                  <a href="{{=URL('ajustar_remesa', vars={'remesa_id': remesa.id})}}" 
+                     class="btn btn-sm btn-warning" title="Ajustar">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                </td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        {{else:}}
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-inbox fa-3x mb-3"></i>
+          <p>No hay remesas registradas para hoy</p>
+          <a href="{{=URL('registrar_remesa')}}" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i>Registrar Primera Remesa
+          </a>
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Límites del Día -->
+  <div class="col-md-6">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-chart-line me-2"></i>Límites del Día</h5>
+      </div>
+      <div class="card-body">
+        {{if limites_hoy:}}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Moneda</th>
+                <th>Límite</th>
+                <th>Vendido</th>
+                <th>Disponible</th>
+                <th>%</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for limite in limites_hoy:}}
+              <tr>
+                <td><strong>{{=limite.moneda}}</strong></td>
+                <td>{{="{:,.2f}".format(float(limite.limite_diario))}}</td>
+                <td class="text-danger">{{="{:,.2f}".format(float(limite.monto_vendido))}}</td>
+                <td class="text-success">{{="{:,.2f}".format(float(limite.monto_disponible))}}</td>
+                <td>
+                  <span class="badge {{='bg-success' if float(limite.porcentaje_utilizado) < 80 else 'bg-warning' if float(limite.porcentaje_utilizado) < 95 else 'bg-danger'}}">
+                    {{="{:.1f}".format(float(limite.porcentaje_utilizado))}}%
+                  </span>
+                </td>
+                <td>
+                  <a href="{{=URL('configurar_limites', vars={'fecha': limite.fecha, 'moneda': limite.moneda})}}" 
+                     class="btn btn-sm btn-primary" title="Editar">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                </td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        {{else:}}
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-chart-line fa-3x mb-3"></i>
+          <p>No hay límites configurados para hoy</p>
+          <a href="{{=URL('configurar_limites')}}" class="btn btn-primary">
+            <i class="fas fa-cog me-1"></i>Configurar Límites
+          </a>
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estadísticas del Mes -->
+<div class="row">
+  <div class="col-12">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5><i class="fas fa-calendar-alt me-2"></i>Estadísticas del Mes</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {{for moneda, stats in stats_mes.items():}}
+          <div class="col-md-4 mb-3">
+            <div class="card border-{{='success' if moneda == 'USD' else 'primary' if moneda == 'EUR' else 'warning'}}">
+              <div class="card-header bg-{{='success' if moneda == 'USD' else 'primary' if moneda == 'EUR' else 'warning'}} text-white">
+                <h6 class="mb-0">{{=moneda}}</h6>
+              </div>
+              <div class="card-body">
+                <div class="row text-center">
+                  <div class="col-6 mb-2">
+                    <small class="text-muted">Total Recibido</small>
+                    <h5 class="text-success">{{="{:,.2f}".format(stats['total_recibido'])}}</h5>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <small class="text-muted">Total Vendido</small>
+                    <h5 class="text-danger">{{="{:,.2f}".format(stats['total_vendido'])}}</h5>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted">Disponible</small>
+                    <h5 class="text-primary">{{="{:,.2f}".format(stats['disponible'])}}</h5>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted">Promedio Diario</small>
+                    <h5 class="text-info">{{="{:,.2f}".format(stats['promedio_diario'])}}</h5>
+                  </div>
+                </div>
+                <hr>
+                <small class="text-muted">
+                  <i class="fas fa-calendar-check me-1"></i>
+                  {{=stats['dias_con_remesas']}} días con remesas
+                </small>
+              </div>
+            </div>
+          </div>
+          {{pass}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card-resumen {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.progress {
+  border-radius: 10px;
+}
+
+.btn-block {
+  width: 100%;
+  padding: 12px;
+  font-weight: 600;
+}
+</style>

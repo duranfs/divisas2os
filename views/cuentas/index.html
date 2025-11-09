@@ -40,40 +40,82 @@
     <!-- Resumen de totales -->
     {{if cuentas:}}
     <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-coins me-2"></i>Total VES
-                </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">{{="{:,.2f}".format(float(total_ves or 0))}}</div>
-                    <small class="text-muted">Bolívares</small>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">{{="{:,.2f}".format(float(total_ves or 0))}}</h5>
+                    <p class="card-text">Total VES</p>
+                    <i class="fas fa-coins fa-2x text-success"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-dollar-sign me-2"></i>Total USD
-                </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">{{="{:,.2f}".format(float(total_usd or 0))}}</div>
-                    <small class="text-muted">Dólares</small>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{="{:,.2f}".format(float(total_usd or 0))}}</h5>
+                    <p class="card-text">Total USD</p>
+                    <i class="fas fa-dollar-sign fa-2x text-primary"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-euro-sign me-2"></i>Total EUR
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">{{="{:,.2f}".format(float(total_eur or 0))}}</h5>
+                    <p class="card-text">Total EUR</p>
+                    <i class="fas fa-euro-sign fa-2x text-info"></i>
                 </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">{{="{:,.2f}".format(float(total_eur or 0))}}</div>
-                    <small class="text-muted">Euros</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">{{="{:,.2f}".format(float(total_usdt or 0))}}</h5>
+                    <p class="card-text">Total USDT</p>
+                    <i class="fab fa-bitcoin fa-2x text-warning"></i>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Equivalencias en VES -->
+    {{if equivalencias and tasa_actual:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i>Equivalencias en VES
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Total Patrimonio</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(float(equivalencias.get('total_ves', 0)))}}</h4>
+                            <small class="text-muted">VES</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Equivalente USD</h6>
+                            <h4 class="text-primary">{{="{:,.2f}".format(float(equivalencias.get('total_usd', 0)))}}</h4>
+                            <small class="text-muted">USD</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Equivalente EUR</h6>
+                            <h4 class="text-info">{{="{:,.2f}".format(float(equivalencias.get('total_eur', 0)))}}</h4>
+                            <small class="text-muted">EUR</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Equivalente USDT</h6>
+                            <h4 class="text-warning">{{="{:,.2f}".format(float(equivalencias.get('total_usdt', 0)))}}</h4>
+                            <small class="text-muted">USDT</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
 
     <!-- Lista de cuentas -->
     <div class="row">
@@ -85,7 +127,15 @@
                         <i class="fas fa-credit-card me-2"></i>
                         Cuenta {{=cuenta.tipo_cuenta.title()}}
                     </h6>
-                    <span class="badge bg-success">Activa</span>
+                    {{if cuenta.estado == 'activa':}}
+                        <span class="badge bg-success">Activa</span>
+                    {{elif cuenta.estado == 'inactiva':}}
+                        <span class="badge bg-danger">Inactiva</span>
+                    {{elif cuenta.estado == 'bloqueada':}}
+                        <span class="badge bg-warning">Bloqueada</span>
+                    {{else:}}
+                        <span class="badge bg-secondary">{{=cuenta.estado.title()}}</span>
+                    {{pass}}
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -94,17 +144,21 @@
                     </div>
                     
                     <div class="row text-center">
-                        <div class="col-4">
+                        <div class="col-3">
                             <h6 class="text-success mb-1">VES</h6>
                             <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_ves or 0))}}</p>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <h6 class="text-primary mb-1">USD</h6>
                             <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_usd or 0))}}</p>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <h6 class="text-info mb-1">EUR</h6>
                             <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_eur or 0))}}</p>
+                        </div>
+                        <div class="col-3">
+                            <h6 class="text-warning mb-1">USDT</h6>
+                            <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}</p>
                         </div>
                     </div>
                     
@@ -134,41 +188,133 @@
         <div class="col-12">
             <div class="card text-center">
                 <div class="card-body py-5">
-                    <i class="fas fa-university fa-4x text-muted mb-3"></i>
-                    <h4>No tienes cuentas registradas</h4>
-                    <p class="text-muted mb-4">
-                        Para comenzar a operar con divisas, necesitas crear al menos una cuenta bancaria.
-                    </p>
-                    <a href="{{=URL('cuentas', 'crear')}}" class="btn btn-success btn-lg">
-                        <i class="fas fa-plus me-2"></i>Crear Mi Primera Cuenta
-                    </a>
+                    <div class="empty-state-no-data">
+                        <i class="fas fa-university fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No tienes cuentas registradas</h4>
+                        <p class="text-muted mb-4">
+                            Para comenzar a operar con divisas, necesitas crear al menos una cuenta bancaria.
+                            <br>
+                            <small>Las cuentas te permiten mantener saldos en diferentes monedas (VES, USD, EUR, USDT).</small>
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{=URL('cuentas', 'crear')}}" class="btn btn-success btn-lg">
+                                <i class="fas fa-plus me-2"></i>Crear Mi Primera Cuenta
+                            </a>
+                            <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-1"></i>Ir al Dashboard
+                            </a>
+                        </div>
+                        <div class="mt-4">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                ¿Necesitas ayuda para crear tu cuenta? Consulta la 
+                                <a href="{{=URL('default', 'ayuda')}}" class="text-decoration-none">guía de usuario</a>
+                                o contacta al soporte.
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     {{pass}}
 
-    <!-- Widget de tasas actuales -->
-    {{if tasa_actual:}}
+    <!-- Últimas transacciones -->
+    {{if ultimas_transacciones:}}
     <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="widget-tasas">
-                <h4>
-                    <i class="fas fa-chart-line me-2"></i>Tasas Actuales
-                </h4>
-                <div class="tasa-item">
-                    <span class="tasa-moneda">USD/VES</span>
-                    <span class="tasa-valor">{{="{:,.4f}".format(float(tasa_actual.usd_ves)) if tasa_actual.usd_ves else "N/A"}}</span>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Últimas Transacciones
+                    </h6>
+                    <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-sm btn-outline-primary">
+                        Ver Todas
+                    </a>
                 </div>
-                <div class="tasa-item">
-                    <span class="tasa-moneda">EUR/VES</span>
-                    <span class="tasa-valor">{{="{:,.4f}".format(float(tasa_actual.eur_ves)) if tasa_actual.eur_ves else "N/A"}}</span>
-                </div>
-                <div class="tasa-actualizacion">
-                    Actualizado: {{=tasa_actual.fecha.strftime('%d/%m/%Y') if tasa_actual.fecha else 'N/A'}}
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Monedas</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for transaccion in ultimas_transacciones:}}
+                                <tr>
+                                    <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M') if transaccion.fecha_transaccion else 'N/A'}}</td>
+                                    <td>
+                                        {{if transaccion.tipo_operacion == 'compra':}}
+                                            <span class="badge bg-success">Compra</span>
+                                        {{else:}}
+                                            <span class="badge bg-warning">Venta</span>
+                                        {{pass}}
+                                    </td>
+                                    <td>{{=transaccion.moneda_origen}} → {{=transaccion.moneda_destino}}</td>
+                                    <td>{{="{:,.2f}".format(float(transaccion.monto_origen))}} {{=transaccion.moneda_origen}}</td>
+                                    <td>
+                                        {{if transaccion.estado == 'completada':}}
+                                            <span class="badge bg-success">Completada</span>
+                                        {{elif transaccion.estado == 'pendiente':}}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        {{else:}}
+                                            <span class="badge bg-danger">{{=transaccion.estado.title()}}</span>
+                                        {{pass}}
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    {{pass}}
+
+    <!-- Widget de tasas actuales y acciones rápidas -->
+    <div class="row mt-4">
+        {{if tasa_actual:}}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Tasas Actuales
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h6 class="text-muted">USD/VES</h6>
+                            <h5 class="text-primary">{{="{:,.4f}".format(float(tasa_actual.usd_ves)) if tasa_actual.usd_ves else "N/A"}}</h5>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">EUR/VES</h6>
+                            <h5 class="text-info">{{="{:,.4f}".format(float(tasa_actual.eur_ves)) if tasa_actual.eur_ves else "N/A"}}</h5>
+                        </div>
+                    </div>
+                    {{if tasa_actual.usdt_ves:}}
+                    <div class="row text-center mt-2">
+                        <div class="col-12">
+                            <h6 class="text-muted">USDT/VES</h6>
+                            <h5 class="text-warning">{{="{:,.4f}".format(float(tasa_actual.usdt_ves))}}</h5>
+                        </div>
+                    </div>
+                    {{pass}}
+                    <div class="text-center mt-2">
+                        <small class="text-muted">
+                            Actualizado: {{=tasa_actual.fecha.strftime('%d/%m/%Y') if tasa_actual.fecha else 'N/A'}}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{pass}}
         
         <div class="col-md-6">
             <div class="card">
@@ -193,7 +339,6 @@
             </div>
         </div>
     </div>
-    {{pass}}
 </div>
 
 <style>
@@ -235,5 +380,35 @@ code {
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-family: 'Courier New', monospace;
+}
+
+/* Estilos para estados vacíos */
+.empty-state-no-data {
+    padding: 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-state-no-data i {
+    opacity: 0.6;
+}
+
+.empty-state-no-data h4 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-state-no-data p {
+    line-height: 1.6;
+}
+
+.empty-state-no-data .btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.empty-state-no-data .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
 }
 </style>

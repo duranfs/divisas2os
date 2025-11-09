@@ -41,13 +41,14 @@ else:
         # Menú específico para clientes
         response.menu.extend([
             ('Mis Cuentas', False, '#', [
-                ('Consultar Saldos', False, URL('cuentas', 'consultar')),
-                ('Movimientos', False, URL('cuentas', 'movimientos')),
-                ('Crear Nueva Cuenta', False, URL('cuentas', 'crear'))
+                ('Ver Mis Cuentas', False, URL('cuentas', 'index')),
+                ('Historial de Transacciones', False, URL('divisas', 'historial_transacciones')),
+                ('Comprar Divisas', False, URL('divisas', 'comprar')),
+                ('Vender Divisas', False, URL('divisas', 'vender'))
             ]),
             ('Mi Perfil', False, '#', [
                 ('Datos Personales', False, URL('default', 'user/profile')),
-                ('Información Bancaria', False, URL('clientes', 'perfil')),
+                ('Información Bancaria', False, URL('cuentas', 'index')),
                 ('Cambiar Contraseña', False, URL('default', 'user/change_password'))
             ])
         ])

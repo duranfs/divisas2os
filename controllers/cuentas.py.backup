@@ -1,0 +1,950 @@
+# -*- coding: utf-8 -*-
+"""
+Controlador de Cuentas Bancarias
+Sistema de Divisas Bancario
+
+Funciones principales:
+- Creación de cuentas con número único
+- Consulta de saldos por moneda
+- Historial de movimientos
+"""
+
+import random
+import string
+from datetime import datetime, timedelta
+from gluon.storage import Storage
+
+# -------------------------------------------------------------------------
+# Funciones de validación de permisos y seguridad
+# -------------------------------------------------------------------------
+
+def validate_account_access(cuenta_id, user_id, user_roles):
+    """
+    Valida que el usuario tenga acceso a la cuenta solicitada
+    Requisitos: 2.1, 7.1
+    """
+    # Validar parámetros de entrada
+    if not cuenta_id or not user_id:
+        return False, "Parámetros de acceso inválidos."
+    
+    try:
+        cuenta_id = int(cuenta_id)
+    except (ValueError, TypeError):
+        return False, "ID de cuenta inválido."
+    
+    # Administradores pueden ver cualquier cuenta
+    if 'administrador' in user_roles:
+        cuenta = db(db.cuentas.id == cuenta_id).select().first()
+        if not cuenta:
+            return False, "Cuenta no encontrada."
+        return True, None
+    
+    # Operadores pueden ver cuentas pero con restricciones
+    if 'operador' in user_roles:
+        cuenta = db(db.cuentas.id == cuenta_id).select().first()
+        if not cuenta:
+            return False, "Cuenta no encontrada."
+        return True, None
+    
+    # Clientes solo pueden ver sus propias cuentas
+    if 'cliente' in user_roles:
+        cuenta = db((db.cuentas.id == cuenta_id) & 
+                   (db.cuentas.cliente_id == db.clientes.id) &
+                   (db.clientes.user_id == user_id)).select().first()
+        if cuenta:
+            return True, None
+        else:
+            return False, "No tiene permisos para ver esta cuenta."
+    
+    return False, "No tiene permisos suficientes."
+
+def get_user_roles(user_id=None):
+    """
+    Obtiene los roles del usuario de forma segura
+    Requisitos: 7.1
+    """
+    if not user_id:
+        user_id = auth.user_id
+    
+    if not user_id:
+        return []
+    
+    try:
+        if hasattr(auth, 'user_groups') and auth.user_groups:
+            # Si user_groups contiene objetos con atributo role
+            first_value = list(auth.user_groups.values())[0] if auth.user_groups.values() else None
+            if first_value and hasattr(first_value, 'role'):
+                return [g.role for g in auth.user_groups.values()]
+            else:
+                # Si user_groups contiene strings directamente
+                return list(auth.user_groups.values())
+        else:
+            # Método alternativo: consultar directamente la base de datos
+            user_groups = db((db.auth_membership.user_id == user_id) & 
+                           (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role)
+            return [g.role for g in user_groups]
+    except Exception as e:
+        # Si hay error, asumir que no tiene roles
+        return []
+
+def validate_user_permissions(required_roles, user_id=None):
+    """
+    Valida que el usuario tenga uno de los roles requeridos
+    Requisitos: 7.1
+    """
+    if not user_id:
+        user_id = auth.user_id
+    
+    if not user_id or not auth.is_logged_in():
+        return False, "Debe iniciar sesión para acceder."
+    
+    user_roles = get_user_roles(user_id)
+    
+    # Verificar si el usuario tiene al menos uno de los roles requeridos
+    if any(role in user_roles for role in required_roles):
+        return True, None
+    
+    return False, f"Requiere uno de los siguientes roles: {', '.join(required_roles)}"
+
+def sanitize_account_search_input(input_value, max_length=100):
+    """
+    Sanitiza entradas de búsqueda para cuentas
+    Requisitos: 2.4, 7.2
+    """
+    if not input_value:
+        return ''
+    
+    # Convertir a string y limpiar espacios
+    input_str = str(input_value).strip()
+    
+    # Limitar longitud
+    if len(input_str) > max_length:
+        input_str = input_str[:max_length]
+    
+    # Escapar caracteres HTML para prevenir XSS
+    import html
+    input_str = html.escape(input_str)
+    
+    # Remover caracteres potencialmente peligrosos para SQL
+    dangerous_chars = ['\'', '"', ';', '--', '/*', '*/', 'xp_', 'sp_', 'DROP', 'DELETE', 'INSERT', 'UPDATE', 'UNION', 'SELECT']
+    for char in dangerous_chars:
+        input_str = input_str.replace(char, '')
+    
+    return input_str
+
+def sanitize_account_number_input(numero_cuenta):
+    """
+    Sanitiza entrada de número de cuenta
+    Requisitos: 7.2
+    """
+    if not numero_cuenta:
+        return ''
+    
+    numero_str = str(numero_cuenta).strip()
+    
+    # Limitar longitud (números de cuenta son de 20 dígitos)
+    if len(numero_str) > 25:
+        numero_str = numero_str[:25]
+    
+    # Escapar HTML
+    import html
+    numero_str = html.escape(numero_str)
+    
+    # Solo permitir números y guiones
+    import re
+    numero_clean = re.sub(r'[^0-9-]', '', numero_str)
+    
+    return numero_clean
+
+def sanitize_amount_input(amount_input):
+    """
+    Sanitiza entrada de montos
+    Requisitos: 7.2
+    """
+    if not amount_input:
+        return ''
+    
+    amount_str = str(amount_input).strip()
+    
+    # Escapar HTML
+    import html
+    amount_str = html.escape(amount_str)
+    
+    # Solo permitir números, punto decimal y coma
+    import re
+    amount_clean = re.sub(r'[^0-9.,]', '', amount_str)
+    
+    # Validar que sea un número válido
+    try:
+        # Reemplazar coma por punto para validación
+        amount_test = amount_clean.replace(',', '.')
+        float(amount_test)
+        return amount_clean
+    except ValueError:
+        return ''
+
+def validate_account_search_parameters(params):
+    """
+    Valida y sanitiza parámetros de búsqueda de cuentas
+    Requisitos: 2.4, 7.2
+    """
+    sanitized_params = {}
+    security_issues = []
+    
+    # Sanitizar búsqueda general
+    if 'buscar' in params:
+        original_value = params['buscar']
+        sanitized_value = sanitize_account_search_input(original_value)
+        sanitized_params['buscar'] = sanitized_value
+        
+        if original_value and original_value != sanitized_value:
+            security_issues.append(f"Búsqueda sanitizada: '{original_value}' -> '{sanitized_value}'")
+    
+    # Sanitizar número de cuenta
+    if 'numero_cuenta' in params:
+        original_value = params['numero_cuenta']
+        sanitized_value = sanitize_account_number_input(original_value)
+        sanitized_params['numero_cuenta'] = sanitized_value
+        
+        if original_value and original_value != sanitized_value:
+            security_issues.append(f"Número cuenta sanitizado: '{original_value}' -> '{sanitized_value}'")
+    
+    # Sanitizar estado (lista cerrada)
+    if 'estado' in params:
+        estado = str(params['estado']).strip().lower()
+        if estado in ['todos', 'activa', 'inactiva', 'bloqueada']:
+            sanitized_params['estado'] = estado
+        else:
+            sanitized_params['estado'] = 'todos'
+            if params['estado'] != 'todos':
+                security_issues.append(f"Estado inválido rechazado: '{params['estado']}'")
+    
+    # Sanitizar tipo de cuenta (lista cerrada)
+    if 'tipo' in params:
+        tipo = str(params['tipo']).strip().lower()
+        if tipo in ['todos', 'corriente', 'ahorro']:
+            sanitized_params['tipo'] = tipo
+        else:
+            sanitized_params['tipo'] = 'todos'
+            if params['tipo'] != 'todos':
+                security_issues.append(f"Tipo inválido rechazado: '{params['tipo']}'")
+    
+    # Sanitizar montos
+    if 'saldo_min' in params:
+        original_value = params['saldo_min']
+        sanitized_value = sanitize_amount_input(original_value)
+        sanitized_params['saldo_min'] = sanitized_value
+        
+        if original_value and original_value != sanitized_value:
+            security_issues.append(f"Saldo mínimo sanitizado: '{original_value}' -> '{sanitized_value}'")
+    
+    if 'saldo_max' in params:
+        original_value = params['saldo_max']
+        sanitized_value = sanitize_amount_input(original_value)
+        sanitized_params['saldo_max'] = sanitized_value
+        
+        if original_value and original_value != sanitized_value:
+            security_issues.append(f"Saldo máximo sanitizado: '{original_value}' -> '{sanitized_value}'")
+    
+    # Sanitizar moneda (lista cerrada)
+    if 'moneda_saldo' in params:
+        moneda = str(params['moneda_saldo']).strip().upper()
+        if moneda in ['VES', 'USD', 'EUR', 'USDT']:
+            sanitized_params['moneda_saldo'] = moneda
+        else:
+            sanitized_params['moneda_saldo'] = 'VES'
+            if params['moneda_saldo'] != 'VES':
+                security_issues.append(f"Moneda inválida rechazada: '{params['moneda_saldo']}'")
+    
+    # Sanitizar página
+    if 'page' in params:
+        try:
+            page = int(params['page'])
+            if page < 1:
+                page = 1
+            sanitized_params['page'] = page
+        except (ValueError, TypeError):
+            sanitized_params['page'] = 1
+            security_issues.append(f"Página inválida rechazada: '{params['page']}'")
+    
+    # Registrar eventos de seguridad si se detectaron problemas
+    if security_issues and auth.user:
+        log_security_event(
+            'INPUT_SANITIZATION',
+            auth.user.id,
+            f"Parámetros sanitizados en búsqueda de cuentas: {'; '.join(security_issues)}"
+        )
+    
+    return sanitized_params
+
+def log_security_event(event_type, user_id, details, ip_address=None):
+    """
+    Registra eventos de seguridad para auditoría
+    Requisitos: 7.2
+    """
+    import logging
+    
+    logger = logging.getLogger("web2py.app.security")
+    
+    if not ip_address:
+        ip_address = request.env.remote_addr or 'unknown'
+    
+    security_msg = f"SECURITY EVENT - {event_type}: Usuario {user_id} desde IP {ip_address} - {details}"
+    logger.warning(security_msg)
+    
+    # También registrar en la tabla de auditoría si existe
+    try:
+        if hasattr(db, 'logs_auditoria'):
+            db.logs_auditoria.insert(
+                usuario_id=user_id,
+                accion=f"SECURITY_{event_type}",
+                tabla_afectada='security',
+                detalles=details,
+                ip_address=ip_address,
+                fecha=datetime.now()
+            )
+            db.commit()
+    except Exception as e:
+        # No fallar si no se puede registrar en auditoría
+        logger.error(f"Error registrando evento de seguridad en auditoría: {str(e)}")
+
+# -------------------------------------------------------------------------
+# Decoradores de autenticación y autorización
+# -------------------------------------------------------------------------
+
+@auth.requires_login()
+def index():
+    """Dashboard principal de cuentas del cliente - Requisitos: 2.1, 7.1"""
+    try:
+        # Validar que el usuario sea cliente o tenga permisos administrativos
+        user_roles = get_user_roles()
+        
+        # Si es cliente, solo puede ver sus propias cuentas
+        if 'cliente' in user_roles:
+            cliente = db(db.clientes.user_id == auth.user.id).select().first()
+            if not cliente:
+                session.flash = "Debe completar su registro como cliente primero"
+                redirect(URL('clientes', 'registrar'))
+        
+        # Si es administrador u operador, puede ver cuentas específicas por parámetro
+        elif 'administrador' in user_roles or 'operador' in user_roles:
+            cliente_id = request.vars.cliente_id
+            if cliente_id:
+                try:
+                    cliente_id = int(cliente_id)
+                    cliente = db(db.clientes.id == cliente_id).select().first()
+                    if not cliente:
+                        session.flash = "Cliente no encontrado"
+                        redirect(URL('clientes', 'listar'))
+                except (ValueError, TypeError):
+                    session.flash = "ID de cliente inválido"
+                    redirect(URL('clientes', 'listar'))
+            else:
+                # Redirigir a lista de clientes para seleccionar uno
+                redirect(URL('clientes', 'listar'))
+        else:
+            session.flash = "No tiene permisos para acceder a esta sección"
+            redirect(URL('default', 'index'))
+        
+        # Log de acceso para auditoría
+        import logging
+        logger = logging.getLogger("web2py.app.cuentas")
+        logger.info(f"Acceso a dashboard de cuentas por usuario {auth.user.id} - Cliente: {cliente.id if cliente else 'N/A'}")
+        
+        # Obtener todas las cuentas del cliente con información adicional
+        cuentas = db(db.cuentas.cliente_id == cliente.id).select(
+            orderby=db.cuentas.fecha_creacion
+        )
+        
+        # Calcular totales por moneda
+        total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
+        total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
+        total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
+        total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
+        
+        # Obtener tasas actuales para mostrar equivalencias
+        tasa_actual = db(db.tasas_cambio.activa == True).select(
+            orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora
+        ).first()
+        
+        # Calcular equivalencias si hay tasas disponibles
+        equivalencias = {}
+        if tasa_actual:
+            # Convertir todo a VES como base
+            total_ves_equivalente = total_ves
+            if total_usd and tasa_actual.usd_ves:
+                total_ves_equivalente += total_usd * float(tasa_actual.usd_ves)
+            if total_eur and tasa_actual.eur_ves:
+                total_ves_equivalente += total_eur * float(tasa_actual.eur_ves)
+            if total_usdt and tasa_actual.usdt_ves:
+                total_ves_equivalente += total_usdt * float(tasa_actual.usdt_ves)
+            
+            equivalencias = {
+                'total_ves': total_ves_equivalente,
+                'total_usd': total_ves_equivalente / float(tasa_actual.usd_ves) if tasa_actual.usd_ves else 0,
+                'total_eur': total_ves_equivalente / float(tasa_actual.eur_ves) if tasa_actual.eur_ves else 0,
+                'total_usdt': total_ves_equivalente / float(tasa_actual.usdt_ves) if tasa_actual.usdt_ves else 0
+            }
+        
+        # Obtener últimas transacciones del cliente
+        ultimas_transacciones = []
+        if cuentas:
+            cuenta_ids = [cuenta.id for cuenta in cuentas]
+            ultimas_transacciones = db(db.transacciones.cuenta_id.belongs(cuenta_ids)).select(
+                orderby=~db.transacciones.fecha_transaccion,
+                limitby=(0, 5)
+            )
+        
+        # Estadísticas del cliente
+        stats = {
+            'total_cuentas': len(cuentas),
+            'cuentas_activas': len([c for c in cuentas if c.estado == 'activa']),
+            'total_transacciones': len(ultimas_transacciones)
+        }
+        
+        return dict(
+            cuentas=cuentas,
+            cliente=cliente,
+            total_ves=total_ves,
+            total_usd=total_usd,
+            total_eur=total_eur,
+            total_usdt=total_usdt,
+            tasa_actual=tasa_actual,
+            equivalencias=equivalencias,
+            ultimas_transacciones=ultimas_transacciones,
+            stats=stats
+        )
+        
+    except Exception as e:
+        # Log del error
+        import logging
+        logger = logging.getLogger("web2py.app.cuentas")
+        logger.error(f"Error al cargar dashboard de cuentas del cliente: {str(e)}")
+        
+        # Mostrar mensaje de error al usuario
+        response.flash = "Error al cargar sus cuentas. Intente nuevamente."
+        return dict(
+            cuentas=[],
+            cliente=None,
+            total_ves=0,
+            total_usd=0,
+            total_eur=0,
+            total_usdt=0,
+            tasa_actual=None,
+            equivalencias={},
+            ultimas_transacciones=[],
+            stats={'total_cuentas': 0, 'cuentas_activas': 0, 'total_transacciones': 0},
+            error_message="No se pudieron cargar los datos de sus cuentas."
+        )
+
+@auth.requires_login()
+def crear():
+    """Crear nueva cuenta bancaria"""
+    # Verificar que el usuario sea cliente registrado
+    cliente = db(db.clientes.user_id == auth.user.id).select().first()
+    
+    if not cliente:
+        session.flash = "Debe completar su registro como cliente primero"
+        redirect(URL('clientes', 'registrar'))
+    
+    # Crear formulario
+    form = SQLFORM(db.cuentas, fields=['tipo_cuenta'])
+    form.vars.cliente_id = cliente.id
+    
+    if form.process().accepted:
+        # Generar número de cuenta único
+        numero_cuenta = generar_numero_cuenta()
+        
+        # Obtener el ID de la cuenta recién creada
+        cuenta_id = form.vars.id
+        if not cuenta_id:
+            # Si no está disponible en form.vars, buscar la cuenta más reciente del cliente
+            cuenta_reciente = db(db.cuentas.cliente_id == cliente.id).select(
+                orderby=~db.cuentas.id,
+                limitby=(0, 1)
+            ).first()
+            cuenta_id = cuenta_reciente.id if cuenta_reciente else None
+        
+        if cuenta_id:
+            # Actualizar el registro con el número de cuenta generado
+            db(db.cuentas.id == cuenta_id).update(numero_cuenta=numero_cuenta)
+            session.flash = f"Cuenta creada exitosamente. Número: {numero_cuenta}"
+        else:
+            session.flash = "Cuenta creada pero no se pudo asignar número. Contacte al administrador."
+        
+        redirect(URL('cuentas', 'index'))
+    elif form.errors:
+        response.flash = "Por favor corrija los errores en el formulario"
+    
+    return dict(form=form, cliente=cliente)
+
+@auth.requires_login()
+def consultar():
+    """Consultar saldos de una cuenta específica - Requisitos: 2.1, 7.1"""
+    cuenta_id = request.args(0)
+    
+    if not cuenta_id:
+        session.flash = "Debe especificar una cuenta"
+        redirect(URL('cuentas', 'index'))
+    
+    # Validar acceso a la cuenta con función mejorada
+    user_roles = get_user_roles()
+    has_access, access_error = validate_account_access(cuenta_id, auth.user.id, user_roles)
+    
+    if not has_access:
+        session.flash = access_error
+        redirect(URL('default', 'index'))
+    
+    # Obtener la cuenta (ya validada)
+    cuenta = db(db.cuentas.id == cuenta_id).select().first()
+    
+    if not cuenta:
+        session.flash = "Cuenta no encontrada"
+        redirect(URL('cuentas', 'index'))
+    
+    # Log de acceso para auditoría
+    import logging
+    logger = logging.getLogger("web2py.app.cuentas")
+    logger.info(f"Consulta de saldos de cuenta {cuenta_id} por usuario {auth.user.id}")
+    
+    # Obtener tasas actuales para conversiones
+    tasa_actual = db(db.tasas_cambio.activa == True).select(
+        orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora
+    ).first()
+    
+    # Calcular equivalencias si hay tasas disponibles
+    equivalencias = {}
+    if tasa_actual:
+        # Convertir todo a VES como base (convertir a float para evitar errores de tipos)
+        total_ves_equivalente = float(cuenta.saldo_ves or 0)
+        if cuenta.saldo_usd:
+            total_ves_equivalente += float(cuenta.saldo_usd) * float(tasa_actual.usd_ves)
+        if cuenta.saldo_eur:
+            total_ves_equivalente += float(cuenta.saldo_eur) * float(tasa_actual.eur_ves)
+        
+        equivalencias = {
+            'total_ves': total_ves_equivalente,
+            'total_usd': total_ves_equivalente / float(tasa_actual.usd_ves) if tasa_actual.usd_ves else 0,
+            'total_eur': total_ves_equivalente / float(tasa_actual.eur_ves) if tasa_actual.eur_ves else 0
+        }
+    
+    return dict(
+        cuenta=cuenta,
+        cliente=cliente,
+        tasa_actual=tasa_actual,
+        equivalencias=equivalencias
+    )
+
+@auth.requires_login()
+def movimientos():
+    """Historial de movimientos de una cuenta"""
+    cuenta_id = request.args(0)
+    
+    if not cuenta_id:
+        session.flash = "Debe especificar una cuenta"
+        redirect(URL('cuentas', 'index'))
+    
+    # Verificar que la cuenta pertenezca al cliente actual
+    cliente = db(db.clientes.user_id == auth.user.id).select().first()
+    
+    if not cliente:
+        session.flash = "Acceso no autorizado"
+        redirect(URL('default', 'index'))
+    
+    cuenta = db(
+        (db.cuentas.id == cuenta_id) & 
+        (db.cuentas.cliente_id == cliente.id)
+    ).select().first()
+    
+    if not cuenta:
+        session.flash = "Cuenta no encontrada o acceso no autorizado"
+        redirect(URL('cuentas', 'index'))
+    
+    # Parámetros de filtrado
+    fecha_desde = request.vars.fecha_desde
+    fecha_hasta = request.vars.fecha_hasta
+    tipo_operacion = request.vars.tipo_operacion
+    moneda = request.vars.moneda
+    
+    # Construir query base
+    query = (db.transacciones.cuenta_id == cuenta.id)
+    
+    # Aplicar filtros
+    if fecha_desde:
+        try:
+            fecha_desde_dt = datetime.strptime(fecha_desde, '%Y-%m-%d')
+            query &= (db.transacciones.fecha_transaccion >= fecha_desde_dt)
+        except ValueError:
+            pass
+    
+    if fecha_hasta:
+        try:
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, '%Y-%m-%d') + timedelta(days=1)
+            query &= (db.transacciones.fecha_transaccion < fecha_hasta_dt)
+        except ValueError:
+            pass
+    
+    if tipo_operacion and tipo_operacion != 'todos':
+        query &= (db.transacciones.tipo_operacion == tipo_operacion)
+    
+    if moneda and moneda != 'todas':
+        query &= ((db.transacciones.moneda_origen == moneda) | 
+                 (db.transacciones.moneda_destino == moneda))
+    
+    # Obtener transacciones con paginación
+    page = int(request.vars.page or 1)
+    items_per_page = 20
+    
+    transacciones = db(query).select(
+        orderby=~db.transacciones.fecha_transaccion,
+        limitby=((page-1)*items_per_page, page*items_per_page)
+    )
+    
+    # Contar total para paginación
+    total_transacciones = db(query).count()
+    total_pages = (total_transacciones + items_per_page - 1) // items_per_page
+    
+    return dict(
+        cuenta=cuenta,
+        cliente=cliente,
+        transacciones=transacciones,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        tipo_operacion=tipo_operacion,
+        moneda=moneda,
+        page=page,
+        total_pages=total_pages,
+        total_transacciones=total_transacciones
+    )
+
+@auth.requires_login()
+def detalle():
+    """Ver detalles de una cuenta específica"""
+    cuenta_id = request.args(0)
+    
+    if not cuenta_id:
+        session.flash = "Debe especificar una cuenta"
+        redirect(URL('cuentas', 'index'))
+    
+    # Verificar que la cuenta pertenezca al cliente actual
+    cliente = db(db.clientes.user_id == auth.user.id).select().first()
+    
+    if not cliente:
+        session.flash = "Acceso no autorizado"
+        redirect(URL('default', 'index'))
+    
+    cuenta = db(
+        (db.cuentas.id == cuenta_id) & 
+        (db.cuentas.cliente_id == cliente.id)
+    ).select().first()
+    
+    if not cuenta:
+        session.flash = "Cuenta no encontrada o acceso no autorizado"
+        redirect(URL('cuentas', 'index'))
+    
+    # Obtener últimas 5 transacciones
+    ultimas_transacciones = db(db.transacciones.cuenta_id == cuenta.id).select(
+        orderby=~db.transacciones.fecha_transaccion,
+        limitby=(0, 5)
+    )
+    
+    # Obtener estadísticas del mes actual
+    inicio_mes = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    transacciones_mes = db(
+        (db.transacciones.cuenta_id == cuenta.id) &
+        (db.transacciones.fecha_transaccion >= inicio_mes)
+    ).select()
+    
+    estadisticas_mes = {
+        'total_transacciones': len(transacciones_mes),
+        'compras': len([t for t in transacciones_mes if t.tipo_operacion == 'compra']),
+        'ventas': len([t for t in transacciones_mes if t.tipo_operacion == 'venta']),
+        'monto_total_ves': sum([t.monto_origen if t.moneda_origen == 'VES' else t.monto_destino 
+                               for t in transacciones_mes if 'VES' in [t.moneda_origen, t.moneda_destino]])
+    }
+    
+    return dict(
+        cuenta=cuenta,
+        cliente=cliente,
+        ultimas_transacciones=ultimas_transacciones,
+        estadisticas_mes=estadisticas_mes
+    )
+
+# -------------------------------------------------------------------------
+# Funciones administrativas (requieren rol de administrador)
+# -------------------------------------------------------------------------
+
+@auth.requires_membership('administrador')
+def listar_todas():
+    """Listar todas las cuentas del sistema (solo administradores) - Requisitos: 2.1, 7.1"""
+    try:
+        # Validación adicional de permisos
+        has_permission, error_msg = validate_user_permissions(['administrador'])
+        if not has_permission:
+            session.flash = error_msg
+            redirect(URL('default', 'index'))
+        
+        # Log de acceso para auditoría
+        import logging
+        logger = logging.getLogger("web2py.app.cuentas")
+        logger.info(f"Acceso a lista completa de cuentas por administrador {auth.user.id} ({auth.user.email})")
+        # Sanitizar y validar parámetros de búsqueda
+        raw_params = {
+            'buscar': request.vars.buscar,
+            'numero_cuenta': request.vars.numero_cuenta,
+            'estado': request.vars.estado,
+            'tipo': request.vars.tipo,
+            'saldo_min': request.vars.saldo_min,
+            'saldo_max': request.vars.saldo_max,
+            'moneda_saldo': request.vars.moneda_saldo,
+            'page': request.vars.page
+        }
+        
+        # Aplicar sanitización completa
+        sanitized_params = validate_account_search_parameters(raw_params)
+        
+        # Extraer parámetros sanitizados
+        buscar = sanitized_params.get('buscar', '')
+        numero_cuenta = sanitized_params.get('numero_cuenta', '')
+        estado = sanitized_params.get('estado', 'todos')
+        tipo = sanitized_params.get('tipo', 'todos')
+        saldo_min = sanitized_params.get('saldo_min', '')
+        saldo_max = sanitized_params.get('saldo_max', '')
+        moneda_saldo = sanitized_params.get('moneda_saldo', 'VES')
+        page = sanitized_params.get('page', 1)
+        
+        # Query base con JOIN explícito para obtener datos del cliente
+        query = (db.cuentas.cliente_id == db.clientes.id) & \
+                (db.clientes.user_id == db.auth_user.id)
+        
+        # Aplicar filtros de búsqueda general
+        if buscar:
+            query &= ((db.cuentas.numero_cuenta.contains(buscar)) |
+                     (db.clientes.cedula.contains(buscar)) |
+                     (db.auth_user.first_name.contains(buscar)) |
+                     (db.auth_user.last_name.contains(buscar)) |
+                     (db.auth_user.email.contains(buscar)))
+        
+        # Filtro específico por número de cuenta
+        if numero_cuenta:
+            query &= (db.cuentas.numero_cuenta.contains(numero_cuenta))
+        
+        # Filtros por estado y tipo
+        if estado != 'todos':
+            query &= (db.cuentas.estado == estado)
+        
+        if tipo != 'todos':
+            query &= (db.cuentas.tipo_cuenta == tipo)
+        
+        # Filtros por rango de saldos
+        if saldo_min:
+            try:
+                saldo_min_val = float(saldo_min)
+                if moneda_saldo == 'VES':
+                    query &= (db.cuentas.saldo_ves >= saldo_min_val)
+                elif moneda_saldo == 'USD':
+                    query &= (db.cuentas.saldo_usd >= saldo_min_val)
+                elif moneda_saldo == 'EUR':
+                    query &= (db.cuentas.saldo_eur >= saldo_min_val)
+                elif moneda_saldo == 'USDT':
+                    query &= (db.cuentas.saldo_usdt >= saldo_min_val)
+            except (ValueError, TypeError):
+                pass  # Ignorar valores inválidos
+        
+        if saldo_max:
+            try:
+                saldo_max_val = float(saldo_max)
+                if moneda_saldo == 'VES':
+                    query &= (db.cuentas.saldo_ves <= saldo_max_val)
+                elif moneda_saldo == 'USD':
+                    query &= (db.cuentas.saldo_usd <= saldo_max_val)
+                elif moneda_saldo == 'EUR':
+                    query &= (db.cuentas.saldo_eur <= saldo_max_val)
+                elif moneda_saldo == 'USDT':
+                    query &= (db.cuentas.saldo_usdt <= saldo_max_val)
+            except (ValueError, TypeError):
+                pass  # Ignorar valores inválidos
+        
+        # Configurar paginación (página ya sanitizada)
+        items_per_page = 25
+        
+        cuentas = db(query).select(
+            db.cuentas.ALL,
+            db.clientes.cedula,
+            db.auth_user.first_name,
+            db.auth_user.last_name,
+            db.auth_user.email,
+            orderby=~db.cuentas.fecha_creacion,
+            limitby=((page-1)*items_per_page, page*items_per_page)
+        )
+        
+        # Contar total para paginación
+        total_cuentas = db(query).count()
+        total_pages = (total_cuentas + items_per_page - 1) // items_per_page
+        
+        # Obtener estadísticas generales
+        stats = Storage(
+            total=db(db.cuentas.id > 0).count(),
+            activas=db(db.cuentas.estado == 'activa').count(),
+            inactivas=db(db.cuentas.estado == 'inactiva').count(),
+            corrientes=db(db.cuentas.tipo_cuenta == 'corriente').count(),
+            ahorros=db(db.cuentas.tipo_cuenta == 'ahorro').count()
+        )
+        
+        return dict(
+            cuentas=cuentas,
+            buscar=buscar,
+            numero_cuenta=numero_cuenta,
+            estado=estado,
+            tipo=tipo,
+            saldo_min=saldo_min,
+            saldo_max=saldo_max,
+            moneda_saldo=moneda_saldo,
+            page=page,
+            total_pages=total_pages,
+            total_cuentas=total_cuentas,
+            stats=stats
+        )
+        
+    except Exception as e:
+        # Log del error
+        import logging
+        logger = logging.getLogger("web2py.app.cuentas")
+        logger.error(f"Error al obtener lista de cuentas: {str(e)}")
+        
+        # Mostrar mensaje de error al usuario
+        response.flash = "Error al cargar la lista de cuentas. Intente nuevamente."
+        return dict(
+            cuentas=[],
+            error_message="No se pudieron cargar los datos de cuentas.",
+            buscar='',
+            numero_cuenta='',
+            estado='todos',
+            tipo='todos',
+            saldo_min='',
+            saldo_max='',
+            moneda_saldo='VES',
+            page=1,
+            total_pages=0,
+            total_cuentas=0,
+            stats=Storage(total=0, activas=0, inactivas=0, corrientes=0, ahorros=0)
+        )
+
+@auth.requires_membership('administrador')
+def gestionar():
+    """Gestionar cuenta específica (solo administradores)"""
+    cuenta_id = request.args(0)
+    
+    if not cuenta_id:
+        session.flash = "Debe especificar una cuenta"
+        redirect(URL('cuentas', 'listar_todas'))
+    
+    # Obtener cuenta
+    cuenta_record = db(db.cuentas.id == cuenta_id).select().first()
+    
+    if not cuenta_record:
+        session.flash = "Cuenta no encontrada"
+        redirect(URL('cuentas', 'listar_todas'))
+    
+    # Obtener cliente asociado
+    cliente = db(db.clientes.id == cuenta_record.cliente_id).select().first()
+    if not cliente:
+        session.flash = "Cliente no encontrado"
+        redirect(URL('cuentas', 'listar_todas'))
+    
+    # Obtener usuario asociado
+    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+    if not usuario:
+        session.flash = "Usuario no encontrado"
+        redirect(URL('cuentas', 'listar_todas'))
+    
+    # Formulario para editar estado y saldos
+    form = SQLFORM(db.cuentas, cuenta_record.id, 
+                   fields=['estado', 'saldo_ves', 'saldo_usd', 'saldo_eur'],
+                   showid=False)
+    
+    if form.process().accepted:
+        session.flash = "Cuenta actualizada exitosamente"
+        redirect(URL('cuentas', 'gestionar', args=[cuenta_id]))
+    elif form.errors:
+        response.flash = "Por favor corrija los errores en el formulario"
+    
+    # Obtener últimas transacciones
+    transacciones = db(db.transacciones.cuenta_id == cuenta_id).select(
+        orderby=~db.transacciones.fecha_transaccion,
+        limitby=(0, 10)
+    )
+    
+    return dict(
+        cuenta=cuenta_record,
+        cliente=cliente,
+        usuario=usuario,
+        form=form,
+        transacciones=transacciones
+    )
+
+# -------------------------------------------------------------------------
+# Funciones auxiliares
+# -------------------------------------------------------------------------
+
+def generar_numero_cuenta():
+    """Generar número de cuenta único de 20 dígitos"""
+    while True:
+        # Generar número aleatorio de 20 dígitos
+        numero = ''.join([str(random.randint(0, 9)) for _ in range(20)])
+        
+        # Verificar que no exista en la base de datos
+        if db(db.cuentas.numero_cuenta == numero).isempty():
+            return numero
+
+def obtener_saldo_cuenta(cuenta_id, moneda):
+    """Obtener saldo de una cuenta en una moneda específica"""
+    cuenta = db(db.cuentas.id == cuenta_id).select().first()
+    
+    if not cuenta:
+        return 0
+    
+    if moneda == 'VES':
+        return cuenta.saldo_ves or 0
+    elif moneda == 'USD':
+        return cuenta.saldo_usd or 0
+    elif moneda == 'EUR':
+        return cuenta.saldo_eur or 0
+    else:
+        return 0
+
+def actualizar_saldo_cuenta(cuenta_id, moneda, monto, operacion='suma'):
+    """Actualizar saldo de una cuenta"""
+    cuenta = db(db.cuentas.id == cuenta_id).select().first()
+    
+    if not cuenta:
+        return False
+    
+    saldo_actual = obtener_saldo_cuenta(cuenta_id, moneda)
+    
+    if operacion == 'suma':
+        nuevo_saldo = saldo_actual + monto
+    elif operacion == 'resta':
+        nuevo_saldo = saldo_actual - monto
+        if nuevo_saldo < 0:
+            return False  # No permitir saldos negativos
+    else:
+        return False
+    
+    # Actualizar según la moneda
+    if moneda == 'VES':
+        db(db.cuentas.id == cuenta_id).update(saldo_ves=nuevo_saldo)
+    elif moneda == 'USD':
+        db(db.cuentas.id == cuenta_id).update(saldo_usd=nuevo_saldo)
+    elif moneda == 'EUR':
+        db(db.cuentas.id == cuenta_id).update(saldo_eur=nuevo_saldo)
+    else:
+        return False
+    
+    return True
+
+def validar_fondos_suficientes(cuenta_id, moneda, monto):
+    """Validar si una cuenta tiene fondos suficientes"""
+    saldo_actual = obtener_saldo_cuenta(cuenta_id, moneda)
+    return saldo_actual >= monto

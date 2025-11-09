@@ -1,0 +1,108 @@
+{{extend 'layout.html'}}
+
+<div class="dashboard-header">
+  <h1><i class="fas fa-plus-circle me-3"></i>Registrar Nueva Remesa</h1>
+  <p class="lead">Registro de remesas recibidas para operaciones de divisas</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card-resumen">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Datos de la Remesa</h5>
+      </div>
+      <div class="card-body">
+        
+        <!-- Información importante -->
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Importante:</strong> Registre la remesa recibida con todos los detalles. 
+          Esta información se utilizará para controlar la disponibilidad de divisas para venta.
+        </div>
+        
+        {{=form}}
+        
+        <!-- Ayuda contextual -->
+        <div class="mt-4">
+          <h6 class="text-muted">Guía de Campos:</h6>
+          <ul class="small text-muted">
+            <li><strong>Fecha:</strong> Fecha en que se recibió la remesa</li>
+            <li><strong>Moneda:</strong> Tipo de divisa recibida (USD, EUR o USDT)</li>
+            <li><strong>Monto Recibido:</strong> Cantidad total de divisas recibidas</li>
+            <li><strong>Fuente de Remesa:</strong> Banco corresponsal o entidad que envió la remesa</li>
+            <li><strong>Número de Referencia:</strong> Código o número de tracking de la remesa</li>
+            <li><strong>Observaciones:</strong> Cualquier detalle adicional relevante</li>
+          </ul>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="mt-4 text-center">
+          <a href="{{=URL('index')}}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Cancelar
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Remesas recientes -->
+    <div class="card-resumen mt-4">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Últimas Remesas Registradas</h6>
+      </div>
+      <div class="card-body">
+        {{
+        ultimas_remesas = db(db.remesas_diarias.id > 0).select(
+          orderby=~db.remesas_diarias.fecha_registro,
+          limitby=(0, 5)
+        )
+        }}
+        
+        {{if ultimas_remesas:}}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Moneda</th>
+                <th>Monto</th>
+                <th>Fuente</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for remesa in ultimas_remesas:}}
+              <tr>
+                <td>{{=remesa.fecha.strftime('%d/%m/%Y')}}</td>
+                <td><span class="badge bg-{{='success' if remesa.moneda == 'USD' else 'primary' if remesa.moneda == 'EUR' else 'warning'}}">{{=remesa.moneda}}</span></td>
+                <td>{{="{:,.2f}".format(float(remesa.monto_recibido))}}</td>
+                <td><small>{{=remesa.fuente_remesa or 'N/A'}}</small></td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        {{else:}}
+        <p class="text-muted text-center mb-0">No hay remesas registradas aún</p>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card-resumen {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.form-control, .form-select {
+  border-radius: 8px;
+  padding: 10px 15px;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 10px 25px;
+  font-weight: 600;
+}
+</style>

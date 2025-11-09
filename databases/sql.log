@@ -343,3 +343,51 @@ success!
 timestamp: 2025-10-25T11:52:04.691698
 ALTER TABLE "tasas_cambio" ADD "usdt_ves" DOUBLE;
 success!
+timestamp: 2025-11-09T10:51:03.200125
+CREATE TABLE "remesas_diarias"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "fecha" DATE NOT NULL DEFAULT '2025-11-09',
+    "moneda" CHAR(10) NOT NULL,
+    "monto_recibido" DOUBLE NOT NULL DEFAULT 0,
+    "monto_disponible" DOUBLE NOT NULL DEFAULT 0,
+    "monto_vendido" DOUBLE NOT NULL DEFAULT 0,
+    "monto_reservado" DOUBLE NOT NULL DEFAULT 0,
+    "fuente_remesa" CHAR(100),
+    "numero_referencia" CHAR(50),
+    "observaciones" TEXT,
+    "usuario_registro" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "fecha_registro" TIMESTAMP,
+    "activa" CHAR(1)
+);
+timestamp: 2025-11-09T10:51:05.930182
+CREATE TABLE "remesas_diarias"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "fecha" DATE NOT NULL DEFAULT '2025-11-09',
+    "moneda" CHAR(10) NOT NULL,
+    "monto_recibido" DOUBLE NOT NULL DEFAULT 0,
+    "monto_disponible" DOUBLE NOT NULL DEFAULT 0,
+    "monto_vendido" DOUBLE NOT NULL DEFAULT 0,
+    "monto_reservado" DOUBLE NOT NULL DEFAULT 0,
+    "fuente_remesa" CHAR(100),
+    "numero_referencia" CHAR(50),
+    "observaciones" TEXT,
+    "usuario_registro" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "fecha_registro" TIMESTAMP,
+    "activa" CHAR(1)
+);
+timestamp: 2025-11-09T10:51:22.465245
+CREATE TABLE "remesas_diarias"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "fecha" DATE NOT NULL DEFAULT '2025-11-09',
+    "moneda" CHAR(10) NOT NULL,
+    "monto_recibido" DOUBLE NOT NULL DEFAULT 0,
+    "monto_disponible" DOUBLE NOT NULL DEFAULT 0,
+    "monto_vendido" DOUBLE NOT NULL DEFAULT 0,
+    "monto_reservado" DOUBLE NOT NULL DEFAULT 0,
+    "fuente_remesa" CHAR(100),
+    "numero_referencia" CHAR(50),
+    "observaciones" TEXT,
+    "usuario_registro" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ,
+    "fecha_registro" TIMESTAMP,
+    "activa" CHAR(1)
+);

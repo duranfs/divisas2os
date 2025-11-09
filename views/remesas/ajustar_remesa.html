@@ -1,0 +1,184 @@
+{{extend 'layout.html'}}
+
+<div class="dashboard-header">
+  <h1><i class="fas fa-edit me-3"></i>Ajustar Remesa</h1>
+  <p class="lead">Realizar ajuste manual en remesa existente</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    
+    <!-- Información de la remesa -->
+    <div class="card-resumen">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información de la Remesa</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <h6 class="text-muted">Fecha</h6>
+            <p><strong>{{=remesa.fecha.strftime('%d/%m/%Y')}}</strong></p>
+          </div>
+          <div class="col-md-3">
+            <h6 class="text-muted">Moneda</h6>
+            <p>
+              <span class="badge bg-{{='success' if remesa.moneda == 'USD' else 'primary' if remesa.moneda == 'EUR' else 'warning'}} fs-6">
+                {{=remesa.moneda}}
+              </span>
+            </p>
+          </div>
+          <div class="col-md-3">
+            <h6 class="text-muted">Monto Recibido</h6>
+            <p><strong>{{="{:,.2f}".format(float(remesa.monto_recibido))}}</strong></p>
+          </div>
+          <div class="col-md-3">
+            <h6 class="text-muted">Disponible Actual</h6>
+            <p class="text-success"><strong>{{="{:,.2f}".format(float(remesa.monto_disponible))}}</strong></p>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-muted">Fuente</h6>
+            <p>{{=remesa.fuente_remesa or 'N/A'}}</p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-muted">Referencia</h6>
+            <p>{{=remesa.numero_referencia or 'N/A'}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Alerta de precaución -->
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <strong>¡Precaución!</strong> Los ajustes manuales afectan directamente la disponibilidad de la remesa. 
+      Asegúrese de documentar correctamente el motivo del ajuste. Esta acción quedará registrada en el historial de auditoría.
+    </div>
+    
+    <!-- Formulario de ajuste -->
+    <div class="card-resumen">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Realizar Ajuste</h5>
+      </div>
+      <div class="card-body">
+        {{=form}}
+        
+        <!-- Ejemplos de uso -->
+        <div class="mt-4">
+          <h6 class="text-muted">Ejemplos de Ajustes:</h6>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card border-success mb-2">
+                <div class="card-body">
+                  <h6 class="text-success"><i class="fas fa-plus-circle me-1"></i>INCREMENTO</h6>
+                  <small class="text-muted">
+                    - Remesa adicional recibida<br>
+                    - Corrección de error de registro<br>
+                    - Devolución de venta cancelada
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card border-danger mb-2">
+                <div class="card-body">
+                  <h6 class="text-danger"><i class="fas fa-minus-circle me-1"></i>DECREMENTO</h6>
+                  <small class="text-muted">
+                    - Corrección de monto erróneo<br>
+                    - Comisiones bancarias<br>
+                    - Ajuste por diferencia cambiaria
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Historial de ajustes de esta remesa -->
+    <div class="card-resumen mt-4">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Historial de Movimientos de esta Remesa</h6>
+      </div>
+      <div class="card-body">
+        {{
+        movimientos_remesa = db(
+          db.movimientos_remesas.remesa_id == remesa.id
+        ).select(orderby=~db.movimientos_remesas.fecha_movimiento)
+        }}
+        
+        {{if movimientos_remesa:}}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Fecha/Hora</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Saldo</th>
+                <th>Usuario</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for mov in movimientos_remesa:}}
+              <tr>
+                <td>
+                  <small>
+                    {{=mov.fecha_movimiento.strftime('%d/%m/%Y %H:%M')}}
+                  </small>
+                </td>
+                <td>
+                  <span class="badge bg-{{='success' if mov.tipo_movimiento == 'RECEPCION' else 'danger' if mov.tipo_movimiento == 'VENTA' else 'warning'}}">
+                    {{=mov.tipo_movimiento}}
+                  </span>
+                </td>
+                <td class="{{='text-success' if mov.tipo_movimiento in ['RECEPCION', 'DEVOLUCION'] else 'text-danger'}}">
+                  {{="{:,.2f}".format(float(mov.monto))}}
+                </td>
+                <td><strong>{{="{:,.2f}".format(float(mov.saldo_nuevo))}}</strong></td>
+                <td>
+                  <small>
+                    {{
+                    usuario = db.auth_user[mov.usuario] if mov.usuario else None
+                    }}
+                    {{=usuario.first_name if usuario else 'Sistema'}}
+                  </small>
+                </td>
+                <td><small>{{=mov.descripcion[:50] + '...' if len(mov.descripcion or '') > 50 else mov.descripcion or '-'}}</small></td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        {{else:}}
+        <p class="text-muted text-center mb-0">No hay movimientos registrados para esta remesa</p>
+        {{pass}}
+      </div>
+    </div>
+    
+    <!-- Botón volver -->
+    <div class="text-center mt-4">
+      <a href="{{=URL('index')}}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+.card-resumen {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.fs-6 {
+  font-size: 1.1rem;
+}
+</style>

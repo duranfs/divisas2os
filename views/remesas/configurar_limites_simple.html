@@ -1,0 +1,387 @@
+{{extend 'layout.html'}}
+
+<div class="dashboard-header">
+  <h1><i class="fas fa-sliders-h me-3"></i>Configurar Límites de Venta</h1>
+  <p class="lead">Define cuánto puedes vender hoy de cada moneda</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    
+    <!-- Explicación simple -->
+    <div class="alert alert-info">
+      <h5><i class="fas fa-lightbulb me-2"></i>¿Qué es un límite de venta?</h5>
+      <p class="mb-2">
+        Es el <strong>monto máximo</strong> que puedes vender hoy de cada moneda.
+      </p>
+      <p class="mb-0">
+        <strong>Ejemplo:</strong> Si configuras límite de $5,000 USD, solo podrás vender hasta $5,000 hoy, 
+        aunque tengas $10,000 disponibles. El sistema te bloqueará automáticamente cuando llegues al límite.
+      </p>
+    </div>
+    
+    <!-- Configuración rápida por moneda -->
+    <div class="row">
+      
+      <!-- USD -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-success">
+          <div class="card-header bg-success text-white text-center">
+            <h4 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>USD</h4>
+          </div>
+          <div class="card-body">
+            {{
+            remesa_usd = db(
+              (db.remesas_diarias.fecha == request.now.date()) &
+              (db.remesas_diarias.moneda == 'USD') &
+              (db.remesas_diarias.activa == True)
+            ).select().first()
+            
+            limite_usd = db(
+              (db.limites_venta.fecha == request.now.date()) &
+              (db.limites_venta.moneda == 'USD') &
+              (db.limites_venta.activo == True)
+            ).select().first()
+            }}
+            
+            {{if remesa_usd:}}
+              <div class="mb-3">
+                <small class="text-muted">Remesa disponible hoy:</small>
+                <h3 class="text-success mb-0">${{="{:,.2f}".format(float(remesa_usd.monto_disponible))}}</h3>
+              </div>
+              
+              {{if limite_usd:}}
+                <div class="alert alert-warning mb-3">
+                  <strong>Límite actual:</strong> ${{="{:,.2f}".format(float(limite_usd.limite_diario))}}
+                  <br>
+                  <small>Vendido: ${{="{:,.2f}".format(float(limite_usd.monto_vendido))}}</small>
+                  <br>
+                  <small>Disponible: ${{="{:,.2f}".format(float(limite_usd.monto_disponible))}}</small>
+                  <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress-bar {{='bg-success' if float(limite_usd.porcentaje_utilizado) < 80 else 'bg-warning' if float(limite_usd.porcentaje_utilizado) < 95 else 'bg-danger'}}" 
+                         style="width: {{=limite_usd.porcentaje_utilizado}}%">
+                      {{="{:.0f}".format(float(limite_usd.porcentaje_utilizado))}}%
+                    </div>
+                  </div>
+                </div>
+              {{pass}}
+              
+              <form method="post" action="{{=URL('configurar_limite_simple')}}">
+                <input type="hidden" name="moneda" value="USD">
+                <div class="mb-3">
+                  <label class="form-label"><strong>Límite de venta para HOY:</strong></label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" 
+                           name="limite_diario" 
+                           class="form-control form-control-lg" 
+                           step="0.01" 
+                           min="0" 
+                           max="{{=float(remesa_usd.monto_disponible)}}"
+                           placeholder="Ej: 5000.00"
+                           value="{{=float(limite_usd.limite_diario) if limite_usd else ''}}"
+                           required>
+                  </div>
+                  <small class="text-muted">Máximo: ${{="{:,.2f}".format(float(remesa_usd.monto_disponible))}}</small>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg w-100">
+                  <i class="fas fa-save me-2"></i>{{='Actualizar' if limite_usd else 'Configurar'}} Límite
+                </button>
+              </form>
+              
+              <!-- Botones rápidos -->
+              <div class="mt-3">
+                <small class="text-muted d-block mb-2">Configuración rápida:</small>
+                <div class="btn-group w-100" role="group">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USD', {{=float(remesa_usd.monto_disponible) * 0.5}})">
+                    50%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USD', {{=float(remesa_usd.monto_disponible) * 0.75}})">
+                    75%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USD', {{=float(remesa_usd.monto_disponible) * 0.9}})">
+                    90%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USD', {{=float(remesa_usd.monto_disponible)}})">
+                    100%
+                  </button>
+                </div>
+              </div>
+            {{else:}}
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No hay remesa de USD registrada para hoy.
+                <br>
+                <a href="{{=URL('registrar_remesa')}}" class="btn btn-sm btn-danger mt-2">
+                  Registrar Remesa
+                </a>
+              </div>
+            {{pass}}
+          </div>
+        </div>
+      </div>
+      
+      <!-- EUR -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-primary">
+          <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0"><i class="fas fa-euro-sign me-2"></i>EUR</h4>
+          </div>
+          <div class="card-body">
+            {{
+            remesa_eur = db(
+              (db.remesas_diarias.fecha == request.now.date()) &
+              (db.remesas_diarias.moneda == 'EUR') &
+              (db.remesas_diarias.activa == True)
+            ).select().first()
+            
+            limite_eur = db(
+              (db.limites_venta.fecha == request.now.date()) &
+              (db.limites_venta.moneda == 'EUR') &
+              (db.limites_venta.activo == True)
+            ).select().first()
+            }}
+            
+            {{if remesa_eur:}}
+              <div class="mb-3">
+                <small class="text-muted">Remesa disponible hoy:</small>
+                <h3 class="text-primary mb-0">€{{="{:,.2f}".format(float(remesa_eur.monto_disponible))}}</h3>
+              </div>
+              
+              {{if limite_eur:}}
+                <div class="alert alert-warning mb-3">
+                  <strong>Límite actual:</strong> €{{="{:,.2f}".format(float(limite_eur.limite_diario))}}
+                  <br>
+                  <small>Vendido: €{{="{:,.2f}".format(float(limite_eur.monto_vendido))}}</small>
+                  <br>
+                  <small>Disponible: €{{="{:,.2f}".format(float(limite_eur.monto_disponible))}}</small>
+                  <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress-bar {{='bg-success' if float(limite_eur.porcentaje_utilizado) < 80 else 'bg-warning' if float(limite_eur.porcentaje_utilizado) < 95 else 'bg-danger'}}" 
+                         style="width: {{=limite_eur.porcentaje_utilizado}}%">
+                      {{="{:.0f}".format(float(limite_eur.porcentaje_utilizado))}}%
+                    </div>
+                  </div>
+                </div>
+              {{pass}}
+              
+              <form method="post" action="{{=URL('configurar_limite_simple')}}">
+                <input type="hidden" name="moneda" value="EUR">
+                <div class="mb-3">
+                  <label class="form-label"><strong>Límite de venta para HOY:</strong></label>
+                  <div class="input-group">
+                    <span class="input-group-text">€</span>
+                    <input type="number" 
+                           name="limite_diario" 
+                           class="form-control form-control-lg" 
+                           step="0.01" 
+                           min="0" 
+                           max="{{=float(remesa_eur.monto_disponible)}}"
+                           placeholder="Ej: 3000.00"
+                           value="{{=float(limite_eur.limite_diario) if limite_eur else ''}}"
+                           required>
+                  </div>
+                  <small class="text-muted">Máximo: €{{="{:,.2f}".format(float(remesa_eur.monto_disponible))}}</small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                  <i class="fas fa-save me-2"></i>{{='Actualizar' if limite_eur else 'Configurar'}} Límite
+                </button>
+              </form>
+              
+              <!-- Botones rápidos -->
+              <div class="mt-3">
+                <small class="text-muted d-block mb-2">Configuración rápida:</small>
+                <div class="btn-group w-100" role="group">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('EUR', {{=float(remesa_eur.monto_disponible) * 0.5}})">
+                    50%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('EUR', {{=float(remesa_eur.monto_disponible) * 0.75}})">
+                    75%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('EUR', {{=float(remesa_eur.monto_disponible) * 0.9}})">
+                    90%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('EUR', {{=float(remesa_eur.monto_disponible)}})">
+                    100%
+                  </button>
+                </div>
+              </div>
+            {{else:}}
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No hay remesa de EUR registrada para hoy.
+                <br>
+                <a href="{{=URL('registrar_remesa')}}" class="btn btn-sm btn-danger mt-2">
+                  Registrar Remesa
+                </a>
+              </div>
+            {{pass}}
+          </div>
+        </div>
+      </div>
+      
+      <!-- USDT -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-warning">
+          <div class="card-header bg-warning text-dark text-center">
+            <h4 class="mb-0"><i class="fas fa-coins me-2"></i>USDT</h4>
+          </div>
+          <div class="card-body">
+            {{
+            remesa_usdt = db(
+              (db.remesas_diarias.fecha == request.now.date()) &
+              (db.remesas_diarias.moneda == 'USDT') &
+              (db.remesas_diarias.activa == True)
+            ).select().first()
+            
+            limite_usdt = db(
+              (db.limites_venta.fecha == request.now.date()) &
+              (db.limites_venta.moneda == 'USDT') &
+              (db.limites_venta.activo == True)
+            ).select().first()
+            }}
+            
+            {{if remesa_usdt:}}
+              <div class="mb-3">
+                <small class="text-muted">Remesa disponible hoy:</small>
+                <h3 class="text-warning mb-0">₮{{="{:,.2f}".format(float(remesa_usdt.monto_disponible))}}</h3>
+              </div>
+              
+              {{if limite_usdt:}}
+                <div class="alert alert-warning mb-3">
+                  <strong>Límite actual:</strong> ₮{{="{:,.2f}".format(float(limite_usdt.limite_diario))}}
+                  <br>
+                  <small>Vendido: ₮{{="{:,.2f}".format(float(limite_usdt.monto_vendido))}}</small>
+                  <br>
+                  <small>Disponible: ₮{{="{:,.2f}".format(float(limite_usdt.monto_disponible))}}</small>
+                  <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress-bar {{='bg-success' if float(limite_usdt.porcentaje_utilizado) < 80 else 'bg-warning' if float(limite_usdt.porcentaje_utilizado) < 95 else 'bg-danger'}}" 
+                         style="width: {{=limite_usdt.porcentaje_utilizado}}%">
+                      {{="{:.0f}".format(float(limite_usdt.porcentaje_utilizado))}}%
+                    </div>
+                  </div>
+                </div>
+              {{pass}}
+              
+              <form method="post" action="{{=URL('configurar_limite_simple')}}">
+                <input type="hidden" name="moneda" value="USDT">
+                <div class="mb-3">
+                  <label class="form-label"><strong>Límite de venta para HOY:</strong></label>
+                  <div class="input-group">
+                    <span class="input-group-text">₮</span>
+                    <input type="number" 
+                           name="limite_diario" 
+                           class="form-control form-control-lg" 
+                           step="0.01" 
+                           min="0" 
+                           max="{{=float(remesa_usdt.monto_disponible)}}"
+                           placeholder="Ej: 8000.00"
+                           value="{{=float(limite_usdt.limite_diario) if limite_usdt else ''}}"
+                           required>
+                  </div>
+                  <small class="text-muted">Máximo: ₮{{="{:,.2f}".format(float(remesa_usdt.monto_disponible))}}</small>
+                </div>
+                <button type="submit" class="btn btn-warning btn-lg w-100">
+                  <i class="fas fa-save me-2"></i>{{='Actualizar' if limite_usdt else 'Configurar'}} Límite
+                </button>
+              </form>
+              
+              <!-- Botones rápidos -->
+              <div class="mt-3">
+                <small class="text-muted d-block mb-2">Configuración rápida:</small>
+                <div class="btn-group w-100" role="group">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USDT', {{=float(remesa_usdt.monto_disponible) * 0.5}})">
+                    50%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USDT', {{=float(remesa_usdt.monto_disponible) * 0.75}})">
+                    75%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USDT', {{=float(remesa_usdt.monto_disponible) * 0.9}})">
+                    90%
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" 
+                          onclick="setLimite('USDT', {{=float(remesa_usdt.monto_disponible)}})">
+                    100%
+                  </button>
+                </div>
+              </div>
+            {{else:}}
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No hay remesa de USDT registrada para hoy.
+                <br>
+                <a href="{{=URL('registrar_remesa')}}" class="btn btn-sm btn-danger mt-2">
+                  Registrar Remesa
+                </a>
+              </div>
+            {{pass}}
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Botón volver -->
+    <div class="text-center mt-4">
+      <a href="{{=URL('index')}}" class="btn btn-secondary btn-lg">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+      </a>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+function setLimite(moneda, valor) {
+  // Buscar el input de la moneda correspondiente
+  const form = document.querySelector(`input[name="moneda"][value="${moneda}"]`).closest('form');
+  const input = form.querySelector('input[name="limite_diario"]');
+  input.value = valor.toFixed(2);
+  
+  // Resaltar el cambio
+  input.classList.add('border-success');
+  input.classList.add('border-3');
+  setTimeout(() => {
+    input.classList.remove('border-success');
+    input.classList.remove('border-3');
+  }, 1000);
+}
+</script>
+
+<style>
+.card {
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.form-control-lg {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.btn-lg {
+  padding: 15px;
+  font-size: 1.1rem;
+}
+
+.progress {
+  border-radius: 10px;
+}
+</style>

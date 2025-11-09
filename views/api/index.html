@@ -41,7 +41,7 @@
                 <div class="card-body">
                     {{if tasa_actual:}}
                     <div class="row text-center">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card bg-success mb-3">
                                 <div class="card-body">
                                     <h3 class="card-title">USD/VES</h3>
@@ -50,12 +50,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card bg-primary mb-3">
                                 <div class="card-body">
                                     <h3 class="card-title">EUR/VES</h3>
                                     <h2 class="text-white">{{="{:,.4f}".format(float(tasa_actual.eur_ves))}}</h2>
                                     <small>Bolívares por Euro</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title text-dark">USDT/VES</h3>
+                                    <h2 class="text-dark">{{="{:,.4f}".format(float(tasa_actual.usdt_ves)) if tasa_actual.usdt_ves else 'N/A'}}</h2>
+                                    <small class="text-dark">Bolívares por USDT</small>
                                 </div>
                             </div>
                         </div>
@@ -141,21 +150,27 @@
                 <div class="card-body">
                     <form id="form-manual">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="usd_ves">Tasa USD/VES:</label>
+                                    <label for="usd_ves" class="text-white">Tasa USD/VES:</label>
                                     <input type="number" step="0.0001" class="form-control" id="usd_ves" name="usd_ves" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="eur_ves">Tasa EUR/VES:</label>
+                                    <label for="eur_ves" class="text-white">Tasa EUR/VES:</label>
                                     <input type="number" step="0.0001" class="form-control" id="eur_ves" name="eur_ves" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>&nbsp;</label>
+                                    <label for="usdt_ves" class="text-white">Tasa USDT/VES:</label>
+                                    <input type="number" step="0.0001" class="form-control" id="usdt_ves" name="usdt_ves" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="text-white">&nbsp;</label>
                                     <button type="submit" class="btn btn-danger btn-block">
                                         <i class="fas fa-save"></i> 
                                         Insertar Manualmente
@@ -190,6 +205,7 @@
                                     <th>Hora</th>
                                     <th>USD/VES</th>
                                     <th>EUR/VES</th>
+                                    <th>USDT/VES</th>
                                     <th>Fuente</th>
                                     <th>Estado</th>
                                 </tr>
@@ -201,6 +217,7 @@
                                     <td>{{=tasa.hora.strftime('%H:%M:%S') if tasa.hora else 'N/A'}}</td>
                                     <td>{{="{:,.4f}".format(float(tasa.usd_ves))}}</td>
                                     <td>{{="{:,.4f}".format(float(tasa.eur_ves))}}</td>
+                                    <td>{{="{:,.4f}".format(float(tasa.usdt_ves)) if tasa.usdt_ves else 'N/A'}}</td>
                                     <td>{{=tasa.fuente}}</td>
                                     <td>
                                         {{if tasa.activa:}}
@@ -261,11 +278,11 @@
             <div class="modal-body">
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label for="fecha_logs">Fecha:</label>
+                        <label for="fecha_logs" class="text-white">Fecha:</label>
                         <input type="date" class="form-control" id="fecha_logs">
                     </div>
                     <div class="col-md-6">
-                        <label>&nbsp;</label>
+                        <label class="text-white">&nbsp;</label>
                         <button id="btn-cargar-logs" class="btn btn-info btn-block">
                             Cargar Logs
                         </button>
@@ -334,7 +351,7 @@ function cargarTasasActuales() {
                 var tasas = data.tasas;
                 var html = `
                     <div class="row text-center">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card bg-success mb-3">
                                 <div class="card-body">
                                     <h3 class="card-title">USD/VES</h3>
@@ -343,12 +360,21 @@ function cargarTasasActuales() {
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card bg-primary mb-3">
                                 <div class="card-body">
                                     <h3 class="card-title">EUR/VES</h3>
                                     <h2 class="text-white">${tasas.eur_ves}</h2>
                                     <small>Bolívares por Euro</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title text-dark">USDT/VES</h3>
+                                    <h2 class="text-dark">${tasas.usdt_ves || 'N/A'}</h2>
+                                    <small class="text-dark">Bolívares por USDT</small>
                                 </div>
                             </div>
                         </div>
@@ -573,16 +599,17 @@ function insertarTasaManual() {
     
     var usd = $('#usd_ves').val();
     var eur = $('#eur_ves').val();
+    var usdt = $('#usdt_ves').val();
     
-    if (!usd || !eur || usd <= 0 || eur <= 0) {
-        alert('Ingrese tasas válidas (mayores a 0)');
+    if (!usd || !eur || !usdt || usd <= 0 || eur <= 0 || usdt <= 0) {
+        alert('Ingrese todas las tasas válidas (mayores a 0)');
         return;
     }
     
     $.ajax({
         url: '{{=URL("api", "insertar_tasa_manual")}}',
         method: 'POST',
-        data: { usd_ves: usd, eur_ves: eur },
+        data: { usd_ves: usd, eur_ves: eur, usdt_ves: usdt },
         success: function(data) {
             if (data.success) {
                 alert('Tasa manual insertada exitosamente');

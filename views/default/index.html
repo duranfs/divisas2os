@@ -21,6 +21,10 @@
         <span class="tasa-moneda">EUR / VES</span>
         <span class="tasa-valor">{{="{:,.4f}".format(float(tasas.eur_ves)) if tasas.eur_ves else 'N/A'}}</span>
       </div>
+      <div class="tasa-item">
+        <span class="tasa-moneda">USDT/VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas.usdt_ves)) if tasas.usdt_ves else 'N/A'}}</span>
+      </div>
       <div class="tasa-actualizacion">
         <i class="fas fa-clock me-1"></i>
         Última actualización: {{=tasas.fecha.strftime('%d/%m/%Y %H:%M') if tasas else 'No disponible'}}
@@ -74,7 +78,7 @@
 
 <!-- Resumen de Cuentas -->
 <div class="row mb-4">
-  <div class="col-md-4 mb-3">
+  <div class="col-md-3 mb-3">
     <div class="card-resumen">
       <div class="card-header">
         <h6><i class="fas fa-coins me-2"></i>Saldo VES</h6>
@@ -85,7 +89,7 @@
     </div>
   </div>
   
-  <div class="col-md-4 mb-3">
+  <div class="col-md-3 mb-3">
     <div class="card-resumen">
       <div class="card-header">
         <h6><i class="fas fa-dollar-sign me-2"></i>Saldo USD</h6>
@@ -96,13 +100,24 @@
     </div>
   </div>
   
-  <div class="col-md-4 mb-3">
+  <div class="col-md-3 mb-3">
     <div class="card-resumen">
       <div class="card-header">
         <h6><i class="fas fa-euro-sign me-2"></i>Saldo EUR</h6>
       </div>
       <div class="card-body text-center">
         <div class="saldo-amount">{{="{:,.2f}".format(float(total_eur))}}<span class="saldo-currency">EUR</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6><i class="fas fa-coins me-2"></i>Saldo USDT</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="saldo-amount">{{="{:,.2f}".format(float(total_usdt))}}<span class="saldo-currency">USDT</span></div>
       </div>
     </div>
   </div>
@@ -121,6 +136,10 @@
       <div class="tasa-item">
         <span class="tasa-moneda">EUR / VES</span>
         <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.eur_ves))}}</span>
+      </div>
+      <div class="tasa-item">
+        <span class="tasa-moneda">USDT/VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.usdt_ves)) if tasas_actuales.usdt_ves else 'N/A'}}</span>
       </div>
       <div class="tasa-actualizacion">
         <i class="fas fa-clock me-1"></i>{{=tasas_actuales.fecha.strftime('%d/%m/%Y %H:%M')}}
@@ -259,6 +278,10 @@
       <div class="tasa-item">
         <span class="tasa-moneda">EUR</span>
         <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.eur_ves))}}</span>
+      </div>
+      <div class="tasa-item">
+        <span class="tasa-moneda">USDT/VES</span>
+        <span class="tasa-valor">{{="{:,.4f}".format(float(tasas_actuales.usdt_ves)) if tasas_actuales.usdt_ves else 'N/A'}}</span>
       </div>
       {{else:}}
       <div class="alert alert-warning">No disponible</div>

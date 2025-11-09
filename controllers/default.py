@@ -26,18 +26,18 @@ def dashboard():
     """Dashboard personalizado según el rol del usuario"""
     user_id = auth.user.id
     
+    # Lógica simple: administradores ven dashboard admin, clientes ven dashboard cliente
+    if auth.has_membership('administrador') or auth.has_membership('operador'):
+        return dashboard_administrativo()
+    
     # Verificar si el usuario es cliente
     cliente = db(db.clientes.user_id == user_id).select().first()
     
     if cliente:
         return dashboard_cliente(cliente)
     else:
-        # Verificar si es administrador u operador
-        if auth.has_membership('administrador') or auth.has_membership('operador'):
-            return dashboard_administrativo()
-        else:
-            # Usuario sin rol específico - mostrar dashboard básico
-            return dashboard_basico()
+        # Usuario sin rol específico - mostrar dashboard básico
+        return dashboard_basico()
 
 def dashboard_cliente(cliente):
     """Dashboard específico para clientes"""
@@ -48,6 +48,7 @@ def dashboard_cliente(cliente):
     total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
     total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
     total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
+    total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
     
     # Obtener últimas transacciones
     ultimas_transacciones = db(
@@ -66,6 +67,8 @@ def dashboard_cliente(cliente):
         equivalencia_total_ves += total_usd * float(tasas_actuales.usd_ves)
     if tasas_actuales and tasas_actuales.eur_ves:
         equivalencia_total_ves += total_eur * float(tasas_actuales.eur_ves)
+    if tasas_actuales and tasas_actuales.usdt_ves:
+        equivalencia_total_ves += total_usdt * float(tasas_actuales.usdt_ves)
     
     return dict(
         tipo_dashboard='cliente',
@@ -74,6 +77,7 @@ def dashboard_cliente(cliente):
         total_ves=total_ves,
         total_usd=total_usd,
         total_eur=total_eur,
+        total_usdt=total_usdt,
         equivalencia_total_ves=equivalencia_total_ves,
         ultimas_transacciones=ultimas_transacciones,
         tasas_actuales=tasas_actuales,
@@ -157,12 +161,32 @@ def dashboard_basico():
 
 def obtener_tasas_actuales():
     """Obtiene las tasas de cambio más recientes"""
-    tasa = db(db.tasas_cambio.activa == True).select(
-        orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora,
-        limitby=(0, 1)
-    ).first()
-    
-    return tasa
+    try:
+        tasa = db(db.tasas_cambio.activa == True).select(
+            orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora,
+            limitby=(0, 1)
+        ).first()
+        
+        # Si no hay tasa activa, obtener la más reciente
+        if not tasa:
+            tasa = db().select(
+                db.tasas_cambio.ALL,
+                orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora,
+                limitby=(0, 1)
+            ).first()
+        
+        return tasa
+    except Exception as e:
+        # En caso de error, crear objeto de respaldo
+        from gluon.storage import Storage
+        return Storage(
+            usd_ves=36.5000,
+            eur_ves=40.2500,
+            usdt_ves=36.4635,
+            fecha=request.now.date(),
+            hora=request.now.time(),
+            fuente='Respaldo'
+        )
 
 def generar_accesos_rapidos_cliente():
     """Genera los accesos rápidos para clientes"""
@@ -316,6 +340,7 @@ def api_dashboard_data():
         total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
         total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
         total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
+        total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
         
         tasas = obtener_tasas_actuales()
         
@@ -325,8 +350,10 @@ def api_dashboard_data():
                 'total_ves': total_ves,
                 'total_usd': total_usd,
                 'total_eur': total_eur,
+                'total_usdt': total_usdt,
                 'tasa_usd': float(tasas.usd_ves) if tasas else 0,
                 'tasa_eur': float(tasas.eur_ves) if tasas else 0,
+                'tasa_usdt': float(tasas.usdt_ves) if tasas and tasas.usdt_ves else 0,
                 'ultima_actualizacion': str(tasas.fecha) if tasas else None
             }
         })
@@ -1070,24 +1097,21 @@ def test_alturas_campos():
         message="Página de prueba para verificar que todos los campos tengan la misma altura"
     )
 
+@auth.requires_membership('administrador')
 def actualizar_tasas():
     """Página para actualizar tasas del BCV"""
     return dict(
         message="Herramienta para actualizar las tasas de cambio del sistema"
     )
 
+@auth.requires_membership('administrador')
 def verificar_tasas_bd():
     """Página para verificar el estado de las tasas en la base de datos"""
     return dict(
         message="Verificación del estado de las tasas de cambio en la base de datos"
     )
 
-def actualizar_tasas():
-    """Página para actualizar tasas del BCV"""
-    return dict(
-        message="Actualización de tasas del BCV"
-    )
-
+@auth.requires_membership('administrador')
 def actualizar_tasas_bcv():
     """Función para obtener y actualizar tasas del BCV"""
     try:

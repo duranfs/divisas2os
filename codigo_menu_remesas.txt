@@ -1,0 +1,24 @@
+
+# Agregar al menú de administración en models/menu.py o layout.html
+
+{{if auth.has_membership('administrador'):}}
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+    <i class="fas fa-money-bill-wave me-1"></i>Remesas
+  </a>
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="{{=URL('remesas','index')}}">
+      <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    </a>
+    <a class="dropdown-item" href="{{=URL('remesas','registrar_remesa')}}">
+      <i class="fas fa-plus-circle me-2"></i>Registrar Remesa
+    </a>
+    <a class="dropdown-item" href="{{=URL('remesas','configurar_limites')}}">
+      <i class="fas fa-cog me-2"></i>Configurar Límites
+    </a>
+    <a class="dropdown-item" href="{{=URL('remesas','historial_movimientos')}}">
+      <i class="fas fa-history me-2"></i>Historial
+    </a>
+  </div>
+</li>
+{{pass}}

@@ -1573,3 +1573,303 @@ def crear_primer_administrador():
     except Exception as e:
         db.rollback()
         return False, f"Error al crear administrador: {str(e)}"
+
+# =========================================================================
+# MÓDULO DE REMESAS Y LÍMITES DIARIOS
+# Gestión de liquidez y control de ventas de divisas
+# =========================================================================
+
+# Tabla de Remesas Diarias
+# Registra las remesas recibidas cada día por moneda
+db.define_table('remesas_diarias',
+    Field('fecha', 'date', notnull=True, default=request.now.date()),
+    Field('moneda', 'string', length=10, notnull=True),  # USD, EUR, USDT
+    Field('monto_recibido', 'decimal(15,2)', notnull=True, default=0),
+    Field('monto_disponible', 'decimal(15,2)', notnull=True, default=0),
+    Field('monto_vendido', 'decimal(15,2)', notnull=True, default=0),
+    Field('monto_reservado', 'decimal(15,2)', notnull=True, default=0),
+    Field('fuente_remesa', 'string', length=100),  # Banco corresponsal, etc.
+    Field('numero_referencia', 'string', length=50),
+    Field('observaciones', 'text'),
+    Field('usuario_registro', 'reference auth_user'),
+    Field('fecha_registro', 'datetime', default=request.now),
+    Field('activa', 'boolean', default=True),
+    format='%(fecha)s - %(moneda)s',
+    migrate=False
+)
+
+# Validaciones
+db.remesas_diarias.moneda.requires = IS_IN_SET(['USD', 'EUR', 'USDT'], 
+                                                error_message='Moneda debe ser USD, EUR o USDT')
+db.remesas_diarias.monto_recibido.requires = IS_DECIMAL_IN_RANGE(0, 999999999.99, 
+                                                                  error_message='Monto inválido')
+db.remesas_diarias.fecha.requires = IS_DATE(format='%Y-%m-%d')
+
+# Tabla de Límites de Venta Diarios
+# Define los límites máximos de venta por moneda y día
+db.define_table('limites_venta',
+    Field('fecha', 'date', notnull=True, default=request.now.date()),
+    Field('moneda', 'string', length=10, notnull=True),
+    Field('limite_diario', 'decimal(15,2)', notnull=True, default=0),
+    Field('monto_vendido', 'decimal(15,2)', notnull=True, default=0),
+    Field('monto_disponible', 'decimal(15,2)', notnull=True, default=0),
+    Field('porcentaje_utilizado', 'decimal(5,2)', compute=lambda r: 
+          (r['monto_vendido'] / r['limite_diario'] * 100) if r['limite_diario'] > 0 else 0),
+    Field('alerta_80_enviada', 'boolean', default=False),
+    Field('alerta_95_enviada', 'boolean', default=False),
+    Field('usuario_configuracion', 'reference auth_user'),
+    Field('fecha_configuracion', 'datetime', default=request.now),
+    Field('activo', 'boolean', default=True),
+    format='%(fecha)s - %(moneda)s',
+    migrate=False
+)
+
+# Validaciones
+db.limites_venta.moneda.requires = IS_IN_SET(['USD', 'EUR', 'USDT'])
+db.limites_venta.limite_diario.requires = IS_DECIMAL_IN_RANGE(0, 999999999.99)
+
+# Tabla de Historial de Movimientos de Remesas
+# Auditoría completa de todos los movimientos
+db.define_table('movimientos_remesas',
+    Field('remesa_id', 'reference remesas_diarias', notnull=True),
+    Field('tipo_movimiento', 'string', length=20, notnull=True),  # RECEPCION, VENTA, AJUSTE, DEVOLUCION
+    Field('monto', 'decimal(15,2)', notnull=True),
+    Field('saldo_anterior', 'decimal(15,2)', notnull=True),
+    Field('saldo_nuevo', 'decimal(15,2)', notnull=True),
+    Field('transaccion_id', 'reference transacciones'),  # Si está relacionado con una venta
+    Field('descripcion', 'text'),
+    Field('usuario', 'reference auth_user'),
+    Field('fecha_movimiento', 'datetime', default=request.now),
+    Field('ip_address', 'string', length=50),
+    format='%(tipo_movimiento)s - %(monto)s',
+    migrate=False
+)
+
+# Validaciones
+db.movimientos_remesas.tipo_movimiento.requires = IS_IN_SET(
+    ['RECEPCION', 'VENTA', 'AJUSTE', 'DEVOLUCION', 'RESERVA', 'LIBERACION'],
+    error_message='Tipo de movimiento inválido'
+)
+
+# Tabla de Configuración de Alertas
+# Configuración de notificaciones cuando se alcanzan umbrales
+db.define_table('alertas_limites',
+    Field('tipo_alerta', 'string', length=20, notnull=True),  # LIMITE_80, LIMITE_95, LIMITE_100
+    Field('moneda', 'string', length=10, notnull=True),
+    Field('umbral_porcentaje', 'decimal(5,2)', notnull=True),
+    Field('mensaje_alerta', 'text'),
+    Field('enviar_email', 'boolean', default=True),
+    Field('emails_destino', 'list:string'),
+    Field('activa', 'boolean', default=True),
+    Field('fecha_creacion', 'datetime', default=request.now),
+    format='%(tipo_alerta)s - %(moneda)s',
+    migrate=False
+)
+
+
+# =========================================================================
+# FUNCIONES DE VALIDACIÓN DE LÍMITES PARA VENTAS
+# Integración del módulo de remesas con el sistema de ventas
+# =========================================================================
+
+def validar_limite_venta(moneda, monto_venta, fecha=None):
+    """
+    Valida si una venta puede realizarse sin exceder límites
+    
+    Args:
+        moneda (str): USD, EUR, USDT
+        monto_venta (float): Monto a vender
+        fecha (date): Fecha de la venta (default: hoy)
+    
+    Returns:
+        dict: {
+            'puede_vender': bool,
+            'razon': str,
+            'limite_disponible': float,
+            'remesa_disponible': float
+        }
+    """
+    if not fecha:
+        fecha = request.now.date()
+    
+    try:
+        # Obtener límite del día
+        limite = db(
+            (db.limites_venta.fecha == fecha) &
+            (db.limites_venta.moneda == moneda) &
+            (db.limites_venta.activo == True)
+        ).select().first()
+        
+        # Obtener remesa del día
+        remesa = db(
+            (db.remesas_diarias.fecha == fecha) &
+            (db.remesas_diarias.moneda == moneda) &
+            (db.remesas_diarias.activa == True)
+        ).select().first()
+        
+        resultado = {
+            'puede_vender': False,
+            'razon': '',
+            'limite_disponible': 0,
+            'remesa_disponible': 0,
+            'limite_diario': 0,
+            'limite_utilizado': 0
+        }
+        
+        # Verificar si existe límite
+        if not limite:
+            resultado['razon'] = f'No hay límite configurado para {moneda} en {fecha}'
+            return resultado
+        
+        # Verificar si existe remesa
+        if not remesa:
+            resultado['razon'] = f'No hay remesa disponible para {moneda} en {fecha}'
+            return resultado
+        
+        # Obtener valores actuales
+        limite_disponible = float(limite.monto_disponible)
+        remesa_disponible = float(remesa.monto_disponible)
+        limite_diario = float(limite.limite_diario)
+        limite_utilizado = float(limite.monto_vendido)
+        
+        resultado.update({
+            'limite_disponible': limite_disponible,
+            'remesa_disponible': remesa_disponible,
+            'limite_diario': limite_diario,
+            'limite_utilizado': limite_utilizado
+        })
+        
+        # Validar límite diario
+        if monto_venta > limite_disponible:
+            resultado['razon'] = f'Venta de ${monto_venta:,.2f} excede límite disponible de ${limite_disponible:,.2f}'
+            return resultado
+        
+        # Validar remesa disponible
+        if monto_venta > remesa_disponible:
+            resultado['razon'] = f'Venta de ${monto_venta:,.2f} excede remesa disponible de ${remesa_disponible:,.2f}'
+            return resultado
+        
+        # Si pasa todas las validaciones
+        resultado['puede_vender'] = True
+        resultado['razon'] = 'Venta autorizada'
+        
+        return resultado
+        
+    except Exception as e:
+        logger.error(f"Error validando límite de venta: {str(e)}")
+        return {
+            'puede_vender': False,
+            'razon': f'Error del sistema: {str(e)}',
+            'limite_disponible': 0,
+            'remesa_disponible': 0
+        }
+
+def procesar_venta_con_limites(moneda, monto_venta, transaccion_id=None, fecha=None):
+    """
+    Procesa una venta actualizando límites y remesas
+    
+    Args:
+        moneda (str): USD, EUR, USDT
+        monto_venta (float): Monto vendido
+        transaccion_id (int): ID de la transacción
+        fecha (date): Fecha de la venta
+    
+    Returns:
+        dict: {'success': bool, 'mensaje': str}
+    """
+    if not fecha:
+        fecha = request.now.date()
+    
+    try:
+        # Validar antes de procesar
+        validacion = validar_limite_venta(moneda, monto_venta, fecha)
+        
+        if not validacion['puede_vender']:
+            return {
+                'success': False,
+                'mensaje': validacion['razon']
+            }
+        
+        # Obtener registros
+        limite = db(
+            (db.limites_venta.fecha == fecha) &
+            (db.limites_venta.moneda == moneda) &
+            (db.limites_venta.activo == True)
+        ).select().first()
+        
+        remesa = db(
+            (db.remesas_diarias.fecha == fecha) &
+            (db.remesas_diarias.moneda == moneda) &
+            (db.remesas_diarias.activa == True)
+        ).select().first()
+        
+        # Actualizar límite
+        nuevo_vendido_limite = float(limite.monto_vendido) + monto_venta
+        nuevo_disponible_limite = float(limite.limite_diario) - nuevo_vendido_limite
+        nuevo_porcentaje = (nuevo_vendido_limite / float(limite.limite_diario)) * 100
+        
+        limite.update_record(
+            monto_vendido=nuevo_vendido_limite,
+            monto_disponible=nuevo_disponible_limite,
+            porcentaje_utilizado=nuevo_porcentaje
+        )
+        
+        # Actualizar remesa
+        nuevo_vendido_remesa = float(remesa.monto_vendido) + monto_venta
+        nuevo_disponible_remesa = float(remesa.monto_disponible) - monto_venta
+        
+        remesa.update_record(
+            monto_vendido=nuevo_vendido_remesa,
+            monto_disponible=nuevo_disponible_remesa
+        )
+        
+        # Registrar movimiento
+        db.movimientos_remesas.insert(
+            remesa_id=remesa.id,
+            tipo_movimiento='VENTA',
+            monto=monto_venta,
+            saldo_anterior=float(remesa.monto_disponible) + monto_venta,
+            saldo_nuevo=nuevo_disponible_remesa,
+            transaccion_id=transaccion_id,
+            descripcion=f'Venta de {moneda} por ${monto_venta:,.2f}',
+            usuario=auth.user_id if auth.user else None,
+            ip_address=request.client
+        )
+        
+        # Verificar alertas
+        if nuevo_porcentaje >= 80 and not limite.alerta_80_enviada:
+            enviar_alerta_limite(moneda, 80, nuevo_porcentaje)
+            limite.update_record(alerta_80_enviada=True)
+        
+        if nuevo_porcentaje >= 95 and not limite.alerta_95_enviada:
+            enviar_alerta_limite(moneda, 95, nuevo_porcentaje)
+            limite.update_record(alerta_95_enviada=True)
+        
+        db.commit()
+        
+        return {
+            'success': True,
+            'mensaje': f'Venta procesada. Límite utilizado: {nuevo_porcentaje:.1f}%'
+        }
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error procesando venta con límites: {str(e)}")
+        return {
+            'success': False,
+            'mensaje': f'Error procesando venta: {str(e)}'
+        }
+
+def enviar_alerta_limite(moneda, umbral, porcentaje_actual):
+    """
+    Envía alerta cuando se alcanza un umbral de límite
+    """
+    mensaje = f"ALERTA: Límite de {moneda} al {porcentaje_actual:.1f}% (umbral {umbral}%)"
+    logger.warning(mensaje)
+    
+    # Aquí se puede implementar envío de email
+    # mail.send(
+    #     to=['admin@banco.com'],
+    #     subject=f'Alerta de Límite - {moneda}',
+    #     message=mensaje
+    # )

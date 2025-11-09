@@ -1,0 +1,310 @@
+ftime('%H:%M') if transaccion.fecha_transaccion else ''}}</small>
+                                        </td>
+                                        <td>
+                                            {{if transaccion.tipo_operacion == 'compra':}}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-shopping-cart me-1"></i>Compra
+                                                </span>
+                                            {{elif transaccion.tipo_operacion == 'venta':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-hand-holding-usd me-1"></i>Venta
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-question me-1"></i>{{=transaccion.tipo_operacion.title() if transaccion.tipo_operacion else 'N/A'}}
+                                                </span>
+                                            {{pass}}
+                                        </td>
+                                        <td>
+                                            <strong class="text-danger">{{=transaccion.moneda_origen if transaccion.moneda_origen else 'N/A'}}</strong>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">{{=transaccion.moneda_destino if transaccion.moneda_destino else 'N/A'}}</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong>{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else '0.00'}}</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong>{{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else '0.00'}}</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <small>{{="{:,.4f}".format(float(transaccion.tasa_aplicada)) if transaccion.tasa_aplicada else 'N/A'}}</small>
+                                        </td>
+                                        <td>
+                                            <code class="small bg-light px-2 py-1 rounded">{{=transaccion.numero_comprobante if transaccion.numero_comprobante else 'N/A'}}</code>
+                                        </td>
+                                        <td>
+                                            {{if transaccion.estado == 'completada':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Completada
+                                                </span>
+                                            {{elif transaccion.estado == 'pendiente':}}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pendiente
+                                                </span>
+                                            {{elif transaccion.estado == 'cancelada':}}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Cancelada
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">
+                                                    {{=transaccion.estado.title() if transaccion.estado else 'N/A'}}
+                                                </span>
+                                            {{pass}}
+                                        </td>
+                                    </tr>
+                                    {{pass}}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <a href="{{=URL('divisas', 'historial', vars={'cliente_id': cliente.id})}}" class="btn btn-outline-primary">
+                                <i class="fas fa-history me-1"></i>Ver Historial Completo
+                            </a>
+                        </div>
+                    {{else:}}
+                        <div class="text-center py-5">
+                            <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Sin transacciones</h5>
+                            <p class="text-muted">Este cliente no ha realizado transacciones aún.</p>
+                            {{if cuentas:}}
+                                <div class="mt-3">
+                                    <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-primary me-2">
+                                        <i class="fas fa-shopping-cart me-1"></i>Realizar Compra
+                                    </a>
+                                    <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success">
+                                        <i class="fas fa-hand-holding-usd me-1"></i>Realizar Venta
+                                    </a>
+                                </div>
+                            {{else:}}
+                                <p class="text-muted mt-2">
+                                    <small>Primero debe crear una cuenta bancaria para realizar transacciones.</small>
+                                </p>
+                            {{pass}}
+                        </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{else:}}
+    <!-- Error: Cliente no encontrado -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Cliente No Encontrado
+                    </h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-user-times fa-5x text-danger mb-4"></i>
+                    <h4 class="text-danger mb-3">Cliente No Disponible</h4>
+                    <p class="text-muted mb-4">
+                        No se pudo cargar la información del cliente solicitado.
+                        <br>
+                        Esto puede deberse a permisos insuficientes o que el cliente no exista.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-primary me-3">
+                            <i class="fas fa-arrow-left me-1"></i>Volver a Lista de Clientes
+                        </a>
+                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-1"></i>Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+</div>
+
+<style>
+/* Estilos específicos para detalles del cliente */
+.page-header {
+    background: linear-gradient(135deg, #FFA366 0%, #FFD700 100%);
+    color: #000;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: #000 !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(0, 0, 0, 0.8) !important;
+    margin: 0;
+}
+
+.form-control-plaintext {
+    background: none;
+    border: none;
+    padding: 0.375rem 0;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    min-height: 2rem;
+}
+
+.form-label.fw-bold {
+    color: var(--bs-primary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.badge.fs-6 {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 1rem;
+}
+
+.table th {
+    background-color: var(--bs-dark);
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: white;
+    vertical-align: middle;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table code {
+    background-color: var(--bs-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--bs-dark);
+}
+
+.card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header h5,
+.card-header h6 {
+    font-weight: 600;
+}
+
+.text-end strong {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Animaciones */
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mejoras visuales */
+.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Estados de carga */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+// JavaScript para mejorar la experiencia del usuario
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar tooltips a los elementos con título
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Confirmar acciones peligrosas
+    document.querySelectorAll('.btn-outline-danger').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            if (!confirm('¿Está seguro de que desea realizar esta acción?')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Animación de entrada para las tarjetas
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('fade-in-up');
+    });
+});
+</script>

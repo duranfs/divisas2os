@@ -43,8 +43,155 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Aquí va el formulario de registro -->
-                    <p>Formulario de registro de cliente...</p>
+                    {{if registro_exitoso:}}
+                    <!-- Mensaje de éxito -->
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle me-2"></i>¡Registro Exitoso!</h5>
+                        <p>El cliente ha sido registrado correctamente.</p>
+                        <p><strong>Número de cuenta:</strong> {{=numero_cuenta}}</p>
+                        <div class="mt-3">
+                            <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-1"></i>Registrar Otro Cliente
+                            </a>
+                            <a href="{{=URL('clientes', 'listar')}}" class="btn btn-outline-secondary">
+                                <i class="fas fa-list me-1"></i>Ver Lista de Clientes
+                            </a>
+                        </div>
+                    </div>
+                    {{else:}}
+                    <!-- Formulario de registro -->
+                    <form method="post" action="{{=URL('clientes', 'registrar')}}" class="needs-validation" novalidate>
+                        
+                        {{if form.errors.general:}}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{=form.errors.general}}
+                        </div>
+                        {{pass}}
+                        
+                        <!-- Información Personal -->
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-user me-2"></i>Información Personal
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">Nombres *</label>
+                                <input type="text" class="form-control {{='is-invalid' if form.errors.first_name else ''}}" 
+                                       id="first_name" name="first_name" value="{{=request.vars.first_name or ''}}" required>
+                                {{if form.errors.first_name:}}
+                                <div class="invalid-feedback">{{=form.errors.first_name}}</div>
+                                {{pass}}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Apellidos *</label>
+                                <input type="text" class="form-control {{='is-invalid' if form.errors.last_name else ''}}" 
+                                       id="last_name" name="last_name" value="{{=request.vars.last_name or ''}}" required>
+                                {{if form.errors.last_name:}}
+                                <div class="invalid-feedback">{{=form.errors.last_name}}</div>
+                                {{pass}}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cedula" class="form-label">Cédula de Identidad *</label>
+                                <input type="text" class="form-control {{='is-invalid' if form.errors.cedula else ''}}" 
+                                       id="cedula" name="cedula" value="{{=request.vars.cedula or ''}}" 
+                                       placeholder="V-12345678" required>
+                                {{if form.errors.cedula:}}
+                                <div class="invalid-feedback">{{=form.errors.cedula}}</div>
+                                {{pass}}
+                                <div class="form-text">Formato: V-12345678 o E-12345678</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento *</label>
+                                <input type="date" class="form-control {{='is-invalid' if form.errors.fecha_nacimiento else ''}}" 
+                                       id="fecha_nacimiento" name="fecha_nacimiento" 
+                                       value="{{=request.vars.fecha_nacimiento or ''}}" required>
+                                {{if form.errors.fecha_nacimiento:}}
+                                <div class="invalid-feedback">{{=form.errors.fecha_nacimiento}}</div>
+                                {{pass}}
+                            </div>
+                        </div>
+                        
+                        <!-- Información de Contacto -->
+                        <h6 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-address-book me-2"></i>Información de Contacto
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control {{='is-invalid' if form.errors.email else ''}}" 
+                                       id="email" name="email" value="{{=request.vars.email or ''}}" required>
+                                {{if form.errors.email:}}
+                                <div class="invalid-feedback">{{=form.errors.email}}</div>
+                                {{pass}}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control {{='is-invalid' if form.errors.telefono else ''}}" 
+                                       id="telefono" name="telefono" value="{{=request.vars.telefono or ''}}" 
+                                       placeholder="04141234567">
+                                {{if form.errors.telefono:}}
+                                <div class="invalid-feedback">{{=form.errors.telefono}}</div>
+                                {{pass}}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <textarea class="form-control {{='is-invalid' if form.errors.direccion else ''}}" 
+                                      id="direccion" name="direccion" rows="3" 
+                                      placeholder="Dirección completa">{{=request.vars.direccion or ''}}</textarea>
+                            {{if form.errors.direccion:}}
+                            <div class="invalid-feedback">{{=form.errors.direccion}}</div>
+                            {{pass}}
+                        </div>
+                        
+                        <!-- Información de Acceso -->
+                        <h6 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-key me-2"></i>Información de Acceso
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Contraseña *</label>
+                                <input type="password" class="form-control {{='is-invalid' if form.errors.password else ''}}" 
+                                       id="password" name="password" required>
+                                {{if form.errors.password:}}
+                                <div class="invalid-feedback">{{=form.errors.password}}</div>
+                                {{pass}}
+                                <div class="form-text">Mínimo 6 caracteres</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="password_confirm" class="form-label">Confirmar Contraseña *</label>
+                                <input type="password" class="form-control {{='is-invalid' if form.errors.password_confirm else ''}}" 
+                                       id="password_confirm" name="password_confirm" required>
+                                {{if form.errors.password_confirm:}}
+                                <div class="invalid-feedback">{{=form.errors.password_confirm}}</div>
+                                {{pass}}
+                            </div>
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-save me-1"></i>Registrar Cliente
+                                </button>
+                                <a href="{{=URL('clientes', 'listar')}}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                            </div>
+                        </div>
+                        
+                    </form>
+                    {{pass}}
                 </div>
             </div>
         </div>

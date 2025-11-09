@@ -1,0 +1,172 @@
+{{extend 'layout.html'}}
+
+<div class="dashboard-header">
+  <h1><i class="fas fa-cog me-3"></i>Configurar Límites de Venta</h1>
+  <p class="lead">Establecer límites diarios de venta por moneda</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card-resumen">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Límites Diarios</h5>
+      </div>
+      <div class="card-body">
+        
+        <!-- Información importante -->
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Control de Ventas:</strong> Los límites diarios ayudan a controlar el volumen de ventas 
+          y garantizar liquidez suficiente. El sistema alertará cuando se alcance el 80% y 95% del límite.
+        </div>
+        
+        {{=form}}
+        
+        <!-- Ayuda contextual -->
+        <div class="mt-4">
+          <h6 class="text-muted">Guía de Configuración:</h6>
+          <ul class="small text-muted">
+            <li><strong>Fecha:</strong> Día para el cual aplica el límite</li>
+            <li><strong>Moneda:</strong> Divisa a la que aplica el límite</li>
+            <li><strong>Límite Diario:</strong> Monto máximo que se puede vender en el día</li>
+            <li><strong>Alertas:</strong> Se enviarán notificaciones al 80% y 95% de utilización</li>
+          </ul>
+          
+          <div class="alert alert-info mt-3">
+            <strong>Recomendaciones Bancarias:</strong>
+            <ul class="mb-0">
+              <li>Establecer límites basados en la remesa disponible</li>
+              <li>Considerar un margen de seguridad del 10-20%</li>
+              <li>Revisar y ajustar límites diariamente según necesidad</li>
+              <li>Monitorear alertas para evitar quedarse sin liquidez</li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="mt-4 text-center">
+          <a href="{{=URL('index')}}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Límites actuales -->
+    <div class="card-resumen mt-4">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Límites Configurados Hoy</h6>
+      </div>
+      <div class="card-body">
+        {{
+        limites_hoy = db(
+          (db.limites_venta.fecha == request.now.date()) &
+          (db.limites_venta.activo == True)
+        ).select(orderby=db.limites_venta.moneda)
+        }}
+        
+        {{if limites_hoy:}}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Moneda</th>
+                <th>Límite</th>
+                <th>Vendido</th>
+                <th>Disponible</th>
+                <th>% Usado</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for limite in limites_hoy:}}
+              <tr>
+                <td><strong>{{=limite.moneda}}</strong></td>
+                <td>{{="{:,.2f}".format(float(limite.limite_diario))}}</td>
+                <td class="text-danger">{{="{:,.2f}".format(float(limite.monto_vendido))}}</td>
+                <td class="text-success">{{="{:,.2f}".format(float(limite.monto_disponible))}}</td>
+                <td>
+                  <div class="progress" style="height: 20px; min-width: 80px;">
+                    <div class="progress-bar {{='bg-success' if float(limite.porcentaje_utilizado) < 80 else 'bg-warning' if float(limite.porcentaje_utilizado) < 95 else 'bg-danger'}}" 
+                         style="width: {{=limite.porcentaje_utilizado}}%">
+                      {{="{:.0f}".format(float(limite.porcentaje_utilizado))}}%
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {{if float(limite.porcentaje_utilizado) < 80:}}
+                    <span class="badge bg-success">Normal</span>
+                  {{elif float(limite.porcentaje_utilizado) < 95:}}
+                    <span class="badge bg-warning">Alerta</span>
+                  {{else:}}
+                    <span class="badge bg-danger">Crítico</span>
+                  {{pass}}
+                </td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        {{else:}}
+        <p class="text-muted text-center mb-0">No hay límites configurados para hoy</p>
+        {{pass}}
+      </div>
+    </div>
+    
+    <!-- Configuración rápida -->
+    <div class="card-resumen mt-4">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Configuración Rápida</h6>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Configure límites para todas las monedas basados en las remesas disponibles:</p>
+        <div class="row">
+          <div class="col-md-4 mb-2">
+            <button class="btn btn-outline-success btn-block" onclick="configurarRapido('USD')">
+              <i class="fas fa-dollar-sign me-1"></i>USD
+            </button>
+          </div>
+          <div class="col-md-4 mb-2">
+            <button class="btn btn-outline-primary btn-block" onclick="configurarRapido('EUR')">
+              <i class="fas fa-euro-sign me-1"></i>EUR
+            </button>
+          </div>
+          <div class="col-md-4 mb-2">
+            <button class="btn btn-outline-warning btn-block" onclick="configurarRapido('USDT')">
+              <i class="fas fa-coins me-1"></i>USDT
+            </button>
+          </div>
+        </div>
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1"></i>
+          Esto configurará el límite al 90% de la remesa disponible
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function configurarRapido(moneda) {
+  if (confirm(`¿Configurar límite automático para ${moneda} basado en remesa disponible?`)) {
+    window.location.href = '{{=URL("configurar_limite_rapido")}}?moneda=' + moneda;
+  }
+}
+</script>
+
+<style>
+.card-resumen {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.btn-block {
+  width: 100%;
+  padding: 12px;
+}
+
+.progress {
+  border-radius: 10px;
+}
+</style>

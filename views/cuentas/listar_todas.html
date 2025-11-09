@@ -6,9 +6,9 @@
         <div class="row align-items-center">
             <div class="col-12">
                 <h1>
-                    <i class="fas fa-university me-3"></i>Todas las Cuentas
+                    <i class="fas fa-university me-3"></i>Gestión de Cuentas
                 </h1>
-                <p class="lead mb-0">Administración y consulta de todas las cuentas bancarias</p>
+                <p class="lead mb-0">Administración completa de todas las cuentas bancarias del sistema</p>
             </div>
         </div>
     </div>
@@ -32,7 +32,7 @@
     </div>
     {{pass}}
 
-    <!-- Filtros de búsqueda -->
+    <!-- Filtros de búsqueda funcionales -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -42,103 +42,133 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label">Número de cuenta</label>
-                                <input type="text" class="form-control" placeholder="Buscar por número">
+                    <form method="GET" action="{{=URL('cuentas', 'listar_todas')}}">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Buscar general</label>
+                                    <input type="text" name="buscar" class="form-control" 
+                                           placeholder="Cédula, nombre o email" value="{{=XML(buscar or '', sanitize=True)}}" maxlength="100">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de cuenta</label>
+                                    <input type="text" name="numero_cuenta" class="form-control" 
+                                           placeholder="Número de cuenta" value="{{=XML(numero_cuenta or '', sanitize=True)}}" maxlength="25">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Tipo de cuenta</label>
+                                    <select name="tipo" class="form-control">
+                                        <option value="todos" {{='selected' if (tipo or 'todos') == 'todos' else ''}}>Todos los tipos</option>
+                                        <option value="corriente" {{='selected' if (tipo or 'todos') == 'corriente' else ''}}>Corriente</option>
+                                        <option value="ahorro" {{='selected' if (tipo or 'todos') == 'ahorro' else ''}}>Ahorro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado</label>
+                                    <select name="estado" class="form-control">
+                                        <option value="todos" {{='selected' if (estado or 'todos') == 'todos' else ''}}>Todos los estados</option>
+                                        <option value="activa" {{='selected' if (estado or 'todos') == 'activa' else ''}}>Activa</option>
+                                        <option value="inactiva" {{='selected' if (estado or 'todos') == 'inactiva' else ''}}>Inactiva</option>
+                                        <option value="bloqueada" {{='selected' if (estado or 'todos') == 'bloqueada' else ''}}>Bloqueada</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label">Cliente</label>
-                                <input type="text" class="form-control" placeholder="Nombre del cliente">
+                        
+                        <!-- Filtros avanzados de saldo -->
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label class="form-label">Moneda</label>
+                                    <select name="moneda_saldo" class="form-control">
+                                        <option value="VES" {{='selected' if (moneda_saldo or 'VES') == 'VES' else ''}}>VES</option>
+                                        <option value="USD" {{='selected' if (moneda_saldo or 'VES') == 'USD' else ''}}>USD</option>
+                                        <option value="EUR" {{='selected' if (moneda_saldo or 'VES') == 'EUR' else ''}}>EUR</option>
+                                        <option value="USDT" {{='selected' if (moneda_saldo or 'VES') == 'USDT' else ''}}>USDT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Saldo mínimo</label>
+                                    <input type="number" name="saldo_min" class="form-control" 
+                                           placeholder="0.00" step="0.01" min="0" value="{{=XML(saldo_min or '', sanitize=True)}}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Saldo máximo</label>
+                                    <input type="number" name="saldo_max" class="form-control" 
+                                           placeholder="999999.99" step="0.01" min="0" value="{{=XML(saldo_max or '', sanitize=True)}}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary me-2">
+                                            <i class="fas fa-search me-1"></i>Buscar
+                                        </button>
+                                        <a href="{{=URL('cuentas', 'listar_todas')}}" class="btn btn-secondary">
+                                            <i class="fas fa-times me-1"></i>Limpiar
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label">Tipo de cuenta</label>
-                                <select class="form-control">
-                                    <option>Todos los tipos</option>
-                                    <option>Corriente</option>
-                                    <option>Ahorros</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label">Estado</label>
-                                <select class="form-control">
-                                    <option>Todos los estados</option>
-                                    <option>Activa</option>
-                                    <option>Inactiva</option>
-                                    <option>Bloqueada</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <button type="button" class="btn btn-primary me-2">
-                                <i class="fas fa-search me-1"></i>Buscar
-                            </button>
-                            <button type="button" class="btn btn-secondary">
-                                <i class="fas fa-times me-1"></i>Limpiar
-                            </button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Resumen de cuentas -->
+    <!-- Estadísticas de cuentas -->
+    {{if stats:}}
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-university me-2"></i>Total Cuentas
-                </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">0</div>
-                    <small class="text-muted">Cuentas registradas</small>
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{=stats.total}}</h5>
+                    <p class="card-text">Total Cuentas</p>
+                    <i class="fas fa-university fa-2x text-primary"></i>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-check-circle me-2"></i>Cuentas Activas
-                </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">0</div>
-                    <small class="text-muted">En funcionamiento</small>
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">{{=stats.activas}}</h5>
+                    <p class="card-text">Cuentas Activas</p>
+                    <i class="fas fa-check-circle fa-2x text-success"></i>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-coins me-2"></i>Saldo Total VES
-                </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">0.00</div>
-                    <small class="text-muted">Bolívares</small>
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">{{=stats.inactivas}}</h5>
+                    <p class="card-text">Cuentas Inactivas</p>
+                    <i class="fas fa-times-circle fa-2x text-danger"></i>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card-resumen">
-                <div class="card-header">
-                    <i class="fas fa-dollar-sign me-2"></i>Saldo Total USD
-                </div>
-                <div class="card-body text-center">
-                    <div class="saldo-amount">0.00</div>
-                    <small class="text-muted">Dólares</small>
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">{{=stats.corrientes}}</h5>
+                    <p class="card-text">Cuentas Corrientes</p>
+                    <i class="fas fa-credit-card fa-2x text-info"></i>
                 </div>
             </div>
         </div>
     </div>
+    {{pass}}
 
     <!-- Lista de cuentas -->
     <div class="row">
@@ -153,32 +183,212 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
+                    <!-- Indicador de carga -->
+                    <div id="loading-indicator" class="text-center py-5" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <div class="mt-3">
+                            <h5 class="text-muted">Cargando cuentas...</h5>
+                            <p class="text-muted mb-0">Por favor espere mientras se cargan los datos</p>
+                        </div>
+                    </div>
+                    
+                    <div id="table-container" class="table-responsive">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Número</th>
+                                    <th>Número de Cuenta</th>
                                     <th>Cliente</th>
+                                    <th>Cédula</th>
                                     <th>Tipo</th>
                                     <th>Saldo VES</th>
                                     <th>Saldo USD</th>
                                     <th>Saldo EUR</th>
                                     <th>Estado</th>
+                                    <th>Fecha Creación</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Aquí van los datos de cuentas -->
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        Los datos de cuentas se cargarán aquí
-                                    </td>
-                                </tr>
+                                {{if cuentas:}}
+                                    {{for cuenta in cuentas:}}
+                                    <tr>
+                                        <td>
+                                            <code>{{=cuenta.cuentas.numero_cuenta}}</code>
+                                        </td>
+                                        <td>
+                                            {{=cuenta.auth_user.first_name}} {{=cuenta.auth_user.last_name}}
+                                        </td>
+                                        <td>{{=cuenta.clientes.cedula}}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{=cuenta.cuentas.tipo_cuenta.title()}}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            {{if cuenta.cuentas.saldo_ves:}}
+                                                <strong>{{="{:,.2f}".format(float(cuenta.cuentas.saldo_ves))}}</strong> VES
+                                            {{else:}}
+                                                <span class="text-muted">0.00 VES</span>
+                                            {{pass}}
+                                        </td>
+                                        <td class="text-end">
+                                            {{if cuenta.cuentas.saldo_usd:}}
+                                                <strong>{{="{:,.2f}".format(float(cuenta.cuentas.saldo_usd))}}</strong> USD
+                                            {{else:}}
+                                                <span class="text-muted">0.00 USD</span>
+                                            {{pass}}
+                                        </td>
+                                        <td class="text-end">
+                                            {{if cuenta.cuentas.saldo_eur:}}
+                                                <strong>{{="{:,.2f}".format(float(cuenta.cuentas.saldo_eur))}}</strong> EUR
+                                            {{else:}}
+                                                <span class="text-muted">0.00 EUR</span>
+                                            {{pass}}
+                                        </td>
+                                        <td>
+                                            {{if cuenta.cuentas.estado == 'activa':}}
+                                                <span class="badge bg-success">Activa</span>
+                                            {{elif cuenta.cuentas.estado == 'inactiva':}}
+                                                <span class="badge bg-danger">Inactiva</span>
+                                            {{elif cuenta.cuentas.estado == 'bloqueada':}}
+                                                <span class="badge bg-warning">Bloqueada</span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">{{=cuenta.cuentas.estado.title()}}</span>
+                                            {{pass}}
+                                        </td>
+                                        <td>
+                                            {{=cuenta.cuentas.fecha_creacion.strftime('%d/%m/%Y') if cuenta.cuentas.fecha_creacion else 'N/A'}}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{=URL('cuentas', 'gestionar', args=[cuenta.cuentas.id])}}" 
+                                                   class="btn btn-sm btn-info" title="Gestionar cuenta">
+                                                    <i class="fas fa-cog"></i>
+                                                </a>
+                                                <a href="{{=URL('cuentas', 'detalle', args=[cuenta.cuentas.id])}}" 
+                                                   class="btn btn-sm btn-primary" title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{pass}}
+                                {{else:}}
+                                    <tr>
+                                        <td colspan="10" class="text-center py-5">
+                                            {{if buscar or numero_cuenta or (estado and estado != 'todos') or (tipo and tipo != 'todos') or saldo_min or saldo_max:}}
+                                                <!-- Mensaje cuando los filtros no devuelven resultados -->
+                                                <div class="empty-state-filtered">
+                                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                                    <h4 class="text-muted">Sin resultados</h4>
+                                                    <p class="text-muted mb-3">
+                                                        No se encontraron cuentas que coincidan con los filtros aplicados.
+                                                        <br>
+                                                        <small>
+                                                            {{if buscar and buscar.strip():}}
+                                                                Búsqueda general: "<strong>{{=buscar}}</strong>"<br>
+                                                            {{pass}}
+                                                            {{if numero_cuenta and numero_cuenta.strip():}}
+                                                                Número de cuenta: "<strong>{{=numero_cuenta}}</strong>"<br>
+                                                            {{pass}}
+                                                            {{if estado and estado != 'todos':}}
+                                                                Estado: <strong>{{=estado.title()}}</strong><br>
+                                                            {{pass}}
+                                                            {{if tipo and tipo != 'todos':}}
+                                                                Tipo: <strong>{{=tipo.title()}}</strong><br>
+                                                            {{pass}}
+                                                            {{if saldo_min:}}
+                                                                Saldo mínimo: <strong>{{=saldo_min}} {{=moneda_saldo or 'VES'}}</strong><br>
+                                                            {{pass}}
+                                                            {{if saldo_max:}}
+                                                                Saldo máximo: <strong>{{=saldo_max}} {{=moneda_saldo or 'VES'}}</strong><br>
+                                                            {{pass}}
+                                                        </small>
+                                                    </p>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <a href="{{=URL('cuentas', 'listar_todas')}}" class="btn btn-outline-primary">
+                                                            <i class="fas fa-times me-1"></i>Limpiar Filtros
+                                                        </a>
+                                                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-info">
+                                                            <i class="fas fa-users me-1"></i>Ver Clientes
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {{else:}}
+                                                <!-- Mensaje cuando no hay cuentas registradas -->
+                                                <div class="empty-state-no-data">
+                                                    <i class="fas fa-university fa-3x text-muted mb-3"></i>
+                                                    <h4 class="text-muted">No hay cuentas registradas</h4>
+                                                    <p class="text-muted mb-3">
+                                                        El sistema aún no tiene cuentas bancarias registradas.
+                                                        <br>
+                                                        <small>Para crear cuentas, primero debe tener clientes registrados en el sistema.</small>
+                                                    </p>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-primary btn-lg">
+                                                            <i class="fas fa-users me-2"></i>Ver Clientes
+                                                        </a>
+                                                        <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success">
+                                                            <i class="fas fa-plus me-1"></i>Registrar Cliente
+                                                        </a>
+                                                        <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
+                                                            <i class="fas fa-home me-1"></i>Dashboard
+                                                        </a>
+                                                    </div>
+                                                    <div class="mt-4">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Las cuentas se crean automáticamente al registrar clientes o pueden crearse manualmente desde la gestión de clientes.
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            {{pass}}
+                                        </td>
+                                    </tr>
+                                {{pass}}
                             </tbody>
                         </table>
                     </div>
                 </div>
+                
+                <!-- Paginación -->
+                {{if total_pages > 1:}}
+                <div class="card-footer">
+                    <nav aria-label="Paginación de cuentas">
+                        <ul class="pagination justify-content-center mb-0">
+                            {{if page > 1:}}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{=URL('cuentas', 'listar_todas', vars={'page': page-1, 'buscar': buscar or '', 'numero_cuenta': numero_cuenta or '', 'estado': estado or 'todos', 'tipo': tipo or 'todos', 'saldo_min': saldo_min or '', 'saldo_max': saldo_max or '', 'moneda_saldo': moneda_saldo or 'VES'})}}">
+                                        <i class="fas fa-chevron-left"></i> Anterior
+                                    </a>
+                                </li>
+                            {{pass}}
+                            
+                            {{for p in range(max(1, page-2), min(total_pages+1, page+3)):}}
+                                <li class="page-item {{='active' if p == page else ''}}">
+                                    <a class="page-link" href="{{=URL('cuentas', 'listar_todas', vars={'page': p, 'buscar': buscar or '', 'numero_cuenta': numero_cuenta or '', 'estado': estado or 'todos', 'tipo': tipo or 'todos', 'saldo_min': saldo_min or '', 'saldo_max': saldo_max or '', 'moneda_saldo': moneda_saldo or 'VES'})}}">
+                                        {{=p}}
+                                    </a>
+                                </li>
+                            {{pass}}
+                            
+                            {{if page < total_pages:}}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{=URL('cuentas', 'listar_todas', vars={'page': page+1, 'buscar': buscar or '', 'numero_cuenta': numero_cuenta or '', 'estado': estado or 'todos', 'tipo': tipo or 'todos', 'saldo_min': saldo_min or '', 'saldo_max': saldo_max or '', 'moneda_saldo': moneda_saldo or 'VES'})}}">
+                                        Siguiente <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {{pass}}
+                        </ul>
+                    </nav>
+                    
+                    <div class="text-center mt-2">
+                        <small class="text-muted">
+                            Página {{=page}} de {{=total_pages}} - Total: {{=total_cuentas}} cuentas
+                        </small>
+                    </div>
+                </div>
+                {{pass}}
             </div>
         </div>
     </div>
@@ -205,4 +415,120 @@
     color: rgba(255, 255, 255, 0.9) !important;
     margin: 0;
 }
+
+/* Estilos para indicadores de carga */
+.loading-overlay {
+    position: relative;
+}
+
+.loading-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    display: none;
+}
+
+.loading-overlay.loading::before {
+    display: block;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+#loading-indicator {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Estilos para estados vacíos */
+.empty-state-filtered,
+.empty-state-no-data {
+    padding: 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-state-filtered i,
+.empty-state-no-data i {
+    opacity: 0.6;
+}
+
+.empty-state-filtered h4,
+.empty-state-no-data h4 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-state-filtered p,
+.empty-state-no-data p {
+    line-height: 1.6;
+}
+
+.empty-state-filtered .btn,
+.empty-state-no-data .btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.empty-state-no-data .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar indicador de carga al enviar formularios de búsqueda
+    const searchForms = document.querySelectorAll('form[method="GET"]');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const tableContainer = document.getElementById('table-container');
+    
+    searchForms.forEach(function(form) {
+        form.addEventListener('submit', function() {
+            showLoadingIndicator();
+        });
+    });
+    
+    // Mostrar indicador de carga al hacer clic en enlaces de paginación
+    const paginationLinks = document.querySelectorAll('.pagination a');
+    paginationLinks.forEach(function(link) {
+        link.addEventListener('click', function() {
+            showLoadingIndicator();
+        });
+    });
+    
+    function showLoadingIndicator() {
+        if (loadingIndicator && tableContainer) {
+            loadingIndicator.style.display = 'flex';
+            tableContainer.style.display = 'none';
+        }
+    }
+    
+    // Simular tiempo de carga para consultas que podrían ser lentas
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasFilters = urlParams.get('buscar') || urlParams.get('numero_cuenta') || 
+                      urlParams.get('estado') || urlParams.get('tipo') || 
+                      urlParams.get('saldo_min') || urlParams.get('saldo_max');
+    
+    if (hasFilters) {
+        // Si hay filtros aplicados, mostrar brevemente el indicador de carga
+        showLoadingIndicator();
+        setTimeout(function() {
+            if (loadingIndicator && tableContainer) {
+                loadingIndicator.style.display = 'none';
+                tableContainer.style.display = 'block';
+            }
+        }, 500);
+    }
+});
+</script>

@@ -1,0 +1,598 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-university me-3"></i>Gestión de Cuentas
+                </h1>
+                <p class="lead mb-0">Administración completa de todas las cuentas bancarias del sistema</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Gestión de Cuentas</li>
+        </ol>
+    </nav>
+
+    {{if response.flash:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Estadísticas rápidas -->
+    {{if stats:}}
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <i class="fas fa-university fa-2x mb-2"></i>
+                    <h4 class="mb-0">{{=stats.total or 0}}</h4>
+                    <small>Total Cuentas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h4 class="mb-0">{{=stats.activas or 0}}</h4>
+                    <small>Activas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <i class="fas fa-times-circle fa-2x mb-2"></i>
+                    <h4 class="mb-0">{{=stats.inactivas or 0}}</h4>
+                    <small>Inactivas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-credit-card fa-2x mb-2"></i>
+                    <h4 class="mb-0">{{=stats.corrientes or 0}}</h4>
+                    <small>Corrientes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <i class="fas fa-piggy-bank fa-2x mb-2"></i>
+                    <h4 class="mb-0">{{=stats.ahorros or 0}}</h4>
+                    <small>Ahorros</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Filtros de búsqueda -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{=URL('cuentas', 'listar_todas')}}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Búsqueda General</label>
+                                    <input type="text" name="buscar" class="form-control" 
+                                           placeholder="Nombre, cédula, email o número de cuenta" 
+                                           value="{{=buscar if buscar else ''}}" maxlength="100">
+                                    <div class="form-text">Busca en nombre, cédula, email y número de cuenta</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Número de Cuenta</label>
+                                    <input type="text" name="numero_cuenta" class="form-control" 
+                                           placeholder="Número específico de cuenta" 
+                                           value="{{=numero_cuenta if numero_cuenta else ''}}" maxlength="25">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Estado de Cuenta</label>
+                                    <select name="estado" class="form-control">
+                                        <option value="todos" {{='selected' if (estado == 'todos' or not estado) else ''}}>Todos los estados</option>
+                                        <option value="activa" {{='selected' if estado == 'activa' else ''}}>Activa</option>
+                                        <option value="inactiva" {{='selected' if estado == 'inactiva' else ''}}>Inactiva</option>
+                                        <option value="bloqueada" {{='selected' if estado == 'bloqueada' else ''}}>Bloqueada</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Tipo de Cuenta</label>
+                                    <select name="tipo" class="form-control">
+                                        <option value="todos" {{='selected' if (tipo == 'todos' or not tipo) else ''}}>Todos los tipos</option>
+                                        <option value="corriente" {{='selected' if tipo == 'corriente' else ''}}>Corriente</option>
+                                        <option value="ahorro" {{='selected' if tipo == 'ahorro' else ''}}>Ahorro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Moneda para Saldo</label>
+                                    <select name="moneda_saldo" class="form-control">
+                                        <option value="VES" {{='selected' if (moneda_saldo == 'VES' or not moneda_saldo) else ''}}>VES (Bolívares)</option>
+                                        <option value="USD" {{='selected' if moneda_saldo == 'USD' else ''}}>USD (Dólares)</option>
+                                        <option value="EUR" {{='selected' if moneda_saldo == 'EUR' else ''}}>EUR (Euros)</option>
+                                        <option value="USDT" {{='selected' if moneda_saldo == 'USDT' else ''}}>USDT (Tether)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Saldo Mínimo</label>
+                                    <input type="number" name="saldo_min" class="form-control" 
+                                           placeholder="0.00" step="0.01" min="0" 
+                                           value="{{=saldo_min if saldo_min else ''}}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Saldo Máximo</label>
+                                    <input type="number" name="saldo_max" class="form-control" 
+                                           placeholder="999999.99" step="0.01" min="0" 
+                                           value="{{=saldo_max if saldo_max else ''}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-1"></i>Buscar Cuentas
+                                    </button>
+                                    <a href="{{=URL('cuentas', 'listar_todas')}}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i>Limpiar Filtros
+                                    </a>
+                                    <a href="{{=URL('cuentas', 'crear')}}" class="btn btn-success">
+                                        <i class="fas fa-plus me-1"></i>Nueva Cuenta
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de cuentas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Lista de Cuentas Bancarias
+                        {{if total_cuentas:}}
+                            <span class="badge bg-light text-dark ms-2">{{=total_cuentas}} cuenta{{='s' if total_cuentas != 1 else ''}}</span>
+                        {{pass}}
+                    </h5>
+                    <div>
+                        {{if page and total_pages and total_pages > 1:}}
+                            <small class="text-light">Página {{=page}} de {{=total_pages}}</small>
+                        {{pass}}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><i class="fas fa-hashtag me-1"></i>Número de Cuenta</th>
+                                    <th><i class="fas fa-user me-1"></i>Cliente</th>
+                                    <th><i class="fas fa-id-card me-1"></i>Cédula</th>
+                                    <th><i class="fas fa-tag me-1"></i>Tipo</th>
+                                    <th class="text-end"><i class="fas fa-coins me-1"></i>VES</th>
+                                    <th class="text-end"><i class="fas fa-dollar-sign me-1"></i>USD</th>
+                                    <th class="text-end"><i class="fas fa-euro-sign me-1"></i>EUR</th>
+                                    <th class="text-end"><i class="fas fa-coins me-1"></i>USDT</th>
+                                    <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                                    <th><i class="fas fa-calendar me-1"></i>Creada</th>
+                                    <th><i class="fas fa-cog me-1"></i>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{if cuentas:}}
+                                    {{for cuenta in cuentas:}}
+                                    <tr>
+                                        <td>
+                                            <code class="bg-light px-2 py-1 rounded">{{=cuenta.cuentas.numero_cuenta}}</code>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user-circle text-muted me-2"></i>
+                                                <div>
+                                                    <div class="fw-bold">{{=cuenta.auth_user.first_name}} {{=cuenta.auth_user.last_name}}</div>
+                                                    <small class="text-muted">{{=cuenta.auth_user.email}}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{=cuenta.clientes.cedula}}</span>
+                                        </td>
+                                        <td>
+                                            {{if cuenta.cuentas.tipo_cuenta == 'corriente':}}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-credit-card me-1"></i>Corriente
+                                                </span>
+                                            {{elif cuenta.cuentas.tipo_cuenta == 'ahorro':}}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-piggy-bank me-1"></i>Ahorro
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">{{=cuenta.cuentas.tipo_cuenta.title() if cuenta.cuentas.tipo_cuenta else 'N/A'}}</span>
+                                            {{pass}}
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-primary">{{="{:,.2f}".format(float(cuenta.cuentas.saldo_ves)) if cuenta.cuentas.saldo_ves else '0.00'}}</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-success">{{="{:,.2f}".format(float(cuenta.cuentas.saldo_usd)) if cuenta.cuentas.saldo_usd else '0.00'}}</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-warning">{{="{:,.2f}".format(float(cuenta.cuentas.saldo_eur)) if cuenta.cuentas.saldo_eur else '0.00'}}</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-info">{{="{:,.2f}".format(float(cuenta.cuentas.saldo_usdt)) if cuenta.cuentas.saldo_usdt else '0.00'}}</strong>
+                                        </td>
+                                        <td>
+                                            {{if cuenta.cuentas.estado == 'activa':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Activa
+                                                </span>
+                                            {{elif cuenta.cuentas.estado == 'inactiva':}}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Inactiva
+                                                </span>
+                                            {{elif cuenta.cuentas.estado == 'bloqueada':}}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-lock me-1"></i>Bloqueada
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">{{=cuenta.cuentas.estado.title() if cuenta.cuentas.estado else 'N/A'}}</span>
+                                            {{pass}}
+                                        </td>
+                                        <td>
+                                            <small>{{=cuenta.cuentas.fecha_creacion.strftime('%d/%m/%Y') if cuenta.cuentas.fecha_creacion else 'N/A'}}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{=URL('cuentas', 'gestionar', args=[cuenta.cuentas.id])}}" 
+                                                   class="btn btn-sm btn-warning" title="Gestionar cuenta">
+                                                    <i class="fas fa-cog"></i>
+                                                </a>
+                                                <a href="{{=URL('cuentas', 'detalle', args=[cuenta.cuentas.id])}}" 
+                                                   class="btn btn-sm btn-info" title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{=URL('clientes', 'detalle', args=[cuenta.cuentas.cliente_id])}}" 
+                                                   class="btn btn-sm btn-primary" title="Ver cliente">
+                                                    <i class="fas fa-user"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{pass}}
+                                {{else:}}
+                                    <tr>
+                                        <td colspan="11" class="text-center py-5">
+                                            {{if buscar or numero_cuenta or (estado and estado != 'todos') or (tipo and tipo != 'todos') or saldo_min or saldo_max:}}
+                                                <!-- Mensaje cuando los filtros no devuelven resultados -->
+                                                <div class="empty-state py-4">
+                                                    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                                                    <h4 class="text-muted">Sin resultados</h4>
+                                                    <p class="text-muted mb-3">
+                                                        No se encontraron cuentas que coincidan con los filtros aplicados.
+                                                    </p>
+                                                    <div class="mb-3">
+                                                        <small class="text-muted">
+                                                            <strong>Filtros aplicados:</strong><br>
+                                                            {{if buscar:}}• Búsqueda: "{{=buscar}}"<br>{{pass}}
+                                                            {{if numero_cuenta:}}• Número de cuenta: "{{=numero_cuenta}}"<br>{{pass}}
+                                                            {{if estado and estado != 'todos':}}• Estado: {{=estado.title()}}<br>{{pass}}
+                                                            {{if tipo and tipo != 'todos':}}• Tipo: {{=tipo.title()}}<br>{{pass}}
+                                                            {{if saldo_min:}}• Saldo mínimo: {{=saldo_min}} {{=moneda_saldo or 'VES'}}<br>{{pass}}
+                                                            {{if saldo_max:}}• Saldo máximo: {{=saldo_max}} {{=moneda_saldo or 'VES'}}<br>{{pass}}
+                                                        </small>
+                                                    </div>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <a href="{{=URL('cuentas', 'listar_todas')}}" class="btn btn-primary">
+                                                            <i class="fas fa-times me-1"></i>Limpiar Filtros
+                                                        </a>
+                                                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-info">
+                                                            <i class="fas fa-users me-1"></i>Ver Clientes
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {{else:}}
+                                                <!-- Mensaje cuando no hay cuentas registradas -->
+                                                <div class="empty-state py-5">
+                                                    <i class="fas fa-university fa-4x text-muted mb-3"></i>
+                                                    <h4 class="text-muted">No hay cuentas registradas</h4>
+                                                    <p class="text-muted mb-4">
+                                                        El sistema aún no tiene cuentas bancarias registradas.
+                                                        <br>
+                                                        <small>Para crear cuentas, primero debe tener clientes registrados en el sistema.</small>
+                                                    </p>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <a href="{{=URL('clientes', 'listar')}}" class="btn btn-primary btn-lg">
+                                                            <i class="fas fa-users me-2"></i>Gestionar Clientes
+                                                        </a>
+                                                        <a href="{{=URL('clientes', 'registrar')}}" class="btn btn-success">
+                                                            <i class="fas fa-plus me-1"></i>Registrar Cliente
+                                                        </a>
+                                                    </div>
+                                                    <div class="mt-4">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Las cuentas se crean automáticamente al registrar clientes o pueden crearse manualmente.
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            {{pass}}
+                                        </td>
+                                    </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Paginación -->
+                {{if total_pages and total_pages > 1:}}
+                <div class="card-footer bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Mostrando {{=len(cuentas)}} de {{=total_cuentas}} cuentas
+                                {{if page and total_pages:}}
+                                    (Página {{=page}} de {{=total_pages}})
+                                {{pass}}
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <nav aria-label="Paginación de cuentas">
+                                <ul class="pagination justify-content-end mb-0">
+                                    {{if page > 1:}}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{=URL('cuentas', 'listar_todas', vars={'page': page-1, 'buscar': buscar or '', 'numero_cuenta': numero_cuenta or '', 'estado': estado or 'todos', 'tipo': tipo or 'todos', 'saldo_min': saldo_min or '', 'saldo_max': saldo_max or '', 'moneda_saldo': moneda_saldo or 'VES'})}}">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {{pass}}
+                                    
+                                    {{for p in range(max(1, page-2), min(total_pages+1, page+3)):}}
+                                        <li class="page-item {{='active' if p == page else ''}}">
+                                            <a class="page-link" href="{{=URL('cuentas', 'listar_todas', vars={'page': p, 'buscar': buscar or '', 'numero_cuenta': numero_cuenta or '', 'estado': estado or 'todos', 'tipo': tipo or 'todos', 'saldo_min': saldo_min or '', 'saldo_max': saldo_max or '', 'moneda_saldo': moneda_saldo or 'VES'})}}">
+                                                {{=p}}
+                                            </a>
+                                        </li>
+                                    {{pass}}
+                                    
+                                    {{if page < total_pages:}}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{=URL('cuentas', 'listar_todas', vars={'page': page+1, 'buscar': buscar or '', 'numero_cuenta': numero_cuenta or '', 'estado': estado or 'todos', 'tipo': tipo or 'todos', 'saldo_min': saldo_min or '', 'saldo_max': saldo_max or '', 'moneda_saldo': moneda_saldo or 'VES'})}}">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    {{pass}}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                {{pass}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos específicos para gestión de cuentas */
+.page-header {
+    background: linear-gradient(135deg, #FFA366 0%, #FFD700 100%);
+    color: #000;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    color: #000 !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+    color: rgba(0, 0, 0, 0.8) !important;
+    margin: 0;
+}
+
+.card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    vertical-align: middle;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.table code {
+    background-color: var(--bs-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--bs-dark);
+}
+
+.btn-group .btn {
+    border-radius: 0.25rem;
+    margin-right: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-state i {
+    opacity: 0.6;
+}
+
+.empty-state h4 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    line-height: 1.6;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Animaciones */
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.25rem;
+        margin-right: 0;
+    }
+}
+
+/* Estados de saldo */
+.text-primary { color: #0d6efd !important; }
+.text-success { color: #198754 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-info { color: #0dcaf0 !important; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada para las tarjetas
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('fade-in-up');
+    });
+    
+    // Mejorar la experiencia de filtros
+    const form = document.querySelector('form[method="GET"]');
+    if (form) {
+        const inputs = form.querySelectorAll('input, select');
+        
+        // Auto-submit en cambios de select (opcional)
+        const selects = form.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                // Opcional: auto-submit al cambiar filtros
+                // form.submit();
+            });
+        });
+        
+        // Limpiar filtros
+        const clearBtn = document.querySelector('a[href*="listar_todas"]:not([href*="buscar"])');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function(e) {
+                // Limpiar todos los campos del formulario
+                inputs.forEach(input => {
+                    if (input.type === 'text' || input.type === 'number') {
+                        input.value = '';
+                    } else if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0;
+                    }
+                });
+            });
+        }
+    }
+    
+    // Tooltips para botones de acción
+    const actionButtons = document.querySelectorAll('[title]');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            // Aquí se pueden agregar tooltips personalizados si se desea
+        });
+    });
+});
+</script>

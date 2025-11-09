@@ -1,0 +1,74 @@
+
+/* Estilos para el logo real de R4 Banco Microfinanciero */
+.navbar-brand {
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: translateY(-1px);
+    text-decoration: none !important;
+}
+
+.logo-r4-real {
+    max-height: 40px;
+    width: auto;
+    transition: all 0.3s ease;
+    filter: brightness(1);
+}
+
+.logo-r4-real:hover {
+    filter: brightness(1.1);
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.logo-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.logo-subtitle {
+    font-size: 11px;
+    font-weight: 400;
+    color: #ffa366;
+    margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .logo-r4-real {
+        max-height: 35px;
+    }
+    
+    .logo-text {
+        display: none !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .logo-r4-real {
+        max-height: 30px;
+    }
+}
+
+/* Para el footer */
+.footer-logo {
+    height: 25px;
+    width: auto;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+/* Variante para sidebar si se necesita */
+.sidebar .logo-r4-real {
+    max-height: 35px;
+    display: block;
+    margin: 0 auto 15px auto;
+}
