@@ -1697,15 +1697,15 @@ def validar_limite_venta(moneda, monto_venta, fecha=None):
         limite = db(
             (db.limites_venta.fecha == fecha) &
             (db.limites_venta.moneda == moneda) &
-            (db.limites_venta.activo == True)
+            (db.limites_venta.activo == 'T')
         ).select().first()
         
-        # Obtener remesa del día
-        remesa = db(
+        # Obtener TODAS las remesas del día y sumar el total disponible
+        remesas = db(
             (db.remesas_diarias.fecha == fecha) &
             (db.remesas_diarias.moneda == moneda) &
-            (db.remesas_diarias.activa == True)
-        ).select().first()
+            (db.remesas_diarias.activa == 'T')
+        ).select()
         
         resultado = {
             'puede_vender': False,
@@ -1721,14 +1721,15 @@ def validar_limite_venta(moneda, monto_venta, fecha=None):
             resultado['razon'] = f'No hay límite configurado para {moneda} en {fecha}'
             return resultado
         
-        # Verificar si existe remesa
-        if not remesa:
+        # Verificar si existen remesas
+        if not remesas:
             resultado['razon'] = f'No hay remesa disponible para {moneda} en {fecha}'
             return resultado
         
         # Obtener valores actuales
         limite_disponible = float(limite.monto_disponible)
-        remesa_disponible = float(remesa.monto_disponible)
+        # SUMAR el total disponible de TODAS las remesas
+        remesa_disponible = sum([float(r.monto_disponible) for r in remesas])
         limite_diario = float(limite.limite_diario)
         limite_utilizado = float(limite.monto_vendido)
         
@@ -1794,14 +1795,15 @@ def procesar_venta_con_limites(moneda, monto_venta, transaccion_id=None, fecha=N
         limite = db(
             (db.limites_venta.fecha == fecha) &
             (db.limites_venta.moneda == moneda) &
-            (db.limites_venta.activo == True)
+            (db.limites_venta.activo == 'T')
         ).select().first()
         
-        remesa = db(
+        # Obtener TODAS las remesas disponibles (ordenadas por ID para FIFO)
+        remesas = db(
             (db.remesas_diarias.fecha == fecha) &
             (db.remesas_diarias.moneda == moneda) &
-            (db.remesas_diarias.activa == True)
-        ).select().first()
+            (db.remesas_diarias.activa == 'T')
+        ).select(orderby=db.remesas_diarias.id)
         
         # Actualizar límite
         nuevo_vendido_limite = float(limite.monto_vendido) + monto_venta
@@ -1814,27 +1816,41 @@ def procesar_venta_con_limites(moneda, monto_venta, transaccion_id=None, fecha=N
             porcentaje_utilizado=nuevo_porcentaje
         )
         
-        # Actualizar remesa
-        nuevo_vendido_remesa = float(remesa.monto_vendido) + monto_venta
-        nuevo_disponible_remesa = float(remesa.monto_disponible) - monto_venta
+        # Descontar de las remesas usando FIFO (First In, First Out)
+        monto_restante = monto_venta
         
-        remesa.update_record(
-            monto_vendido=nuevo_vendido_remesa,
-            monto_disponible=nuevo_disponible_remesa
-        )
-        
-        # Registrar movimiento
-        db.movimientos_remesas.insert(
-            remesa_id=remesa.id,
-            tipo_movimiento='VENTA',
-            monto=monto_venta,
-            saldo_anterior=float(remesa.monto_disponible) + monto_venta,
-            saldo_nuevo=nuevo_disponible_remesa,
-            transaccion_id=transaccion_id,
-            descripcion=f'Venta de {moneda} por ${monto_venta:,.2f}',
-            usuario=auth.user_id if auth.user else None,
-            ip_address=request.client
-        )
+        for remesa in remesas:
+            if monto_restante <= 0:
+                break
+            
+            disponible_remesa = float(remesa.monto_disponible)
+            
+            if disponible_remesa > 0:
+                # Descontar lo que se pueda de esta remesa
+                monto_a_descontar = min(monto_restante, disponible_remesa)
+                
+                nuevo_vendido_remesa = float(remesa.monto_vendido) + monto_a_descontar
+                nuevo_disponible_remesa = disponible_remesa - monto_a_descontar
+                
+                remesa.update_record(
+                    monto_vendido=nuevo_vendido_remesa,
+                    monto_disponible=nuevo_disponible_remesa
+                )
+                
+                # Registrar movimiento
+                db.movimientos_remesas.insert(
+                    remesa_id=remesa.id,
+                    tipo_movimiento='VENTA',
+                    monto=monto_a_descontar,
+                    saldo_anterior=disponible_remesa,
+                    saldo_nuevo=nuevo_disponible_remesa,
+                    transaccion_id=transaccion_id,
+                    descripcion=f'Venta de {moneda} por ${monto_a_descontar:,.2f}',
+                    usuario=auth.user_id if auth.user else None,
+                    ip_address=request.client
+                )
+                
+                monto_restante -= monto_a_descontar
         
         # Verificar alertas
         if nuevo_porcentaje >= 80 and not limite.alerta_80_enviada:

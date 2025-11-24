@@ -31,16 +31,24 @@
           </div>
           <div class="card-body">
             {{
-            remesa_usd = db(
+            # SUMAR todas las remesas de USD del día
+            remesas_usd_list = db(
               (db.remesas_diarias.fecha == request.now.date()) &
               (db.remesas_diarias.moneda == 'USD') &
-              (db.remesas_diarias.activa == True)
-            ).select().first()
+              (db.remesas_diarias.activa == 'T')
+            ).select()
+            
+            # Calcular total disponible sumando todas las remesas
+            total_disponible_usd = sum([float(r.monto_disponible) for r in remesas_usd_list]) if remesas_usd_list else 0
+            
+            # Usar Storage para crear objeto compatible
+            from gluon.storage import Storage
+            remesa_usd = Storage(monto_disponible=total_disponible_usd) if total_disponible_usd > 0 else None
             
             limite_usd = db(
               (db.limites_venta.fecha == request.now.date()) &
               (db.limites_venta.moneda == 'USD') &
-              (db.limites_venta.activo == True)
+              (db.limites_venta.activo == 'T')
             ).select().first()
             }}
             
@@ -133,16 +141,23 @@
           </div>
           <div class="card-body">
             {{
-            remesa_eur = db(
+            # SUMAR todas las remesas de EUR del día
+            remesas_eur_list = db(
               (db.remesas_diarias.fecha == request.now.date()) &
               (db.remesas_diarias.moneda == 'EUR') &
-              (db.remesas_diarias.activa == True)
-            ).select().first()
+              (db.remesas_diarias.activa == 'T')
+            ).select()
+            
+            # Calcular total disponible sumando todas las remesas
+            total_disponible_eur = sum([float(r.monto_disponible) for r in remesas_eur_list]) if remesas_eur_list else 0
+            
+            # Usar Storage para crear objeto compatible
+            remesa_eur = Storage(monto_disponible=total_disponible_eur) if total_disponible_eur > 0 else None
             
             limite_eur = db(
               (db.limites_venta.fecha == request.now.date()) &
               (db.limites_venta.moneda == 'EUR') &
-              (db.limites_venta.activo == True)
+              (db.limites_venta.activo == 'T')
             ).select().first()
             }}
             
@@ -235,16 +250,23 @@
           </div>
           <div class="card-body">
             {{
-            remesa_usdt = db(
+            # SUMAR todas las remesas de USDT del día
+            remesas_usdt_list = db(
               (db.remesas_diarias.fecha == request.now.date()) &
               (db.remesas_diarias.moneda == 'USDT') &
-              (db.remesas_diarias.activa == True)
-            ).select().first()
+              (db.remesas_diarias.activa == 'T')
+            ).select()
+            
+            # Calcular total disponible sumando todas las remesas
+            total_disponible_usdt = sum([float(r.monto_disponible) for r in remesas_usdt_list]) if remesas_usdt_list else 0
+            
+            # Usar Storage para crear objeto compatible
+            remesa_usdt = Storage(monto_disponible=total_disponible_usdt) if total_disponible_usdt > 0 else None
             
             limite_usdt = db(
               (db.limites_venta.fecha == request.now.date()) &
               (db.limites_venta.moneda == 'USDT') &
-              (db.limites_venta.activo == True)
+              (db.limites_venta.activo == 'T')
             ).select().first()
             }}
             

@@ -110,27 +110,65 @@
             </div>
             
             <!-- Volúmenes de Operación -->
+            <h6 class="mb-3">Divisas Vendidas por el Banco (Clientes Compraron)</h6>
             <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card">
+                <div class="col-md-3">
+                    <div class="card border-success">
                         <div class="card-body">
-                            <h6 class="card-title">Volumen Compras</h6>
-                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_ves'])}} VES</h4>
+                            <h6 class="card-title text-muted">Ventas USD</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_usd'])}} USD</h4>
+                            <small class="text-muted">Recibido: {{="{:,.2f}".format(reporte['volumen_compras_ves'])}} VES</small>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card">
+                <div class="col-md-3">
+                    <div class="card border-success">
                         <div class="card-body">
-                            <h6 class="card-title">Volumen Ventas USD</h6>
+                            <h6 class="card-title text-muted">Ventas USDT</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_usdt'])}} USDT</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Ventas EUR</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_eur'])}} EUR</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Recibido</h6>
+                            <h4>{{="{:,.2f}".format(reporte['volumen_compras_ves'])}} VES</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="mb-3">Divisas Compradas por el Banco (Clientes Vendieron)</h6>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Compras USD</h6>
                             <h4 class="text-info">{{="{:,.2f}".format(reporte['volumen_ventas_usd'])}} USD</h4>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card">
+                    <div class="card border-info">
                         <div class="card-body">
-                            <h6 class="card-title">Volumen Ventas EUR</h6>
+                            <h6 class="card-title text-muted">Compras USDT</h6>
+                            <h4 class="text-info">{{="{:,.2f}".format(reporte['volumen_ventas_usdt'])}} USDT</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Compras EUR</h6>
                             <h4 class="text-info">{{="{:,.2f}".format(reporte['volumen_ventas_eur'])}} EUR</h4>
                         </div>
                     </div>
@@ -138,20 +176,44 @@
             </div>
             
             <!-- Tasas Promedio -->
+            <h6 class="mb-3">Tasas de Cambio Promedio del Día</h6>
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Tasa USD/VES Promedio</h6>
-                            <h4>{{="{:,.4f}".format(reporte['tasa_usd_promedio'])}}</h4>
+                            {{if reporte['tasa_usd_promedio'] > 0:}}
+                            <h4 class="text-primary">{{="{:,.4f}".format(reporte['tasa_usd_promedio'])}}</h4>
+                            {{else:}}
+                            <h4 class="text-muted">N/A</h4>
+                            <small class="text-muted">Sin transacciones USD</small>
+                            {{pass}}
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">Tasa USDT/VES Promedio</h6>
+                            {{if reporte['tasa_usdt_promedio'] > 0:}}
+                            <h4 class="text-primary">{{="{:,.4f}".format(reporte['tasa_usdt_promedio'])}}</h4>
+                            {{else:}}
+                            <h4 class="text-muted">N/A</h4>
+                            <small class="text-muted">Sin transacciones USDT</small>
+                            {{pass}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Tasa EUR/VES Promedio</h6>
-                            <h4>{{="{:,.4f}".format(reporte['tasa_eur_promedio'])}}</h4>
+                            {{if reporte['tasa_eur_promedio'] > 0:}}
+                            <h4 class="text-primary">{{="{:,.4f}".format(reporte['tasa_eur_promedio'])}}</h4>
+                            {{else:}}
+                            <h4 class="text-muted">N/A</h4>
+                            <small class="text-muted">Sin transacciones EUR</small>
+                            {{pass}}
                         </div>
                     </div>
                 </div>
@@ -323,27 +385,64 @@
             </div>
             
             <!-- Volúmenes Mensuales -->
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card">
+            <h6 class="mb-3">Divisas Vendidas por el Banco (Clientes Compraron)</h6>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-success">
                         <div class="card-body">
-                            <h6 class="card-title">Volumen Compras</h6>
-                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_ves'])}} VES</h4>
+                            <h6 class="card-title text-muted">Ventas USD</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_usd'])}} USD</h4>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card">
+                <div class="col-md-3">
+                    <div class="card border-success">
                         <div class="card-body">
-                            <h6 class="card-title">Volumen Ventas USD</h6>
+                            <h6 class="card-title text-muted">Ventas USDT</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_usdt'])}} USDT</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Ventas EUR</h6>
+                            <h4 class="text-success">{{="{:,.2f}".format(reporte['volumen_compras_eur'])}} EUR</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Recibido</h6>
+                            <h4>{{="{:,.2f}".format(reporte['volumen_compras_ves'])}} VES</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="mb-3">Divisas Compradas por el Banco (Clientes Vendieron)</h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Compras USD</h6>
                             <h4 class="text-info">{{="{:,.2f}".format(reporte['volumen_ventas_usd'])}} USD</h4>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card">
+                    <div class="card border-info">
                         <div class="card-body">
-                            <h6 class="card-title">Volumen Ventas EUR</h6>
+                            <h6 class="card-title text-muted">Compras USDT</h6>
+                            <h4 class="text-info">{{="{:,.2f}".format(reporte['volumen_ventas_usdt'])}} USDT</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Compras EUR</h6>
                             <h4 class="text-info">{{="{:,.2f}".format(reporte['volumen_ventas_eur'])}} EUR</h4>
                         </div>
                     </div>

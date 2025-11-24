@@ -16,16 +16,22 @@ logger = logging.getLogger("web2py.app.divisas")
 
 def obtener_disponibilidad_moneda(moneda, fecha=None):
     """
-    Obtiene la disponibilidad actual de una moneda
+    Obtiene la disponibilidad actual de una moneda SUMANDO todas las remesas activas del día
     Retorna: dict con monto_disponible, limite_diario, porcentaje_usado
     """
     if not fecha:
         fecha = request.now.date()
     
-    # Obtener remesa del día
-    remesa = db((db.remesas_diarias.fecha == fecha) & 
-                (db.remesas_diarias.moneda == moneda) &
-                (db.remesas_diarias.activa == True)).select().first()
+    # Obtener TODAS las remesas activas del día para esta moneda
+    # Nota: activa se guarda como 'T' en SQLite, no como True
+    remesas = db((db.remesas_diarias.fecha == fecha) & 
+                 (db.remesas_diarias.moneda == moneda) &
+                 (db.remesas_diarias.activa == 'T')).select()
+    
+    # SUMAR todos los montos de todas las remesas
+    total_recibido = sum([float(r.monto_recibido) for r in remesas]) if remesas else 0
+    total_disponible = sum([float(r.monto_disponible) for r in remesas]) if remesas else 0
+    total_vendido = sum([float(r.monto_vendido) for r in remesas]) if remesas else 0
     
     # Obtener límite del día
     limite = db((db.limites_venta.fecha == fecha) & 
@@ -35,9 +41,9 @@ def obtener_disponibilidad_moneda(moneda, fecha=None):
     resultado = {
         'moneda': moneda,
         'fecha': fecha,
-        'remesa_disponible': float(remesa.monto_disponible) if remesa else 0,
-        'remesa_total': float(remesa.monto_recibido) if remesa else 0,
-        'remesa_vendido': float(remesa.monto_vendido) if remesa else 0,
+        'remesa_disponible': total_disponible,
+        'remesa_total': total_recibido,
+        'remesa_vendido': total_vendido,
         'limite_diario': float(limite.limite_diario) if limite else 0,
         'limite_vendido': float(limite.monto_vendido) if limite else 0,
         'limite_disponible': float(limite.monto_disponible) if limite else 0,
@@ -46,7 +52,7 @@ def obtener_disponibilidad_moneda(moneda, fecha=None):
     }
     
     # Determinar si se puede vender
-    if remesa and remesa.monto_disponible <= 0:
+    if total_disponible <= 0:
         resultado['puede_vender'] = False
         resultado['razon'] = 'Sin remesa disponible'
     elif limite and limite.monto_disponible <= 0:
@@ -126,11 +132,33 @@ def index():
     disponibilidad_eur = obtener_disponibilidad_moneda('EUR', fecha_hoy)
     disponibilidad_usdt = obtener_disponibilidad_moneda('USDT', fecha_hoy)
     
-    # Obtener remesas del día
-    remesas_hoy = db(
+    # Obtener remesas del día AGRUPADAS por moneda
+    remesas_raw = db(
         (db.remesas_diarias.fecha == fecha_hoy) &
-        (db.remesas_diarias.activa == True)
+        (db.remesas_diarias.activa == 'T')
     ).select(orderby=db.remesas_diarias.moneda)
+    
+    # Agrupar y sumar remesas por moneda
+    remesas_agrupadas = {}
+    for remesa in remesas_raw:
+        moneda = remesa.moneda
+        if moneda not in remesas_agrupadas:
+            remesas_agrupadas[moneda] = {
+                'moneda': moneda,
+                'monto_recibido': 0,
+                'monto_disponible': 0,
+                'monto_vendido': 0,
+                'fuente_remesa': [],
+                'fecha': remesa.fecha
+            }
+        remesas_agrupadas[moneda]['monto_recibido'] += float(remesa.monto_recibido)
+        remesas_agrupadas[moneda]['monto_disponible'] += float(remesa.monto_disponible)
+        remesas_agrupadas[moneda]['monto_vendido'] += float(remesa.monto_vendido)
+        if remesa.fuente_remesa:
+            remesas_agrupadas[moneda]['fuente_remesa'].append(remesa.fuente_remesa)
+    
+    # Convertir a lista para la vista
+    remesas_hoy = [remesas_agrupadas[m] for m in sorted(remesas_agrupadas.keys())]
     
     # Obtener límites del día
     limites_hoy = db(
@@ -159,81 +187,89 @@ def index():
 
 @auth.requires_membership('administrador')
 def registrar_remesa():
-    """Registrar nueva remesa diaria"""
+    """Registrar nueva remesa diaria - Versión SIMPLE sin lógica de suma"""
+    
+    # Ocultar campos calculados
+    db.remesas_diarias.monto_disponible.readable = False
+    db.remesas_diarias.monto_disponible.writable = False
+    db.remesas_diarias.monto_vendido.readable = False
+    db.remesas_diarias.monto_vendido.writable = False
+    db.remesas_diarias.monto_reservado.readable = False
+    db.remesas_diarias.monto_reservado.writable = False
+    db.remesas_diarias.usuario_registro.readable = False
+    db.remesas_diarias.usuario_registro.writable = False
+    db.remesas_diarias.fecha_registro.readable = False
+    db.remesas_diarias.fecha_registro.writable = False
+    db.remesas_diarias.activa.readable = False
+    db.remesas_diarias.activa.writable = False
     
     form = SQLFORM(db.remesas_diarias)
-    form.vars.usuario_registro = auth.user_id
     
     if form.process().accepted:
+        # Obtener el ID y monto de la remesa recién creada
         remesa_id = form.vars.id
+        monto_recibido = form.vars.monto_recibido
         
-        # Registrar movimiento
-        registrar_movimiento_remesa(
-            remesa_id=remesa_id,
-            tipo_movimiento='RECEPCION',
-            monto=form.vars.monto_recibido,
-            descripcion=f"Remesa recibida: {form.vars.fuente_remesa or 'N/A'}"
-        )
+        # Leer el registro recién creado
+        remesa = db.remesas_diarias[remesa_id]
         
-        session.flash = f'Remesa de {form.vars.moneda} registrada exitosamente'
+        # Actualizar SOLO si monto_disponible no es correcto
+        if remesa.monto_disponible != monto_recibido:
+            remesa.update_record(
+                monto_disponible=monto_recibido,
+                monto_vendido=0,
+                monto_reservado=0,
+                usuario_registro=auth.user_id,
+                fecha_registro=request.now,
+                activa='T'
+            )
+        
+        session.flash = f'✅ Remesa de {form.vars.moneda} por ${float(monto_recibido):,.2f} registrada'
         redirect(URL('index'))
     
     return dict(form=form)
 
 @auth.requires_membership('administrador')
 def configurar_limites():
-    """Configurar límites de venta diarios"""
-    
-    if request.vars.fecha and request.vars.moneda:
-        # Formulario específico para fecha y moneda
-        fecha = request.vars.fecha
-        moneda = request.vars.moneda
-        
-        # Buscar límite existente
-        limite_existente = db(
-            (db.limites_venta.fecha == fecha) &
-            (db.limites_venta.moneda == moneda) &
-            (db.limites_venta.activo == True)
-        ).select().first()
-        
-        if limite_existente:
-            form = SQLFORM(db.limites_venta, limite_existente, showid=False)
-        else:
-            form = SQLFORM(db.limites_venta)
-            form.vars.fecha = fecha
-            form.vars.moneda = moneda
-    else:
-        form = SQLFORM(db.limites_venta)
-    
-    form.vars.usuario_configuracion = auth.user_id
-    
-    if form.process().accepted:
-        session.flash = 'Límite configurado exitosamente'
-        redirect(URL('index'))
-    
-    return dict(form=form)
+    """Configurar límites de venta diarios - Vista simplificada"""
+    # Redirigir a la vista simple que ya existe
+    redirect(URL('configurar_limites_simple'))
 
 @auth.requires_membership('administrador')
 def historial_movimientos():
     """Ver historial de movimientos de remesas"""
+    import datetime
     
-    # Filtros
-    fecha_desde = request.vars.fecha_desde or (request.now.date() - timedelta(days=7))
-    fecha_hasta = request.vars.fecha_hasta or request.now.date()
-    moneda_filtro = request.vars.moneda or 'TODAS'
+    # Obtener parámetros de filtro
+    fecha_desde = request.vars.fecha_desde or (datetime.date.today() - datetime.timedelta(days=30))
+    fecha_hasta = request.vars.fecha_hasta or datetime.date.today()
+    tipo_filtro = request.vars.tipo or 'TODOS'
     
-    query = (db.movimientos_remesas.fecha_movimiento >= fecha_desde) &             (db.movimientos_remesas.fecha_movimiento <= fecha_hasta)
+    # Construir query base
+    query = (db.movimientos_remesas.id > 0)
     
-    if moneda_filtro != 'TODAS':
-        query &= (db.remesas_diarias.moneda == moneda_filtro)
+    # Aplicar filtros de fecha si están presentes
+    if fecha_desde:
+        if isinstance(fecha_desde, str):
+            fecha_desde = datetime.datetime.strptime(fecha_desde, '%Y-%m-%d').date()
+        query &= (db.movimientos_remesas.fecha_movimiento >= fecha_desde)
     
+    if fecha_hasta:
+        if isinstance(fecha_hasta, str):
+            fecha_hasta = datetime.datetime.strptime(fecha_hasta, '%Y-%m-%d').date()
+        # Incluir todo el día hasta
+        fecha_hasta_fin = datetime.datetime.combine(fecha_hasta, datetime.time(23, 59, 59))
+        query &= (db.movimientos_remesas.fecha_movimiento <= fecha_hasta_fin)
+    
+    # Filtrar por tipo si no es TODOS
+    if tipo_filtro and tipo_filtro != 'TODOS':
+        query &= (db.movimientos_remesas.tipo_movimiento == tipo_filtro)
+    
+    # Consultar movimientos con join a remesas_diarias
     movimientos = db(query).select(
         db.movimientos_remesas.ALL,
         db.remesas_diarias.moneda,
-        db.remesas_diarias.fecha,
-        left=db.remesas_diarias.on(
-            db.movimientos_remesas.remesa_id == db.remesas_diarias.id
-        ),
+        left=db.remesas_diarias.on(db.movimientos_remesas.remesa_id == db.remesas_diarias.id),
         orderby=~db.movimientos_remesas.fecha_movimiento,
         limitby=(0, 100)
     )
@@ -242,7 +278,7 @@ def historial_movimientos():
         movimientos=movimientos,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
-        moneda_filtro=moneda_filtro
+        tipo_filtro=tipo_filtro
     )
 
 def calcular_estadisticas_mes(moneda, fecha_desde, fecha_hasta):
@@ -331,32 +367,39 @@ def configurar_limite_simple():
     El sistema calcula automáticamente vendido y disponible
     """
     try:
+        logger.info(f"configurar_limite_simple llamado. request.vars: {request.vars}")
+        
         if request.vars.moneda and request.vars.limite_diario:
             moneda = request.vars.moneda
             limite_diario = float(request.vars.limite_diario)
             fecha = request.now.date()
             
-            # Validar que existe remesa
-            remesa = db(
+            logger.info(f"Configurando límite: {moneda} = ${limite_diario} para {fecha}")
+            
+            # Validar que existen remesas y sumar el total disponible
+            remesas = db(
                 (db.remesas_diarias.fecha == fecha) &
                 (db.remesas_diarias.moneda == moneda) &
-                (db.remesas_diarias.activa == True)
-            ).select().first()
+                (db.remesas_diarias.activa == 'T')
+            ).select()
             
-            if not remesa:
+            if not remesas:
                 response.flash = f"❌ No hay remesa de {moneda} para hoy. Registra una remesa primero."
                 redirect(URL('configurar_limites_simple'))
             
-            # Validar que el límite no exceda la remesa
-            if limite_diario > float(remesa.monto_disponible):
-                response.flash = f"❌ El límite no puede exceder la remesa disponible (${remesa.monto_disponible:,.2f})"
+            # Sumar el total disponible de todas las remesas
+            total_disponible = sum([float(r.monto_disponible) for r in remesas])
+            
+            # Validar que el límite no exceda el total disponible
+            if limite_diario > total_disponible:
+                response.flash = f"❌ El límite no puede exceder la remesa disponible (${total_disponible:,.2f})"
                 redirect(URL('configurar_limites_simple'))
             
             # *** DESACTIVAR TODOS LOS LÍMITES ANTERIORES DE ESTA MONEDA ***
             db(
                 (db.limites_venta.fecha == fecha) &
                 (db.limites_venta.moneda == moneda)
-            ).update(activo=False)
+            ).update(activo='F')
             
             # *** CREAR NUEVO LÍMITE LIMPIO ***
             db.limites_venta.insert(
@@ -366,9 +409,9 @@ def configurar_limite_simple():
                 monto_vendido=0.00,
                 monto_disponible=limite_diario,
                 porcentaje_utilizado=0.0,
-                activo=True,
-                alerta_80_enviada=False,
-                alerta_95_enviada=False
+                activo='T',
+                alerta_80_enviada='F',
+                alerta_95_enviada='F'
             )
             
             response.flash = f"✅ Límite de {moneda} configurado: ${limite_diario:,.2f}"

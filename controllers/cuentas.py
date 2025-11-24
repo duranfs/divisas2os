@@ -463,43 +463,52 @@ def index():
 @auth.requires_login()
 def crear():
     """Crear nueva cuenta bancaria"""
-    # Verificar que el usuario sea cliente registrado
-    cliente = db(db.clientes.user_id == auth.user.id).select().first()
+    # Verificar si es administrador o cliente
+    es_admin = auth.has_membership('administrador')
     
-    if not cliente:
-        session.flash = "Debe completar su registro como cliente primero"
-        redirect(URL('clientes', 'registrar'))
+    if es_admin:
+        # Administrador puede crear cuenta para cualquier cliente
+        form = SQLFORM(db.cuentas, fields=['cliente_id', 'tipo_cuenta'])
+    else:
+        # Cliente solo puede crear su propia cuenta
+        cliente = db(db.clientes.user_id == auth.user.id).select().first()
+        
+        if not cliente:
+            session.flash = "Debe completar su registro como cliente primero"
+            redirect(URL('clientes', 'registrar'))
+        
+        # Crear formulario sin campo cliente_id
+        form = SQLFORM(db.cuentas, fields=['tipo_cuenta'])
+        form.vars.cliente_id = cliente.id
     
-    # Crear formulario
-    form = SQLFORM(db.cuentas, fields=['tipo_cuenta'])
-    form.vars.cliente_id = cliente.id
-    
-    if form.process().accepted:
-        # Generar número de cuenta único
-        numero_cuenta = generar_numero_cuenta()
-        
-        # Obtener el ID de la cuenta recién creada
-        cuenta_id = form.vars.id
-        if not cuenta_id:
-            # Si no está disponible en form.vars, buscar la cuenta más reciente del cliente
-            cuenta_reciente = db(db.cuentas.cliente_id == cliente.id).select(
-                orderby=~db.cuentas.id,
-                limitby=(0, 1)
-            ).first()
-            cuenta_id = cuenta_reciente.id if cuenta_reciente else None
-        
-        if cuenta_id:
-            # Actualizar el registro con el número de cuenta generado
-            db(db.cuentas.id == cuenta_id).update(numero_cuenta=numero_cuenta)
-            session.flash = f"Cuenta creada exitosamente. Número: {numero_cuenta}"
-        else:
-            session.flash = "Cuenta creada pero no se pudo asignar número. Contacte al administrador."
-        
-        redirect(URL('cuentas', 'index'))
+    if form.validate():
+        try:
+            # Generar número de cuenta único
+            numero_cuenta = generar_numero_cuenta()
+            
+            # Insertar la cuenta
+            cuenta_id = db.cuentas.insert(
+                cliente_id=form.vars.cliente_id,
+                tipo_cuenta=form.vars.tipo_cuenta,
+                numero_cuenta=numero_cuenta,
+                saldo_ves=0,
+                saldo_usd=0,
+                saldo_eur=0,
+                saldo_usdt=0,
+                estado='activa'
+            )
+            db.commit()
+            
+            # Mostrar mensaje de éxito
+            response.flash = f"Cuenta creada exitosamente. Número de cuenta: {numero_cuenta}"
+            
+        except Exception as e:
+            db.rollback()
+            response.flash = f"Error al crear la cuenta: {str(e)}"
     elif form.errors:
         response.flash = "Por favor corrija los errores en el formulario"
     
-    return dict(form=form, cliente=cliente)
+    return dict(form=form)
 
 @auth.requires_login()
 def consultar():
@@ -563,16 +572,24 @@ def movimientos():
     """Historial de movimientos de una cuenta"""
     cuenta_id = request.args(0)
     
-    if not cuenta_id:
-        session.flash = "Debe especificar una cuenta"
-        redirect(URL('cuentas', 'index'))
-    
-    # Verificar que la cuenta pertenezca al cliente actual
+    # Verificar que el usuario sea cliente
     cliente = db(db.clientes.user_id == auth.user.id).select().first()
     
     if not cliente:
         session.flash = "Acceso no autorizado"
         redirect(URL('default', 'index'))
+    
+    # Obtener todas las cuentas del cliente
+    cuentas_cliente = db(db.cuentas.cliente_id == cliente.id).select()
+    
+    # Si no se especifica cuenta_id, usar la primera cuenta del cliente
+    if not cuenta_id:
+        if not cuentas_cliente:
+            session.flash = "No tiene cuentas registradas"
+            redirect(URL('cuentas', 'index'))
+        
+        # Usar la primera cuenta
+        cuenta_id = cuentas_cliente[0].id
     
     cuenta = db(
         (db.cuentas.id == cuenta_id) & 
@@ -630,6 +647,7 @@ def movimientos():
     return dict(
         cuenta=cuenta,
         cliente=cliente,
+        cuentas_cliente=cuentas_cliente,
         transacciones=transacciones,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
@@ -887,9 +905,9 @@ def gestionar():
         session.flash = "Usuario no encontrado"
         redirect(URL('cuentas', 'listar_todas'))
     
-    # Formulario para editar estado y saldos
+    # Formulario para editar estado y saldos (incluyendo USDT)
     form = SQLFORM(db.cuentas, cuenta_record.id, 
-                   fields=['estado', 'saldo_ves', 'saldo_usd', 'saldo_eur'],
+                   fields=['estado', 'saldo_ves', 'saldo_usd', 'saldo_eur', 'saldo_usdt'],
                    showid=False)
     
     if form.process().accepted:

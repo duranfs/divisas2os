@@ -1,19 +1,11 @@
 {{extend 'layout.html'}}
 
 <div class="container-fluid">
-    <!-- Header de la página -->
     <div class="page-header fade-in-up">
-        <div class="row align-items-center">
-            <div class="col-12">
-                <h1>
-                    <i class="fas fa-exchange-alt me-3"></i>Movimientos de Cuenta
-                </h1>
-                <p class="lead mb-0">Historial de transacciones y movimientos bancarios</p>
-            </div>
-        </div>
+        <h1><i class="fas fa-exchange-alt me-3"></i>Movimientos de Cuenta</h1>
+        <p class="lead mb-0">Historial de transacciones</p>
     </div>
 
-    <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
@@ -22,31 +14,76 @@
         </ol>
     </nav>
 
-    {{if response.flash:}}
+    {{if cuenta:}}
     <div class="row mb-4">
         <div class="col-12">
-            <div class="alert alert-info alert-dismissible fade show">
-                {{=response.flash}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Cuenta: {{=cuenta.numero_cuenta}}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2"><strong>Tipo:</strong> {{=cuenta.tipo_cuenta.title()}}</div>
+                        <div class="col-md-2"><strong>VES:</strong> {{="{:,.2f}".format(float(cuenta.saldo_ves))}}</div>
+                        <div class="col-md-2"><strong>USD:</strong> {{="{:,.2f}".format(float(cuenta.saldo_usd))}}</div>
+                        <div class="col-md-2"><strong>USDT:</strong> {{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}</div>
+                        <div class="col-md-2"><strong>EUR:</strong> {{="{:,.2f}".format(float(cuenta.saldo_eur))}}</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    {{pass}}
 
-    <!-- Contenido principal -->
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>Movimientos de Cuenta
-                    </h5>
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Historial de Transacciones</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Aquí va el contenido específico de movimientos -->
-                    <p>Contenido de movimientos de cuenta...</p>
+                    {{if transacciones:}}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Comprobante</th>
+                                    <th>Tipo</th>
+                                    <th>Origen</th>
+                                    <th>Monto Origen</th>
+                                    <th>Destino</th>
+                                    <th>Monto Destino</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for t in transacciones:}}
+                                <tr>
+                                    <td>{{=t.fecha_transaccion.strftime('%d/%m/%Y %H:%M') if t.fecha_transaccion else 'N/A'}}</td>
+                                    <td><code>{{=t.numero_comprobante}}</code></td>
+                                    <td><span class="badge bg-{{='success' if t.tipo_operacion == 'compra' else 'warning'}}">{{=t.tipo_operacion.title()}}</span></td>
+                                    <td>{{=t.moneda_origen}}</td>
+                                    <td class="text-end">{{="{:,.2f}".format(float(t.monto_origen)) if t.monto_origen else "0.00"}}</td>
+                                    <td>{{=t.moneda_destino}}</td>
+                                    <td class="text-end">{{="{:,.2f}".format(float(t.monto_destino)) if t.monto_destino else "0.00"}}</td>
+                                    <td><span class="badge bg-success">{{=t.estado.title()}}</span></td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else:}}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No se encontraron transacciones para esta cuenta.
+                    </div>
+                    {{pass}}
                 </div>
             </div>
         </div>
     </div>
+    {{else:}}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> No se pudo cargar la información de la cuenta.
+    </div>
+    {{pass}}
 </div>

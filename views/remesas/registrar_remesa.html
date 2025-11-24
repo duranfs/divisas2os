@@ -24,11 +24,23 @@
         
         <!-- Ayuda contextual -->
         <div class="mt-4">
-          <h6 class="text-muted">Guía de Campos:</h6>
+          <div class="alert alert-success">
+            <h6 class="mb-2"><i class="fas fa-check-circle me-2"></i>Proceso Simplificado</h6>
+            <p class="mb-0 small">
+              Solo necesitas ingresar el <strong>monto recibido</strong>. 
+              El sistema calculará automáticamente:
+            </p>
+            <ul class="small mb-0 mt-2">
+              <li>Monto Disponible = Monto Recibido</li>
+              <li>Monto Vendido = 0 (se actualiza con cada venta)</li>
+            </ul>
+          </div>
+          
+          <h6 class="text-muted mt-3">Guía de Campos:</h6>
           <ul class="small text-muted">
             <li><strong>Fecha:</strong> Fecha en que se recibió la remesa</li>
             <li><strong>Moneda:</strong> Tipo de divisa recibida (USD, EUR o USDT)</li>
-            <li><strong>Monto Recibido:</strong> Cantidad total de divisas recibidas</li>
+            <li><strong>Monto Recibido:</strong> Cantidad total de divisas recibidas (campo obligatorio)</li>
             <li><strong>Fuente de Remesa:</strong> Banco corresponsal o entidad que envió la remesa</li>
             <li><strong>Número de Referencia:</strong> Código o número de tracking de la remesa</li>
             <li><strong>Observaciones:</strong> Cualquier detalle adicional relevante</li>

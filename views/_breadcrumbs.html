@@ -3,6 +3,9 @@
 <nav aria-label="breadcrumb" class="mb-4">
   <ol class="breadcrumb">
     {{for breadcrumb in response.breadcrumbs:}}
+    {{# Saltar "Divisas" si estamos en operaciones de divisas}}
+    {{funciones_sin_divisas = ['historial_transacciones', 'comprar', 'vender']}}
+    {{if not (breadcrumb['titulo'] == 'Divisas' and request.function in funciones_sin_divisas):}}
     {{if breadcrumb['activo']:}}
     <li class="breadcrumb-item active" aria-current="page">
       <i class="fas fa-chevron-right me-2"></i>{{=breadcrumb['titulo']}}
@@ -15,6 +18,7 @@
       {{=breadcrumb['titulo']}}
       {{pass}}
     </li>
+    {{pass}}
     {{pass}}
     {{pass}}
   </ol>

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Módulo para generar breadcrumbs del sistema de divisas bancario
+Versión: 1.1
 """
 
 def generar_breadcrumbs(request):
@@ -16,7 +17,7 @@ def generar_breadcrumbs(request):
     from gluon import URL
     
     breadcrumbs = [
-        {'titulo': 'Inicio', 'url': URL('default', 'index'), 'activo': False}
+        {'titulo': 'Inicio', 'url': URL('default', 'dashboard'), 'activo': False}
     ]
     
     # Mapeo de controladores a títulos
@@ -33,8 +34,8 @@ def generar_breadcrumbs(request):
     funciones = {
         'index': 'Inicio',
         'dashboard': 'Dashboard',
-        'listar': 'Listado',
-        'listar_todas': 'Todas las Cuentas',
+        'listar': 'Gestión de Clientes',
+        'listar_todas': 'Gestión de Cuentas',
         'registrar': 'Registro',
         'perfil': 'Perfil',
         'crear': 'Crear Nueva Cuenta',
@@ -53,7 +54,19 @@ def generar_breadcrumbs(request):
     }
     
     # Agregar breadcrumb del controlador si no es default
-    if request.controller != 'default':
+    # Excepciones: no agregar breadcrumb intermedio en ciertos casos
+    funciones_sin_controlador = {
+        'divisas': ['historial_transacciones', 'comprar', 'vender'],
+        'clientes': ['listar'],
+        'cuentas': ['listar_todas']
+    }
+    
+    agregar_controlador = True
+    if request.controller in funciones_sin_controlador:
+        if request.function in funciones_sin_controlador[request.controller]:
+            agregar_controlador = False
+    
+    if request.controller != 'default' and agregar_controlador:
         titulo_controlador = controladores.get(request.controller, request.controller.title())
         breadcrumbs.append({
             'titulo': titulo_controlador,

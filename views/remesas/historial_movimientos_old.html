@@ -1,0 +1,205 @@
+{{extend 'layout.html'}}
+
+<div class="dashboard-header">
+  <h1><i class="fas fa-history me-3"></i>Historial de Movimientos</h1>
+  <p class="lead">Auditoría completa de movimientos de remesas</p>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h6>
+      </div>
+      <div class="card-body">
+        <form method="GET" action="{{=URL('historial_movimientos')}}">
+          <div class="row">
+            <div class="col-md-3 mb-2">
+              <label>Fecha Desde:</label>
+              <input type="date" name="fecha_desde" class="form-control" 
+                     value="{{=fecha_desde}}" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label>Fecha Hasta:</label>
+              <input type="date" name="fecha_hasta" class="form-control" 
+                     value="{{=fecha_hasta}}" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label>Moneda:</label>
+              <select name="moneda" class="form-control">
+                <option value="TODAS" {{='selected' if moneda_filtro == 'TODAS' else ''}}>Todas</option>
+                <option value="USD" {{='selected' if moneda_filtro == 'USD' else ''}}>USD</option>
+                <option value="EUR" {{='selected' if moneda_filtro == 'EUR' else ''}}>EUR</option>
+                <option value="USDT" {{='selected' if moneda_filtro == 'USDT' else ''}}>USDT</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label>&nbsp;</label>
+              <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-search me-1"></i>Buscar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resultados -->
+<div class="row">
+  <div class="col-12">
+    <div class="card-resumen">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Movimientos Encontrados
+          <span class="badge bg-primary float-end">{{=len(movimientos)}} registros</span>
+        </h5>
+      </div>
+      <div class="card-body">
+        {{if movimientos:}}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Fecha/Hora</th>
+                <th>Moneda</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Saldo Anterior</th>
+                <th>Saldo Nuevo</th>
+                <th>Usuario</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{for mov in movimientos:}}
+              <tr>
+                <td>
+                  <small>
+                    {{=mov.movimientos_remesas.fecha_movimiento.strftime('%d/%m/%Y')}}
+                    <br>
+                    {{=mov.movimientos_remesas.fecha_movimiento.strftime('%H:%M:%S')}}
+                  </small>
+                </td>
+                <td>
+                  <span class="badge bg-{{='success' if mov.remesas_diarias.moneda == 'USD' else 'primary' if mov.remesas_diarias.moneda == 'EUR' else 'warning'}}">
+                    {{=mov.remesas_diarias.moneda}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-{{='success' if mov.movimientos_remesas.tipo_movimiento == 'RECEPCION' else 'danger' if mov.movimientos_remesas.tipo_movimiento == 'VENTA' else 'warning' if mov.movimientos_remesas.tipo_movimiento == 'AJUSTE' else 'info'}}">
+                    {{=mov.movimientos_remesas.tipo_movimiento}}
+                  </span>
+                </td>
+                <td class="{{='text-success' if mov.movimientos_remesas.tipo_movimiento in ['RECEPCION', 'DEVOLUCION'] else 'text-danger'}}">
+                  {{='+ ' if mov.movimientos_remesas.tipo_movimiento in ['RECEPCION', 'DEVOLUCION'] else '- '}}
+                  {{="{:,.2f}".format(float(mov.movimientos_remesas.monto))}}
+                </td>
+                <td>{{="{:,.2f}".format(float(mov.movimientos_remesas.saldo_anterior))}}</td>
+                <td><strong>{{="{:,.2f}".format(float(mov.movimientos_remesas.saldo_nuevo))}}</strong></td>
+                <td>
+                  <small>
+                    {{
+                    usuario = db.auth_user[mov.movimientos_remesas.usuario] if mov.movimientos_remesas.usuario else None
+                    }}
+                    {{=usuario.first_name if usuario else 'Sistema'}}
+                  </small>
+                </td>
+                <td><small>{{=mov.movimientos_remesas.descripcion or '-'}}</small></td>
+              </tr>
+              {{pass}}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Botones de exportación -->
+        <div class="mt-3 text-center">
+          <button class="btn btn-success" onclick="exportarExcel()">
+            <i class="fas fa-file-excel me-1"></i>Exportar a Excel
+          </button>
+          <button class="btn btn-danger" onclick="exportarPDF()">
+            <i class="fas fa-file-pdf me-1"></i>Exportar a PDF
+          </button>
+        </div>
+        
+        {{else:}}
+        <div class="text-center text-muted py-5">
+          <i class="fas fa-inbox fa-3x mb-3"></i>
+          <p>No se encontraron movimientos para los filtros seleccionados</p>
+        </div>
+        {{pass}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resumen de movimientos -->
+{{if movimientos:}}
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card-resumen">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Resumen del Período</h6>
+      </div>
+      <div class="card-body">
+        {{
+        # Calcular resumen por tipo de movimiento
+        resumen = {}
+        for mov in movimientos:
+            tipo = mov.movimientos_remesas.tipo_movimiento
+            monto = float(mov.movimientos_remesas.monto)
+            if tipo not in resumen:
+                resumen[tipo] = {'count': 0, 'total': 0}
+            resumen[tipo]['count'] += 1
+            resumen[tipo]['total'] += monto
+            pass
+        }}
+        
+        <div class="row text-center">
+          {{for tipo, datos in resumen.items():}}
+          <div class="col-md-{{=12 // len(resumen) if len(resumen) > 0 else 12}} mb-3">
+            <div class="card border-{{='success' if tipo == 'RECEPCION' else 'danger' if tipo == 'VENTA' else 'warning'}}">
+              <div class="card-body">
+                <h6 class="text-muted">{{=tipo}}</h6>
+                <h4>{{=datos['count']}} movimientos</h4>
+                <p class="mb-0">Total: {{="{:,.2f}".format(datos['total'])}}</p>
+              </div>
+            </div>
+          </div>
+          {{pass}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{pass}}
+
+<script>
+function exportarExcel() {
+  alert('Funcionalidad de exportación a Excel en desarrollo');
+  // Aquí se implementaría la exportación real
+}
+
+function exportarPDF() {
+  alert('Funcionalidad de exportación a PDF en desarrollo');
+  // Aquí se implementaría la exportación real
+}
+</script>
+
+<style>
+.card-resumen {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-block {
+  width: 100%;
+}
+</style>

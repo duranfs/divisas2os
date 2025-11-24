@@ -8,9 +8,10 @@ import json
 
 # ---- Dashboard principal ----
 def index():
-    """Dashboard principal del sistema de divisas"""
+    """Dashboard principal del sistema de divisas - Redirige al dashboard"""
     if auth.is_logged_in():
-        return dashboard()
+        # Redirigir explícitamente al dashboard
+        redirect(URL('default', 'dashboard'))
     else:
         # Página de bienvenida para usuarios no autenticados
         # Obtener tasas actuales para mostrar
@@ -116,6 +117,13 @@ def dashboard_administrativo():
         db.transacciones.monto_origen.sum()
     ).first()[db.transacciones.monto_origen.sum()] or 0
     
+    volumen_usdt = db(
+        (db.transacciones.fecha_transaccion >= hoy) &
+        (db.transacciones.moneda_origen == 'USDT')
+    ).select(
+        db.transacciones.monto_origen.sum()
+    ).first()[db.transacciones.monto_origen.sum()] or 0
+    
     # Total de clientes activos
     clientes_activos = db(
         (db.clientes.id > 0) &
@@ -141,6 +149,7 @@ def dashboard_administrativo():
         transacciones_hoy=transacciones_hoy,
         volumen_ves=volumen_ves,
         volumen_usd=volumen_usd,
+        volumen_usdt=volumen_usdt,
         volumen_eur=volumen_eur,
         clientes_activos=clientes_activos,
         cuentas_activas=cuentas_activas,
@@ -180,9 +189,9 @@ def obtener_tasas_actuales():
         # En caso de error, crear objeto de respaldo
         from gluon.storage import Storage
         return Storage(
-            usd_ves=36.5000,
-            eur_ves=40.2500,
-            usdt_ves=36.4635,
+            usd_ves=231.0500,
+            eur_ves=267.6400,
+            usdt_ves=241.7600,
             fecha=request.now.date(),
             hora=request.now.time(),
             fuente='Respaldo'
@@ -193,28 +202,24 @@ def generar_accesos_rapidos_cliente():
     return [
         {
             'titulo': 'Comprar Divisas',
-            'descripcion': 'Comprar USD o EUR con VES',
             'url': URL('divisas', 'comprar'),
             'icono': 'fas fa-shopping-cart',
             'color': 'success'
         },
         {
             'titulo': 'Vender Divisas',
-            'descripcion': 'Vender USD o EUR por VES',
             'url': URL('divisas', 'vender'),
             'icono': 'fas fa-hand-holding-usd',
             'color': 'warning'
         },
         {
             'titulo': 'Mis Cuentas',
-            'descripcion': 'Consultar saldos y movimientos',
             'url': URL('cuentas', 'consultar'),
             'icono': 'fas fa-university',
             'color': 'info'
         },
         {
             'titulo': 'Historial',
-            'descripcion': 'Ver historial de transacciones',
             'url': URL('divisas', 'historial_transacciones'),
             'icono': 'fas fa-history',
             'color': 'secondary'
@@ -226,45 +231,33 @@ def generar_accesos_rapidos_admin():
     return [
         {
             'titulo': 'Comprar Divisas',
-            'descripcion': 'Realizar compras de divisas',
             'url': URL('divisas', 'comprar'),
             'icono': 'fas fa-shopping-cart',
             'color': 'success'
         },
         {
             'titulo': 'Vender Divisas',
-            'descripcion': 'Realizar ventas de divisas',
             'url': URL('divisas', 'vender'),
             'icono': 'fas fa-hand-holding-usd',
             'color': 'warning'
         },
         {
             'titulo': 'Gestión de Clientes',
-            'descripcion': 'Administrar clientes del sistema',
             'url': URL('clientes', 'listar'),
             'icono': 'fas fa-users',
             'color': 'primary'
         },
         {
             'titulo': 'Reportes',
-            'descripcion': 'Generar reportes del sistema',
             'url': URL('reportes', 'index'),
             'icono': 'fas fa-chart-bar',
             'color': 'info'
         },
         {
             'titulo': 'Tasas de Cambio',
-            'descripcion': 'Gestionar tasas de cambio',
             'url': URL('api', 'index'),
             'icono': 'fas fa-exchange-alt',
             'color': 'secondary'
-        },
-        {
-            'titulo': 'Configuración',
-            'descripcion': 'Configurar parámetros del sistema',
-            'url': URL('appadmin', 'index'),
-            'icono': 'fas fa-cogs',
-            'color': 'dark'
         }
     ]
 

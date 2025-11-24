@@ -1,0 +1,107 @@
+/* =========================================================================
+   FIX CONTRASTE FINAL - Sobrescribir todos los estilos
+   ========================================================================= */
+
+/* FONDOS AZULES - Texto blanco */
+.bg-primary,
+.bg-primary *:not(.btn):not(.badge),
+.bg-info,
+.bg-info *:not(.btn):not(.badge),
+.card-header.bg-primary,
+.card-header.bg-primary *:not(.btn):not(.badge),
+.card-header.bg-info,
+.card-header.bg-info *:not(.btn):not(.badge),
+.alert-info,
+.alert-info *:not(.btn):not(.badge) {
+    color: #FFFFFF !important;
+}
+
+/* FONDOS BLANCOS - Texto negro */
+body,
+.container,
+.card-body,
+.card-body *:not(.btn):not(.badge):not(.text-success):not(.text-danger):not(.text-warning):not(.text-gold):not(.text-orange) {
+    color: #000000 !important;
+}
+
+/* Text-muted siempre visible */
+.text-muted {
+    color: #000000 !important;
+}
+
+.bg-primary .text-muted,
+.bg-info .text-muted,
+.alert-info .text-muted {
+    color: #FFFFFF !important;
+}
+
+/* Small text */
+small {
+    color: #000000 !important;
+}
+
+.bg-primary small,
+.bg-info small,
+.alert-info small {
+    color: #FFFFFF !important;
+}
+
+
+/* =========================================================================
+   FIX NÚMEROS DE CUENTA Y COMPROBANTES - Fondo naranja
+   ========================================================================= */
+
+/* Elementos CODE (números de cuenta) con fondo naranja */
+code,
+code.bg-light,
+.bg-light code,
+td code,
+pre code {
+    background-color: #FFA366 !important;
+    color: #000000 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    border: 1px solid #FF8C42 !important;
+}
+
+/* Badges oscuros (comprobantes) con fondo naranja */
+.badge-dark,
+span.badge-dark,
+.badge.badge-dark {
+    background-color: #FFA366 !important;
+    color: #000000 !important;
+    border: 1px solid #FF8C42 !important;
+}
+
+/* Forzar que elementos con bg-dark también tengan fondo naranja */
+.bg-dark:not(.navbar):not(.btn) {
+    background-color: #FFA366 !important;
+    color: #000000 !important;
+}
+
+
+/* =========================================================================
+   FIX BOTÓN CERRAR SESIÓN - Mantener color rojo en hover
+   ========================================================================= */
+
+/* Botón de cerrar sesión - mantener rojo siempre */
+.btn-danger,
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active,
+.btn-outline-danger,
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger:active {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #FFFFFF !important;
+}
+
+/* Hover más oscuro pero no blanco */
+.btn-danger:hover,
+.btn-outline-danger:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: #FFFFFF !important;
+}

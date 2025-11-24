@@ -1,19 +1,15 @@
 {{extend 'layout.html'}}
 
 <div class="container-fluid">
-    <!-- Header de la página -->
     <div class="page-header fade-in-up">
         <div class="row align-items-center">
             <div class="col-12">
-                <h1>
-                    <i class="fas fa-plus-circle me-3"></i>Crear Nueva Cuenta
-                </h1>
+                <h1><i class="fas fa-plus-circle me-3"></i>Crear Nueva Cuenta</h1>
                 <p class="lead mb-0">Registro de nueva cuenta bancaria</p>
             </div>
         </div>
     </div>
 
-    <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
@@ -23,28 +19,20 @@
     </nav>
 
     {{if response.flash:}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="alert alert-info alert-dismissible fade show">
-                {{=response.flash}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
+    <div class="alert alert-info alert-dismissible fade show">
+        {{=response.flash}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {{pass}}
 
-    <!-- Contenido principal -->
     <div class="row">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-form me-2"></i>Formulario de Nueva Cuenta
-                    </h5>
+                    <h5 class="mb-0"><i class="fas fa-form me-2"></i>Formulario de Nueva Cuenta</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Aquí va el formulario de creación -->
-                    <p>Formulario de creación de cuenta...</p>
+                    {{=form}}
                 </div>
             </div>
         </div>
@@ -52,12 +40,39 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Información
-                    </h6>
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información</h6>
                 </div>
                 <div class="card-body">
-                    <p class="small">Información sobre la creación de cuentas...</p>
+                    <h6 class="mb-3"><i class="fas fa-university me-2"></i>Tipos de Cuenta</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Corriente:</strong> Para operaciones frecuentes
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Ahorro:</strong> Para guardar fondos
+                        </li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6 class="mb-3"><i class="fas fa-coins me-2"></i>Monedas Disponibles</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-1"><i class="fas fa-circle text-warning me-2" style="font-size: 8px;"></i>VES - Bolívares</li>
+                        <li class="mb-1"><i class="fas fa-circle text-success me-2" style="font-size: 8px;"></i>USD - Dólares</li>
+                        <li class="mb-1"><i class="fas fa-circle text-info me-2" style="font-size: 8px;"></i>EUR - Euros</li>
+                        <li class="mb-1"><i class="fas fa-circle text-primary me-2" style="font-size: 8px;"></i>USDT - Tether</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-light mb-0">
+                        <small>
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            <strong>Nota:</strong> El número de cuenta se generará automáticamente.
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>

@@ -187,16 +187,13 @@
             <tbody>
               {{for remesa in remesas_hoy:}}
               <tr>
-                <td><strong>{{=remesa.moneda}}</strong></td>
-                <td>{{="{:,.2f}".format(float(remesa.monto_recibido))}}</td>
-                <td class="text-success">{{="{:,.2f}".format(float(remesa.monto_disponible))}}</td>
-                <td class="text-danger">{{="{:,.2f}".format(float(remesa.monto_vendido))}}</td>
-                <td><small>{{=remesa.fuente_remesa or 'N/A'}}</small></td>
+                <td><strong>{{=remesa['moneda']}}</strong></td>
+                <td>{{="{:,.2f}".format(remesa['monto_recibido'])}}</td>
+                <td class="text-success">{{="{:,.2f}".format(remesa['monto_disponible'])}}</td>
+                <td class="text-danger">{{="{:,.2f}".format(remesa['monto_vendido'])}}</td>
+                <td><small>{{=', '.join(remesa['fuente_remesa']) if remesa['fuente_remesa'] else 'N/A'}}</small></td>
                 <td>
-                  <a href="{{=URL('ajustar_remesa', vars={'remesa_id': remesa.id})}}" 
-                     class="btn btn-sm btn-warning" title="Ajustar">
-                    <i class="fas fa-edit"></i>
-                  </a>
+                  <span class="badge bg-info">{{=len(remesa.get('fuente_remesa', []))}} remesa(s)</span>
                 </td>
               </tr>
               {{pass}}

@@ -218,19 +218,27 @@ def generar_reporte_diario(fecha_str):
         compras = [t for t in transacciones if t.tipo_operacion == 'compra']
         ventas = [t for t in transacciones if t.tipo_operacion == 'venta']
         
+        # Volúmenes de compras (lo que se pagó en VES y lo que se recibió en divisas)
         volumen_compras_ves = sum([float(t.monto_origen) for t in compras])
+        volumen_compras_usd = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USD'])
+        volumen_compras_usdt = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USDT'])
+        volumen_compras_eur = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'EUR'])
+        
+        # Volúmenes de ventas (lo que se entregó en divisas)
         volumen_ventas_usd = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USD'])
+        volumen_ventas_usdt = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USDT'])
         volumen_ventas_eur = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'EUR'])
         
         total_comisiones = sum([float(t.comision) for t in transacciones])
         
-        # Obtener tasas promedio del día
-        tasas_dia = db(
-            (db.tasas_cambio.fecha == fecha)
-        ).select()
+        # Calcular tasas promedio desde las transacciones del día
+        transacciones_usd = [t for t in transacciones if t.moneda_origen == 'USD' or t.moneda_destino == 'USD']
+        transacciones_usdt = [t for t in transacciones if t.moneda_origen == 'USDT' or t.moneda_destino == 'USDT']
+        transacciones_eur = [t for t in transacciones if t.moneda_origen == 'EUR' or t.moneda_destino == 'EUR']
         
-        tasa_usd_promedio = sum([float(t.usd_ves) for t in tasas_dia]) / len(tasas_dia) if tasas_dia else 0
-        tasa_eur_promedio = sum([float(t.eur_ves) for t in tasas_dia]) / len(tasas_dia) if tasas_dia else 0
+        tasa_usd_promedio = sum([float(t.tasa_aplicada) for t in transacciones_usd]) / len(transacciones_usd) if transacciones_usd else 0
+        tasa_usdt_promedio = sum([float(t.tasa_aplicada) for t in transacciones_usdt]) / len(transacciones_usdt) if transacciones_usdt else 0
+        tasa_eur_promedio = sum([float(t.tasa_aplicada) for t in transacciones_eur]) / len(transacciones_eur) if transacciones_eur else 0
         
         return {
             'fecha': fecha_str,
@@ -238,10 +246,15 @@ def generar_reporte_diario(fecha_str):
             'total_compras': len(compras),
             'total_ventas': len(ventas),
             'volumen_compras_ves': volumen_compras_ves,
+            'volumen_compras_usd': volumen_compras_usd,
+            'volumen_compras_usdt': volumen_compras_usdt,
+            'volumen_compras_eur': volumen_compras_eur,
             'volumen_ventas_usd': volumen_ventas_usd,
+            'volumen_ventas_usdt': volumen_ventas_usdt,
             'volumen_ventas_eur': volumen_ventas_eur,
             'total_comisiones': total_comisiones,
             'tasa_usd_promedio': round(tasa_usd_promedio, 4),
+            'tasa_usdt_promedio': round(tasa_usdt_promedio, 4),
             'tasa_eur_promedio': round(tasa_eur_promedio, 4),
             'transacciones_detalle': [
                 {
@@ -355,7 +368,11 @@ def generar_reporte_mensual(fecha_str):
         
         # Volúmenes por moneda
         volumen_compras_ves = sum([float(t.monto_origen) for t in compras])
+        volumen_compras_usd = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USD'])
+        volumen_compras_usdt = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USDT'])
+        volumen_compras_eur = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'EUR'])
         volumen_ventas_usd = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USD'])
+        volumen_ventas_usdt = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USDT'])
         volumen_ventas_eur = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'EUR'])
         
         # Clientes activos
@@ -373,7 +390,11 @@ def generar_reporte_mensual(fecha_str):
             'total_compras': len(compras),
             'total_ventas': len(ventas),
             'volumen_compras_ves': volumen_compras_ves,
+            'volumen_compras_usd': volumen_compras_usd,
+            'volumen_compras_usdt': volumen_compras_usdt,
+            'volumen_compras_eur': volumen_compras_eur,
             'volumen_ventas_usd': volumen_ventas_usd,
+            'volumen_ventas_usdt': volumen_ventas_usdt,
             'volumen_ventas_eur': volumen_ventas_eur,
             'total_comisiones': sum([float(t.comision) for t in transacciones]),
             'clientes_activos': clientes_activos,

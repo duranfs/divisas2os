@@ -1,0 +1,19 @@
+/* =========================================================================
+   FIX BREADCRUMBS - Ocultar breadcrumbs innecesarios
+   ========================================================================= */
+
+/* Ocultar breadcrumb "Clientes" en página de gestión de clientes */
+body[data-controller="clientes"][data-function="listar"] .breadcrumb-item:nth-child(2) {
+    display: none !important;
+}
+
+/* Ocultar breadcrumb "Cuentas" en página de gestión de cuentas */
+body[data-controller="cuentas"][data-function="listar_todas"] .breadcrumb-item:nth-child(2) {
+    display: none !important;
+}
+
+/* Ajustar separadores después de ocultar elementos */
+body[data-controller="clientes"][data-function="listar"] .breadcrumb-item:nth-child(3)::before,
+body[data-controller="cuentas"][data-function="listar_todas"] .breadcrumb-item:nth-child(3)::before {
+    content: "" !important;
+}

@@ -75,7 +75,7 @@
     
     <!-- Volumen de transacciones -->
     <div class="row mb-4">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="card">
           <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-coins"></i> Volumen VES</h5>
@@ -87,7 +87,7 @@
         </div>
       </div>
       
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="card">
           <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-dollar-sign"></i> Volumen USD</h5>
@@ -99,7 +99,19 @@
         </div>
       </div>
       
-      <div class="col-md-4">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-coins"></i> Volumen USDT</h5>
+          </div>
+          <div class="card-body text-center">
+            <h3 class="text-warning">{{="{:,.2f}".format(float(volumen_usdt)) if volumen_usdt else "0.00"}}</h3>
+            <p class="text-muted">Tether</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
         <div class="card">
           <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-euro-sign"></i> Volumen EUR</h5>
@@ -148,15 +160,19 @@
             <p><strong>Número:</strong> {{=cuenta.numero_cuenta}}</p>
             <hr>
             <div class="row text-center">
-              <div class="col-4">
+              <div class="col-3">
                 <h6 class="text-success">VES</h6>
                 <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</p>
               </div>
-              <div class="col-4">
+              <div class="col-3">
                 <h6 class="text-primary">USD</h6>
                 <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</p>
               </div>
-              <div class="col-4">
+              <div class="col-3">
+                <h6 class="text-warning">USDT</h6>
+                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}</p>
+              </div>
+              <div class="col-3">
                 <h6 class="text-info">EUR</h6>
                 <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</p>
               </div>
@@ -208,61 +224,7 @@
     </div>
   {{pass}}
   
-  <!-- Widget Informativo - Nueva Calculadora -->
-  {{if tipo_dashboard in ['cliente', 'administrativo']:}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-success">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">
-            <i class="fas fa-sparkles"></i> ¡Nueva Funcionalidad! Calculadora Automática
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-8">
-              <h6><i class="fas fa-magic text-primary"></i> ¿Qué hay de nuevo?</h6>
-              <p class="mb-2">Ahora es más fácil comprar y vender divisas. Solo ingresa la cantidad que quieres y nosotros calculamos automáticamente cuántos bolívares necesitas o recibirás.</p>
-              
-              <div class="row">
-                <div class="col-md-6">
-                  <h6 class="text-warning"><i class="fas fa-shopping-cart"></i> Para Comprar:</h6>
-                  <ul class="small mb-0">
-                    <li>Ingresa cuántos USD/EUR quieres</li>
-                    <li>Ve automáticamente los VES necesarios</li>
-                    <li>Campo amarillo = dinero que pagas</li>
-                  </ul>
-                </div>
-                <div class="col-md-6">
-                  <h6 class="text-success"><i class="fas fa-hand-holding-usd"></i> Para Vender:</h6>
-                  <ul class="small mb-0">
-                    <li>Ingresa cuántos USD/EUR vendes</li>
-                    <li>Ve automáticamente los VES que recibes</li>
-                    <li>Campo verde = dinero que recibes</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 text-center">
-              <div class="mt-2">
-                <a href="{{=URL('divisas', 'prueba_calculadora')}}" class="btn btn-outline-primary btn-sm mb-2">
-                  <i class="fas fa-flask"></i> Probar Calculadora
-                </a>
-                <br>
-                <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-warning btn-sm me-1">
-                  <i class="fas fa-shopping-cart"></i> Comprar
-                </a>
-                <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success btn-sm">
-                  <i class="fas fa-hand-holding-usd"></i> Vender
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  {{pass}}
+
 
   <!-- Tasas de cambio actuales (para todos los dashboards) -->
   {{if tasas_actuales:}}
@@ -276,12 +238,17 @@
         </div>
         <div class="card-body bg-light">
           <div class="row text-center">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <h4 class="text-primary">USD/VES</h4>
               <h3 class="text-dark fw-bold">{{="{:,.4f}".format(float(tasas_actuales.usd_ves)) if tasas_actuales.usd_ves else "N/A"}}</h3>
               <small class="text-secondary">{{=tasas_actuales.fuente if tasas_actuales else ""}}</small>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+              <h4 class="text-warning">USDT/VES</h4>
+              <h3 class="text-dark fw-bold">{{="{:,.4f}".format(float(tasas_actuales.usdt_ves)) if tasas_actuales and tasas_actuales.usdt_ves else "N/A"}}</h3>
+              <small class="text-secondary">{{=tasas_actuales.fuente if tasas_actuales else ""}}</small>
+            </div>
+            <div class="col-md-4">
               <h4 class="text-info">EUR/VES</h4>
               <h3 class="text-dark fw-bold">{{="{:,.4f}".format(float(tasas_actuales.eur_ves)) if tasas_actuales.eur_ves else "N/A"}}</h3>
               <small class="text-secondary">{{=tasas_actuales.fecha if tasas_actuales else ""}}</small>
@@ -310,8 +277,6 @@
               <a href="{{=acceso['url']}}" class="btn btn-{{=acceso['color']}} btn-lg w-100">
                 <i class="{{=acceso['icono']}} fa-2x d-block mb-2"></i>
                 <strong>{{=acceso['titulo']}}</strong>
-                <br>
-                <small>{{=acceso['descripcion']}}</small>
               </a>
             </div>
             {{pass}}

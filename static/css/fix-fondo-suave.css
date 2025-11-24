@@ -1,0 +1,240 @@
+/* =========================================================================
+   FIX FONDO SUAVE - Cambiar fondos naranjas fuertes por colores suaves
+   ========================================================================= */
+
+/* Cambiar el fondo naranja fuerte (#FFA366) por un beige/crema suave */
+
+/* Secciones con fondo naranja - cambiar a beige suave */
+.card-body.bg-warning,
+.alert-warning,
+div[style*="background-color: #FFA366"],
+div[style*="background-color: rgb(255, 163, 102)"],
+div[style*="background: #FFA366"],
+section[style*="background-color: #FFA366"] {
+    background-color: #FFF8F0 !important;
+    background: #FFF8F0 !important;
+}
+
+/* Tarjetas con fondo naranja */
+.card.bg-warning,
+.card-header.bg-warning {
+    background-color: #FFF4E6 !important;
+    background: #FFF4E6 !important;
+    border-color: #FFE4CC !important;
+    color: #000000 !important;
+}
+
+/* Tarjetas oscuras con borde naranja - cambiar a fondo suave */
+.card.bg-dark.border-warning,
+.card.bg-dark.border-secondary {
+    background-color: #FFF8F0 !important;
+    background: #FFF8F0 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Headers de tarjetas oscuras - cambiar a fondo suave */
+.card.bg-dark .card-header,
+.card.bg-dark.border-warning .card-header,
+.card.bg-dark.border-secondary .card-header {
+    background-color: #FFF4E6 !important;
+    background: #FFF4E6 !important;
+    color: #000000 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Body de tarjetas oscuras - cambiar a fondo suave */
+.card.bg-dark .card-body,
+.card.bg-dark.border-warning .card-body,
+.card.bg-dark.border-secondary .card-body {
+    background-color: #FFF8F0 !important;
+    background: #FFF8F0 !important;
+    color: #000000 !important;
+}
+
+/* Paneles y contenedores con fondo naranja */
+.panel-warning,
+.panel-warning > .panel-heading {
+    background-color: #FFF8F0 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Botones warning - mantener un naranja más suave pero visible */
+.btn-warning {
+    background-color: #FFB84D !important;
+    border-color: #FFA733 !important;
+    color: #000000 !important;
+}
+
+.btn-warning:hover {
+    background-color: #FFA733 !important;
+    border-color: #FF9419 !important;
+    color: #000000 !important;
+}
+
+/* Badges warning - color suave */
+.badge-warning,
+.badge.bg-warning {
+    background-color: #FFE4CC !important;
+    color: #000000 !important;
+    border: 1px solid #FFD4B3 !important;
+}
+
+/* Alertas warning - fondo suave */
+.alert-warning {
+    background-color: #FFF8F0 !important;
+    border-color: #FFE4CC !important;
+    color: #000000 !important;
+}
+
+/* Tablas con header warning */
+.table thead.bg-warning th,
+.table th.bg-warning {
+    background-color: #FFF4E6 !important;
+    color: #000000 !important;
+}
+
+/* Progress bars warning */
+.progress-bar-warning,
+.progress-bar.bg-warning {
+    background-color: #FFD4B3 !important;
+}
+
+/* List groups warning */
+.list-group-item-warning {
+    background-color: #FFF8F0 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Inputs y selects con fondo warning */
+.form-control.bg-warning,
+input.bg-warning,
+select.bg-warning,
+textarea.bg-warning {
+    background-color: #FFFBF5 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Dropdowns warning */
+.dropdown-menu.bg-warning {
+    background-color: #FFF8F0 !important;
+}
+
+/* Modals warning */
+.modal-header.bg-warning {
+    background-color: #FFF4E6 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Navs y tabs warning */
+.nav-tabs .nav-link.bg-warning,
+.nav-pills .nav-link.bg-warning {
+    background-color: #FFF4E6 !important;
+}
+
+/* Tooltips y popovers warning */
+.tooltip.bg-warning .tooltip-inner,
+.popover.bg-warning .popover-body {
+    background-color: #FFF4E6 !important;
+}
+
+/* Jumbotron warning */
+.jumbotron.bg-warning {
+    background-color: #FFF8F0 !important;
+}
+
+/* Wells y panels */
+.well-warning {
+    background-color: #FFF8F0 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Breadcrumbs */
+.breadcrumb.bg-warning {
+    background-color: #FFF4E6 !important;
+}
+
+/* Pagination warning */
+.pagination .page-item.bg-warning .page-link {
+    background-color: #FFF4E6 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Carousels */
+.carousel-indicators.bg-warning li {
+    background-color: #FFD4B3 !important;
+}
+
+/* Spinners y loaders */
+.spinner-border.text-warning,
+.spinner-grow.text-warning {
+    color: #FFB84D !important;
+}
+
+/* Toasts warning */
+.toast.bg-warning {
+    background-color: #FFF8F0 !important;
+    border-color: #FFE4CC !important;
+}
+
+/* Offcanvas warning */
+.offcanvas.bg-warning {
+    background-color: #FFF8F0 !important;
+}
+
+/* Accordion warning */
+.accordion-item.bg-warning {
+    background-color: #FFF8F0 !important;
+}
+
+/* Mantener números de cuenta y comprobantes con naranja más visible */
+code,
+code.bg-light,
+.bg-light code,
+td code,
+pre code {
+    background-color: #FFD4B3 !important;
+    color: #000000 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    border: 1px solid #FFB84D !important;
+}
+
+/* Badges oscuros (comprobantes) con naranja suave */
+.badge-dark,
+span.badge-dark,
+.badge.badge-dark {
+    background-color: #FFD4B3 !important;
+    color: #000000 !important;
+    border: 1px solid #FFB84D !important;
+}
+
+/* Asegurar que todo el texto dentro de tarjetas con fondo suave sea negro */
+.card.bg-dark *:not(.btn):not(.badge):not(.text-white):not(.text-success):not(.text-danger):not(.text-info),
+.card.bg-dark.border-warning *:not(.btn):not(.badge):not(.text-white):not(.text-success):not(.text-danger):not(.text-info),
+.card.bg-dark.border-secondary *:not(.btn):not(.badge):not(.text-white):not(.text-success):not(.text-danger):not(.text-info) {
+    color: #000000 !important;
+}
+
+/* Títulos y encabezados dentro de tarjetas con fondo suave */
+.card.bg-dark h1, .card.bg-dark h2, .card.bg-dark h3, 
+.card.bg-dark h4, .card.bg-dark h5, .card.bg-dark h6,
+.card.bg-dark.border-warning h1, .card.bg-dark.border-warning h2, 
+.card.bg-dark.border-warning h3, .card.bg-dark.border-warning h4, 
+.card.bg-dark.border-warning h5, .card.bg-dark.border-warning h6 {
+    color: #000000 !important;
+}
+
+/* Small y text-muted dentro de tarjetas con fondo suave */
+.card.bg-dark small,
+.card.bg-dark .text-muted,
+.card.bg-dark.border-warning small,
+.card.bg-dark.border-warning .text-muted {
+    color: #666666 !important;
+}
+
+/* Iconos dentro de tarjetas con fondo suave */
+.card.bg-dark i,
+.card.bg-dark.border-warning i,
+.card.bg-dark.border-secondary i {
+    color: #000000 !important;
+}

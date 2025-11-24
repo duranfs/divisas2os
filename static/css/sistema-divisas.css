@@ -270,13 +270,13 @@ body {
 }
 
 .acceso-rapido h5 {
-    color: var(--color-acento);
+    color: #000000;
     font-weight: bold;
     margin-bottom: 10px;
 }
 
 .acceso-rapido p {
-    color: var(--color-texto-secundario);
+    color: #000000;
     font-size: 0.9rem;
     margin: 0;
 }

@@ -56,15 +56,6 @@
           {{pass}}
           
           <div class="mt-3">
-            {{if request.args(0)=='login' and not 'register' in auth.settings.actions_disabled:}}
-            <p class="text-center">
-              ¿No tiene cuenta? 
-              <a href="{{=URL('user/register')}}" class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-user-plus"></i> Registrarse
-              </a>
-            </p>
-            {{pass}}
-            
             {{if request.args(0)=='login' and not 'retrieve_password' in auth.settings.actions_disabled:}}
             <p class="text-center">
               <a href="{{=URL('user/retrieve_password')}}" class="text-muted">

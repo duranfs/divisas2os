@@ -1216,3 +1216,67 @@ textarea.form-control {
     height: auto !important;
     min-height: calc(1.5em + 1.75rem + 4px) !important;
 }
+
+/*
+ =========================================================================
+   FIX TEXTO GRIS A NEGRO - Mejorar legibilidad
+   ========================================================================= */
+
+/* Forzar texto negro en elementos que suelen ser grises */
+.text-muted,
+small,
+.small,
+.form-text,
+.help-block,
+p.text-muted,
+span.text-muted,
+div.text-muted,
+.text-secondary {
+    color: #000000 !important;
+}
+
+/* Forzar texto negro en descripciones y ayudas */
+.lead,
+.description,
+.help-text {
+    color: #000000 !important;
+}
+
+
+/* =========================================================================
+   FIX TEXTO EN FONDOS AZULES - Mejorar contraste
+   ========================================================================= */
+
+/* Texto blanco en fondos azules */
+.bg-primary .text-muted,
+.bg-primary small,
+.bg-info .text-muted,
+.bg-info small,
+.card-header.bg-primary .text-muted,
+.card-header.bg-primary small,
+.card-header.bg-info .text-muted,
+.card-header.bg-info small,
+.alert-info .text-muted,
+.alert-info small {
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que todo el texto en fondos azules sea blanco */
+.bg-primary,
+.bg-primary *,
+.bg-info,
+.bg-info *,
+.card-header.bg-primary,
+.card-header.bg-primary *,
+.card-header.bg-info,
+.card-header.bg-info * {
+    color: #FFFFFF !important;
+}
+
+/* Excepciones para badges y botones en fondos azules */
+.bg-primary .badge,
+.bg-info .badge,
+.bg-primary .btn,
+.bg-info .btn {
+    color: inherit !important;
+}

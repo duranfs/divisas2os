@@ -1,0 +1,252 @@
+{{extend 'layout.html'}}
+
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1>
+                    <i class="fas fa-exchange-alt me-3"></i>Movimientos de Cuenta
+                </h1>
+                <p class="lead mb-0">Historial de transacciones y movimientos bancarios</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{=URL('cuentas', 'index')}}">Cuentas</a></li>
+            <li class="breadcrumb-item active">Movimientos</li>
+        </ol>
+    </nav>
+
+    {{if response.flash:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                {{=response.flash}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Selector de cuenta -->
+    {{if cuentas_cliente and cuentas_cliente.count() > 1:}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <strong>Seleccionar Cuenta:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <select class="form-control" id="selector_cuenta">
+                                {{for c in cuentas_cliente:}}
+                                <option value="{{=c.id}}" {{='selected' if cuenta and c.id == cuenta.id else ''}}>
+                                    {{=c.numero_cuenta}} - {{=c.tipo_cuenta.title()}} (VES: {{="{:,.2f}".format(float(c.saldo_ves))}}, USD: {{="{:,.2f}".format(float(c.saldo_usd))}}, USDT: {{="{:,.2f}".format(float(c.saldo_usdt or 0))}}, EUR: {{="{:,.2f}".format(float(c.saldo_eur))}})
+                                </option>
+                                {{pass}}
+                            </select>
+                            <script>
+                            document.getElementById('selector_cuenta').onchange = function() {
+                                window.location.href = '{{=URL('cuentas', 'movimientos')}}/' + this.value;
+                            };
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Información de la cuenta -->
+    {{if cuenta:}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Cuenta: {{=cuenta.numero_cuenta}}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Tipo:</strong> {{=cuenta.tipo_cuenta.title()}}
+                        </div>
+                        <div class="col-md-2">
+                            <strong>VES:</strong> {{="{:,.2f}".format(float(cuenta.saldo_ves))}}
+                        </div>
+                        <div class="col-md-2">
+                            <strong>USD:</strong> {{="{:,.2f}".format(float(cuenta.saldo_usd))}}
+                        </div>
+                        <div class="col-md-2">
+                            <strong>USDT:</strong> {{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}
+                        </div>
+                        <div class="col-md-2">
+                            <strong>EUR:</strong> {{="{:,.2f}".format(float(cuenta.saldo_eur))}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{pass}}
+
+    <!-- Filtros de búsqueda -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {{if cuenta:}}
+                    <form method="GET" action="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Fecha Desde:</label>
+                                <input type="date" name="fecha_desde" class="form-control" value="{{=fecha_desde or ''}}">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Fecha Hasta:</label>
+                                <input type="date" name="fecha_hasta" class="form-control" value="{{=fecha_hasta or ''}}">
+                            </div>
+                            <div class="col-md-2">
+                                <label>Tipo:</label>
+                                <select name="tipo_operacion" class="form-control">
+                                    <option value="todos" {{='selected' if not tipo_operacion or tipo_operacion == 'todos' else ''}}>Todos</option>
+                                    <option value="compra" {{='selected' if tipo_operacion == 'compra' else ''}}>Compra</option>
+                                    <option value="venta" {{='selected' if tipo_operacion == 'venta' else ''}}>Venta</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Moneda:</label>
+                                <select name="moneda" class="form-control">
+                                    <option value="todas" {{='selected' if not moneda or moneda == 'todas' else ''}}>Todas</option>
+                                    <option value="VES" {{='selected' if moneda == 'VES' else ''}}>VES</option>
+                                    <option value="USD" {{='selected' if moneda == 'USD' else ''}}>USD</option>
+                                    <option value="USDT" {{='selected' if moneda == 'USDT' else ''}}>USDT</option>
+                                    <option value="EUR" {{='selected' if moneda == 'EUR' else ''}}>EUR</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {{else:}}
+                    <p class="text-muted">Seleccione una cuenta para ver los filtros.</p>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de transacciones -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Historial de Transacciones
+                        {{if total_transacciones:}}
+                        <span class="badge bg-primary">{{=total_transacciones}} transacciones</span>
+                        {{pass}}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{if transacciones:}}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Comprobante</th>
+                                    <th>Tipo</th>
+                                    <th>Moneda Origen</th>
+                                    <th>Monto Origen</th>
+                                    <th>Moneda Destino</th>
+                                    <th>Monto Destino</th>
+                                    <th>Tasa</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{for transaccion in transacciones:}}
+                                <tr>
+                                    <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M') if transaccion.fecha_transaccion else 'N/A'}}</td>
+                                    <td><code>{{=transaccion.numero_comprobante}}</code></td>
+                                    <td>
+                                        <span class="badge bg-{{='success' if transaccion.tipo_operacion == 'compra' else 'warning'}}">
+                                            {{=transaccion.tipo_operacion.title()}}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{=transaccion.moneda_origen}}</strong></td>
+                                    <td class="text-end">{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else "0.00"}}</td>
+                                    <td><strong>{{=transaccion.moneda_destino}}</strong></td>
+                                    <td class="text-end">{{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else "0.00"}}</td>
+                                    <td class="text-end">{{="{:,.4f}".format(float(transaccion.tasa_cambio)) if transaccion.tasa_cambio else "N/A"}}</td>
+                                    <td>
+                                        <span class="badge bg-{{='success' if transaccion.estado == 'completada' else 'warning'}}">
+                                            {{=transaccion.estado.title()}}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {{pass}}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {{if total_pages > 1:}}
+                    <nav aria-label="Paginación de transacciones">
+                        <ul class="pagination justify-content-center">
+                            {{if page > 1:}}
+                            <li class="page-item">
+                                <a class="page-link" href="{{=URL('cuentas', 'movimientos', args=[cuenta.id], vars={'page': page-1, 'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'tipo_operacion': tipo_operacion, 'moneda': moneda})}}">
+                                    Anterior
+                                </a>
+                            </li>
+                            {{pass}}
+                            
+                            {{for p in range(max(1, page-2), min(total_pages+1, page+3)):}}
+                            <li class="page-item {{='active' if p == page else ''}}">
+                                <a class="page-link" href="{{=URL('cuentas', 'movimientos', args=[cuenta.id], vars={'page': p, 'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'tipo_operacion': tipo_operacion, 'moneda': moneda})}}">
+                                    {{=p}}
+                                </a>
+                            </li>
+                            {{pass}}
+                            
+                            {{if page < total_pages:}}
+                            <li class="page-item">
+                                <a class="page-link" href="{{=URL('cuentas', 'movimientos', args=[cuenta.id], vars={'page': page+1, 'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'tipo_operacion': tipo_operacion, 'moneda': moneda})}}">
+                                    Siguiente
+                                </a>
+                            </li>
+                            {{pass}}
+                        </ul>
+                    </nav>
+                    {{pass}}
+
+                    {{else:}}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        No se encontraron transacciones para esta cuenta con los filtros seleccionados.
+                    </div>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

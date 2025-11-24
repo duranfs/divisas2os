@@ -18,9 +18,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap4.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/sistema-divisas-fresh.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/sistema-divisas-fresh.css')}}?v=6"/>
     <link rel="stylesheet" href="{{=URL('static','css/logo-r4.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/fix-dropdown-menu.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/fix-contraste-final.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/fix-fondo-suave.css')}}?v=2"/>
+    <link rel="stylesheet" href="{{=URL('static','css/fix-breadcrumbs.css')}}?v=1"/>
     
     <!-- Favicons -->
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
@@ -31,7 +34,7 @@
     {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     {{block head}}{{end}}
   </head>
-  <body>
+  <body data-controller="{{=request.controller}}" data-function="{{=request.function}}">
     <!-- Flash Messages -->
     {{if response.flash:}}
     <div class="alert alert-info alert-dismissible fade show" role="alert" style="margin: 0; border-radius: 0;">
@@ -177,11 +180,6 @@
              <li class="nav-item">
                <a class="nav-link" href="{{=URL('default','user/login')}}">
                  <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
-               </a>
-             </li>
-             <li class="nav-item">
-               <a class="nav-link" href="{{=URL('default','user/register')}}">
-                 <i class="fas fa-user-plus me-1"></i>Registrarse
                </a>
              </li>
              {{pass}}

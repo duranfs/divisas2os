@@ -420,16 +420,16 @@ function actualizarTasas() {
         method: 'GET',
         success: function(data) {
             if (data.success) {
-                alert('Tasas actualizadas exitosamente');
-                cargarTasasActuales();
+                alert('Tasas actualizadas exitosamente desde el BCV');
+                // Recargar la página para mostrar los cambios
+                location.reload();
             } else {
                 alert('Error actualizando tasas: ' + data.mensaje);
+                $('#btn-actualizar').prop('disabled', false).html('<i class="fas fa-download"></i> Actualizar desde BCV');
             }
         },
         error: function() {
             alert('Error de conexión al actualizar tasas');
-        },
-        complete: function() {
             $('#btn-actualizar').prop('disabled', false).html('<i class="fas fa-download"></i> Actualizar desde BCV');
         }
     });
@@ -446,15 +446,15 @@ function forzarActualizacion() {
         success: function(data) {
             if (data.success) {
                 alert('Actualización forzada completada: ' + data.resultado);
-                cargarTasasActuales();
+                // Recargar la página para mostrar los cambios
+                location.reload();
             } else {
                 alert('Error en actualización forzada: ' + data.mensaje);
+                $('#btn-forzar').prop('disabled', false).html('<i class="fas fa-bolt"></i> Forzar Actualización');
             }
         },
         error: function() {
             alert('Error de conexión en actualización forzada');
-        },
-        complete: function() {
             $('#btn-forzar').prop('disabled', false).html('<i class="fas fa-bolt"></i> Forzar Actualización');
         }
     });
@@ -613,8 +613,8 @@ function insertarTasaManual() {
         success: function(data) {
             if (data.success) {
                 alert('Tasa manual insertada exitosamente');
-                $('#form-manual')[0].reset();
-                cargarTasasActuales();
+                // Recargar la página para mostrar los cambios
+                location.reload();
             } else {
                 alert('Error insertando tasa manual: ' + data.mensaje);
             }

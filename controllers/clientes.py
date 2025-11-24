@@ -6,6 +6,7 @@ Sistema de Divisas Bancario
 
 import re
 import logging
+import uuid
 from datetime import datetime
 from gluon.storage import Storage
 
@@ -864,7 +865,7 @@ def editar():
         session.flash = "Usuario no encontrado"
         redirect(URL('clientes', 'listar'))
     
-    # Crear formulario de edición administrativa
+    # Crear formulario de edición administrativa (SIN campos de contraseña por ahora)
     form = SQLFORM.factory(
         Field('first_name', 'string', label='Nombres', 
               default=usuario.first_name, requires=IS_NOT_EMPTY()),
@@ -893,17 +894,15 @@ def editar():
             usuario_existente = db((db.auth_user.email == form.vars.email) & 
                                  (db.auth_user.id != usuario.id)).select().first()
             if usuario_existente:
-                form.errors.email = "Este email ya está registrado por otro usuario"
-                response.flash = "Error en la validación de datos"
-                return dict(form=form, cliente=cliente, usuario=usuario)
+                session.flash = "Este email ya está registrado por otro usuario"
+                redirect(URL('editar', args=[cliente_id]))
             
             # Verificar que la cédula no esté usada por otro cliente
             cliente_existente = db((db.clientes.cedula == form.vars.cedula) & 
                                  (db.clientes.id != cliente.id)).select().first()
             if cliente_existente:
-                form.errors.cedula = "Esta cédula ya está registrada por otro cliente"
-                response.flash = "Error en la validación de datos"
-                return dict(form=form, cliente=cliente, usuario=usuario)
+                session.flash = "Esta cédula ya está registrada por otro cliente"
+                redirect(URL('editar', args=[cliente_id]))
             
             # Actualizar datos del usuario
             db(db.auth_user.id == usuario.id).update(
