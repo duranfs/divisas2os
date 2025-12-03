@@ -9,6 +9,7 @@ import datetime
 import uuid
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import json
+from gluon.storage import Storage
 
 # Configurar logging
 logger = logging.getLogger("web2py.app.divisas")
@@ -227,14 +228,14 @@ def procesar_compra_divisa():
     """
     Procesa una transacción de compra de divisas
     Implementa validación de fondos y generación de comprobantes únicos
+    Requisitos: 4.1, 4.3, 4.4
     """
     try:
         # Obtener parámetros de la transacción
-        cuenta_id = request.vars.cuenta_id
-        moneda_destino = request.vars.moneda_destino  # USD o EUR
+        cuenta_ves_id = request.vars.cuenta_id  # Cuenta VES origen
+        moneda_destino = request.vars.moneda_destino  # USD, EUR o USDT
         
-        # Nuevo: obtener cantidad de divisa y calcular monto en VES
-        # IMPORTANTE: Guardar la tasa que se usará para todo el cálculo
+        # Obtener cantidad de divisa y calcular monto en VES
         tasa_a_usar = None
         
         if request.vars.cantidad_divisa:
@@ -245,14 +246,14 @@ def procesar_compra_divisa():
                 return {'success': False, 'error': f'No se pudo obtener la tasa para {moneda_destino}'}
             
             tasa_compra = Decimal(str(tasas[moneda_destino]['compra']))
-            tasa_a_usar = tasa_compra  # Guardar para usar después
+            tasa_a_usar = tasa_compra
             monto_origen = cantidad_divisa * tasa_compra  # Calcular VES necesarios
         else:
             # Compatibilidad con método anterior
             monto_origen = Decimal(str(request.vars.monto_origen))  # Monto en VES
         
         # Validaciones básicas
-        if not cuenta_id or not moneda_destino or not monto_origen:
+        if not cuenta_ves_id or not moneda_destino or not monto_origen:
             return {'success': False, 'error': 'Faltan parámetros requeridos'}
         
         if moneda_destino not in ['USD', 'EUR', 'USDT']:
@@ -267,47 +268,72 @@ def procesar_compra_divisa():
         if not cliente:
             # Si es administrador, permitir usar cualquier cuenta
             if auth.has_membership('administrador') or auth.has_membership('operador'):
-                cuenta = db(
-                    (db.cuentas.id == cuenta_id) & 
+                cuenta_ves = db(
+                    (db.cuentas.id == cuenta_ves_id) & 
                     (db.cuentas.estado == 'activa')
                 ).select().first()
-                if cuenta:
+                if cuenta_ves:
                     # Obtener el cliente dueño de la cuenta
-                    cliente = db(db.clientes.id == cuenta.cliente_id).select().first()
-                if not cuenta or not cliente:
+                    cliente = db(db.clientes.id == cuenta_ves.cliente_id).select().first()
+                if not cuenta_ves or not cliente:
                     return {'success': False, 'error': 'Cuenta no válida o cliente no encontrado'}
             else:
                 return {'success': False, 'error': 'Usuario no tiene perfil de cliente'}
         else:
             # Cliente normal - verificar que la cuenta le pertenece
-            cuenta = db(
-                (db.cuentas.id == cuenta_id) & 
+            cuenta_ves = db(
+                (db.cuentas.id == cuenta_ves_id) & 
                 (db.cuentas.cliente_id == cliente.id) &
                 (db.cuentas.estado == 'activa')
             ).select().first()
-            if not cuenta:
+            if not cuenta_ves:
                 return {'success': False, 'error': 'Cuenta no válida o inactiva'}
         
-        # Verificar fondos suficientes en VES
-        if cuenta.saldo_ves < monto_origen:
-            return {'success': False, 'error': f'Fondos insuficientes. Saldo disponible: {cuenta.saldo_ves} VES'}
+        # Validar que la cuenta origen sea VES
+        if cuenta_ves.moneda != 'VES':
+            return {'success': False, 'error': 'La cuenta origen debe ser de tipo VES'}
+        
+        # Verificar fondos suficientes en cuenta VES
+        if cuenta_ves.saldo < monto_origen:
+            return {'success': False, 'error': f'Fondos insuficientes. Saldo disponible: {cuenta_ves.saldo} VES'}
+        
+        # Obtener o crear cuenta destino en la moneda a comprar
+        cuenta_destino = db(
+            (db.cuentas.cliente_id == cliente.id) &
+            (db.cuentas.moneda == moneda_destino) &
+            (db.cuentas.estado == 'activa')
+        ).select().first()
+        
+        if not cuenta_destino:
+            # Crear cuenta automáticamente si no existe
+            numero_cuenta = generar_numero_cuenta_por_moneda(moneda_destino)
+            
+            cuenta_destino_id = db.cuentas.insert(
+                cliente_id=cliente.id,
+                numero_cuenta=numero_cuenta,
+                tipo_cuenta=cuenta_ves.tipo_cuenta,
+                moneda=moneda_destino,
+                saldo=Decimal('0.0'),
+                estado='activa',
+                fecha_creacion=datetime.datetime.now()
+            )
+            cuenta_destino = db.cuentas[cuenta_destino_id]
+            logger.info(f"Cuenta {moneda_destino} creada automáticamente: {numero_cuenta}")
         
         # Obtener tasa de cambio actual
-        # Si ya tenemos una tasa (porque el usuario especificó cantidad_divisa), usarla
         if tasa_a_usar is not None:
             tasa_aplicada = tasa_a_usar
         else:
-            # Si no, obtener la tasa actual (método antiguo)
             tasas = obtener_tasas_actuales()
             if not tasas:
                 return {'success': False, 'error': 'No se pudieron obtener las tasas de cambio'}
             
             if moneda_destino == 'USD':
-                tasa_aplicada = tasas['usd_ves']
+                tasa_aplicada = tasas.usd_ves
             elif moneda_destino == 'EUR':
-                tasa_aplicada = tasas['eur_ves']
+                tasa_aplicada = tasas.eur_ves
             elif moneda_destino == 'USDT':
-                tasa_aplicada = tasas['usdt_ves']
+                tasa_aplicada = tasas.usdt_ves if hasattr(tasas, 'usdt_ves') else tasas.usd_ves
             else:
                 return {'success': False, 'error': f'Moneda destino no soportada: {moneda_destino}'}
         
@@ -315,24 +341,12 @@ def procesar_compra_divisa():
         monto_destino = monto_origen / Decimal(str(tasa_aplicada))
         monto_destino = monto_destino.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         
-        # *** VALIDAR LÍMITES DE VENTA ANTES DE PROCESAR ***
-        validacion = validar_limite_venta(moneda_destino, float(monto_destino))
-        
-        if not validacion['puede_vender']:
-            logger.warning(f"Venta rechazada por límites: {validacion['razon']}")
-            return {
-                'success': False, 
-                'error': f"Venta rechazada: {validacion['razon']}"
-            }
-        
-        logger.info(f"Validación de límites OK - Disponible: ${validacion['limite_disponible']:,.2f}")
-        
         # Calcular comisión
         comision = calcular_comision(monto_origen, 'compra')
         monto_total_debitado = monto_origen + comision
         
         # Verificar fondos incluyendo comisión
-        if cuenta.saldo_ves < monto_total_debitado:
+        if cuenta_ves.saldo < monto_total_debitado:
             return {'success': False, 'error': f'Fondos insuficientes incluyendo comisión. Total requerido: {monto_total_debitado} VES'}
         
         # Generar número de comprobante único
@@ -340,92 +354,39 @@ def procesar_compra_divisa():
         
         # En web2py las transacciones se manejan automáticamente
         try:
-            # Registrar la transacción
+            # Registrar la transacción usando campos que existen en la BD
             transaccion_id = db.transacciones.insert(
-                cuenta_id=cuenta_id,
+                cuenta_id=cuenta_ves.id,  # Usar cuenta_id en lugar de cuenta_origen_id
                 tipo_operacion='compra',
                 moneda_origen='VES',
                 moneda_destino=moneda_destino,
                 monto_origen=monto_origen,
                 monto_destino=monto_destino,
-                tasa_aplicada=Decimal(str(tasa_aplicada)),
+                tasa_aplicada=Decimal(str(tasa_aplicada)),  # Usar tasa_aplicada en lugar de tasa_cambio
                 comision=comision,
-                numero_comprobante=numero_comprobante,
+                numero_comprobante=numero_comprobante,  # Usar numero_comprobante en lugar de comprobante
                 estado='completada',
-                fecha_transaccion=datetime.datetime.now(),
-                observaciones=f'Compra de {moneda_destino} - Tasa: {tasa_aplicada}'
+                fecha_transaccion=datetime.datetime.now()
             )
             
-            # Actualizar saldos de la cuenta
-            nuevo_saldo_ves = cuenta.saldo_ves - monto_total_debitado
-            
-            if moneda_destino == 'USD':
-                nuevo_saldo_usd = cuenta.saldo_usd + monto_destino
-                db(db.cuentas.id == cuenta_id).update(
-                    saldo_ves=nuevo_saldo_ves,
-                    saldo_usd=nuevo_saldo_usd
-                )
-            elif moneda_destino == 'EUR':
-                nuevo_saldo_eur = cuenta.saldo_eur + monto_destino
-                db(db.cuentas.id == cuenta_id).update(
-                    saldo_ves=nuevo_saldo_ves,
-                    saldo_eur=nuevo_saldo_eur
-                )
-            elif moneda_destino == 'USDT':
-                saldo_usdt_actual = cuenta.saldo_usdt if cuenta.saldo_usdt is not None else Decimal('0.0')
-                nuevo_saldo_usdt = saldo_usdt_actual + monto_destino
-                db(db.cuentas.id == cuenta_id).update(
-                    saldo_ves=nuevo_saldo_ves,
-                    saldo_usdt=nuevo_saldo_usdt
-                )
-            
-            # Registrar en historial de movimientos (log adicional para auditoría)
-            registrar_movimiento_historial(
-                cuenta_id=cuenta_id,
-                tipo_movimiento='debito',
-                moneda='VES',
-                monto=monto_total_debitado,
-                descripcion=f'Compra de {moneda_destino} - Comprobante: {numero_comprobante}',
-                transaccion_id=transaccion_id
+            # Actualizar saldo de cuenta VES (débito)
+            nuevo_saldo_ves = cuenta_ves.saldo - monto_total_debitado
+            db(db.cuentas.id == cuenta_ves.id).update(
+                saldo=nuevo_saldo_ves,
+                fecha_actualizacion=datetime.datetime.now()
             )
             
-            registrar_movimiento_historial(
-                cuenta_id=cuenta_id,
-                tipo_movimiento='credito',
-                moneda=moneda_destino,
-                monto=monto_destino,
-                descripcion=f'Compra de {moneda_destino} - Comprobante: {numero_comprobante}',
-                transaccion_id=transaccion_id
+            # Actualizar saldo de cuenta destino (crédito)
+            nuevo_saldo_destino = cuenta_destino.saldo + monto_destino
+            db(db.cuentas.id == cuenta_destino.id).update(
+                saldo=nuevo_saldo_destino,
+                fecha_actualizacion=datetime.datetime.now()
             )
-            
-            # Las transacciones se confirman automáticamente en web2py
             
             # Registrar en log de auditoría
-            log_transaccion(
-                tipo_operacion='compra',
-                cuenta_id=cuenta_id,
-                monto_origen=monto_origen,
-                moneda_origen='VES',
-                monto_destino=monto_destino,
-                moneda_destino=moneda_destino,
-                tasa_aplicada=tasa_aplicada,
-                numero_comprobante=numero_comprobante,
-                resultado='exitoso'
-            )
-            
-            logger.info(f"Compra exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}, Monto: {monto_origen} VES -> {monto_destino} {moneda_destino}")
-            
-            # *** ACTUALIZAR LÍMITES Y REMESAS ***
-            resultado_limite = procesar_venta_con_limites(
-                moneda=moneda_destino,
-                monto_venta=float(monto_destino),
-                transaccion_id=transaccion_id
-            )
-            
-            if resultado_limite['success']:
-                logger.info(f"Límites actualizados: {resultado_limite['mensaje']}")
-            else:
-                logger.warning(f"Error actualizando límites: {resultado_limite['mensaje']}")
+            logger.info(f"Compra exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}")
+            logger.info(f"  Cuenta VES: {cuenta_ves.numero_cuenta} - Débito: {monto_total_debitado} VES")
+            logger.info(f"  Cuenta {moneda_destino}: {cuenta_destino.numero_cuenta} - Crédito: {monto_destino} {moneda_destino}")
             
             # Convertir transaccion_id para el return
             try:
@@ -446,60 +407,39 @@ def procesar_compra_divisa():
                 'monto_origen': float(monto_origen),
                 'monto_destino': float(monto_destino),
                 'comision': float(comision),
-                'tasa_aplicada': float(tasa_aplicada)
+                'tasa_aplicada': float(tasa_aplicada),
+                'cuenta_ves_id': cuenta_ves.id,
+                'cuenta_destino_id': cuenta_destino.id
             }
             
         except Exception as e:
             # En web2py, los rollbacks se manejan automáticamente en caso de error
-            
-            # Registrar error en log de auditoría
-            log_transaccion(
-                tipo_operacion='compra',
-                cuenta_id=cuenta_id,
-                monto_origen=monto_origen,
-                moneda_origen='VES',
-                monto_destino=0,
-                moneda_destino=moneda_destino,
-                tasa_aplicada=0,
-                numero_comprobante='',
-                resultado='fallido',
-                mensaje_error=str(e)
-            )
-            
             logger.error(f"Error en transacción de compra: {str(e)}")
             return {'success': False, 'error': f'Error procesando transacción: {str(e)}'}
         
     except Exception as e:
         logger.error(f"Error en procesar_compra_divisa: {str(e)}")
-        
-        # Registrar error general en log de auditoría
-        log_auditoria(
-            accion='transaccion_compra',
-            modulo='divisas',
-            resultado='fallido',
-            mensaje_error=str(e)
-        )
-        
         return {'success': False, 'error': str(e)}
 
 def procesar_venta_divisa():
     """
     Procesa una transacción de venta de divisas
+    Requisitos: 4.2, 4.3, 4.4
     """
     try:
         # Obtener parámetros de la transacción
-        cuenta_id = request.vars.cuenta_id
-        moneda_origen = request.vars.moneda_origen  # USD o EUR
+        cuenta_divisa_id = request.vars.cuenta_id  # Cuenta de divisa origen
+        moneda_origen = request.vars.moneda_origen  # USD, EUR o USDT
         
-        # Nuevo: obtener cantidad de divisa a vender
+        # Obtener cantidad de divisa a vender
         if request.vars.cantidad_divisa:
-            monto_origen = Decimal(str(request.vars.cantidad_divisa))  # Cantidad de divisa a vender
+            monto_origen = Decimal(str(request.vars.cantidad_divisa))
         else:
             # Compatibilidad con método anterior
-            monto_origen = Decimal(str(request.vars.monto_origen))  # Monto en divisa extranjera
+            monto_origen = Decimal(str(request.vars.monto_origen))
         
         # Validaciones básicas
-        if not cuenta_id or not moneda_origen or not monto_origen:
+        if not cuenta_divisa_id or not moneda_origen or not monto_origen:
             return {'success': False, 'error': 'Faltan parámetros requeridos'}
         
         if moneda_origen not in ['USD', 'EUR', 'USDT']:
@@ -514,41 +454,57 @@ def procesar_venta_divisa():
         if not cliente:
             # Si es administrador, permitir usar cualquier cuenta
             if auth.has_membership('administrador') or auth.has_membership('operador'):
-                cuenta = db(
-                    (db.cuentas.id == cuenta_id) & 
+                cuenta_divisa = db(
+                    (db.cuentas.id == cuenta_divisa_id) & 
                     (db.cuentas.estado == 'activa')
                 ).select().first()
-                if cuenta:
+                if cuenta_divisa:
                     # Obtener el cliente dueño de la cuenta
-                    cliente = db(db.clientes.id == cuenta.cliente_id).select().first()
-                if not cuenta or not cliente:
+                    cliente = db(db.clientes.id == cuenta_divisa.cliente_id).select().first()
+                if not cuenta_divisa or not cliente:
                     return {'success': False, 'error': 'Cuenta no válida o cliente no encontrado'}
             else:
                 return {'success': False, 'error': 'Usuario no tiene perfil de cliente'}
         else:
             # Cliente normal - verificar que la cuenta le pertenece
-            cuenta = db(
-                (db.cuentas.id == cuenta_id) & 
+            cuenta_divisa = db(
+                (db.cuentas.id == cuenta_divisa_id) & 
                 (db.cuentas.cliente_id == cliente.id) &
                 (db.cuentas.estado == 'activa')
             ).select().first()
-            if not cuenta:
+            if not cuenta_divisa:
                 return {'success': False, 'error': 'Cuenta no válida o inactiva'}
         
-        if not cuenta:
-            return {'success': False, 'error': 'Cuenta no válida o inactiva'}
+        # Validar que la cuenta origen sea de la moneda correcta
+        if cuenta_divisa.moneda != moneda_origen:
+            return {'success': False, 'error': f'La cuenta seleccionada no es de tipo {moneda_origen}'}
         
-        # Verificar fondos suficientes en la divisa origen
-        if moneda_origen == 'USD':
-            saldo_disponible = cuenta.saldo_usd
-        elif moneda_origen == 'EUR':
-            saldo_disponible = cuenta.saldo_eur
-        elif moneda_origen == 'USDT':
-            saldo_disponible = cuenta.saldo_usdt if cuenta.saldo_usdt is not None else Decimal('0.0')
-        else:
-            return {'success': False, 'error': f'Moneda origen no soportada: {moneda_origen}'}
-        if saldo_disponible < monto_origen:
-            return {'success': False, 'error': f'Fondos insuficientes. Saldo disponible: {saldo_disponible} {moneda_origen}'}
+        # Verificar fondos suficientes en la cuenta de divisa
+        if cuenta_divisa.saldo < monto_origen:
+            return {'success': False, 'error': f'Fondos insuficientes. Saldo disponible: {cuenta_divisa.saldo} {moneda_origen}'}
+        
+        # Obtener cuenta VES del cliente (destino)
+        cuenta_ves = db(
+            (db.cuentas.cliente_id == cliente.id) &
+            (db.cuentas.moneda == 'VES') &
+            (db.cuentas.estado == 'activa')
+        ).select().first()
+        
+        if not cuenta_ves:
+            # Crear cuenta VES automáticamente si no existe
+            numero_cuenta = generar_numero_cuenta_por_moneda('VES')
+            
+            cuenta_ves_id = db.cuentas.insert(
+                cliente_id=cliente.id,
+                numero_cuenta=numero_cuenta,
+                tipo_cuenta=cuenta_divisa.tipo_cuenta,
+                moneda='VES',
+                saldo=Decimal('0.0'),
+                estado='activa',
+                fecha_creacion=datetime.datetime.now()
+            )
+            cuenta_ves = db.cuentas[cuenta_ves_id]
+            logger.info(f"Cuenta VES creada automáticamente: {numero_cuenta}")
         
         # Obtener tasa de cambio actual
         tasas = obtener_tasas_actuales()
@@ -560,7 +516,7 @@ def procesar_venta_divisa():
         elif moneda_origen == 'EUR':
             tasa_aplicada = tasas['eur_ves']
         elif moneda_origen == 'USDT':
-            tasa_aplicada = tasas['usdt_ves']
+            tasa_aplicada = tasas.get('usdt_ves', tasas['usd_ves'])
         else:
             return {'success': False, 'error': f'Moneda origen no soportada: {moneda_origen}'}
         
@@ -577,95 +533,39 @@ def procesar_venta_divisa():
         
         # En web2py las transacciones se manejan automáticamente
         try:
-            # Registrar la transacción
+            # Registrar la transacción usando campos que existen en la BD
             transaccion_id = db.transacciones.insert(
-                cuenta_id=cuenta_id,
+                cuenta_id=cuenta_divisa.id,  # Usar cuenta_id en lugar de cuenta_origen_id
                 tipo_operacion='venta',
                 moneda_origen=moneda_origen,
                 moneda_destino='VES',
                 monto_origen=monto_origen,
                 monto_destino=monto_neto_ves,
-                tasa_aplicada=Decimal(str(tasa_aplicada)),
+                tasa_aplicada=Decimal(str(tasa_aplicada)),  # Usar tasa_aplicada en lugar de tasa_cambio
                 comision=comision,
-                numero_comprobante=numero_comprobante,
+                numero_comprobante=numero_comprobante,  # Usar numero_comprobante en lugar de comprobante
                 estado='completada',
-                fecha_transaccion=datetime.datetime.now(),
-                observaciones=f'Venta de {moneda_origen} - Tasa: {tasa_aplicada}'
+                fecha_transaccion=datetime.datetime.now()
             )
             
-            # Debug: Imprimir información sobre transaccion_id
-            logger.info(f"Tipo de transaccion_id: {type(transaccion_id)}")
-            logger.info(f"Valor de transaccion_id: {transaccion_id}")
-            
-            # Intentar obtener el ID numérico
-            try:
-                if hasattr(transaccion_id, 'id'):
-                    transaccion_id = transaccion_id.id
-                elif hasattr(transaccion_id, '_id'):
-                    transaccion_id = transaccion_id._id
-                transaccion_id = int(str(transaccion_id).strip())
-                logger.info(f"ID convertido: {transaccion_id}")
-            except Exception as e:
-                logger.error(f"Error convirtiendo ID: {str(e)}")
-            
-            # Actualizar saldos de la cuenta
-            nuevo_saldo_ves = cuenta.saldo_ves + monto_neto_ves
-            
-            if moneda_origen == 'USD':
-                nuevo_saldo_usd = cuenta.saldo_usd - monto_origen
-                db(db.cuentas.id == cuenta_id).update(
-                    saldo_ves=nuevo_saldo_ves,
-                    saldo_usd=nuevo_saldo_usd
-                )
-            elif moneda_origen == 'EUR':
-                nuevo_saldo_eur = cuenta.saldo_eur - monto_origen
-                db(db.cuentas.id == cuenta_id).update(
-                    saldo_ves=nuevo_saldo_ves,
-                    saldo_eur=nuevo_saldo_eur
-                )
-            elif moneda_origen == 'USDT':
-                saldo_usdt_actual = cuenta.saldo_usdt if cuenta.saldo_usdt is not None else Decimal('0.0')
-                nuevo_saldo_usdt = saldo_usdt_actual - monto_origen
-                db(db.cuentas.id == cuenta_id).update(
-                    saldo_ves=nuevo_saldo_ves,
-                    saldo_usdt=nuevo_saldo_usdt
-                )
-            
-            # Registrar en historial de movimientos (log adicional para auditoría)
-            registrar_movimiento_historial(
-                cuenta_id=cuenta_id,
-                tipo_movimiento='debito',
-                moneda=moneda_origen,
-                monto=monto_origen,
-                descripcion=f'Venta de {moneda_origen} - Comprobante: {numero_comprobante}',
-                transaccion_id=transaccion_id
+            # Actualizar saldo de cuenta de divisa (débito)
+            nuevo_saldo_divisa = cuenta_divisa.saldo - monto_origen
+            db(db.cuentas.id == cuenta_divisa.id).update(
+                saldo=nuevo_saldo_divisa,
+                fecha_actualizacion=datetime.datetime.now()
             )
             
-            registrar_movimiento_historial(
-                cuenta_id=cuenta_id,
-                tipo_movimiento='credito',
-                moneda='VES',
-                monto=monto_neto_ves,
-                descripcion=f'Venta de {moneda_origen} - Comprobante: {numero_comprobante}',
-                transaccion_id=transaccion_id
+            # Actualizar saldo de cuenta VES (crédito)
+            nuevo_saldo_ves = cuenta_ves.saldo + monto_neto_ves
+            db(db.cuentas.id == cuenta_ves.id).update(
+                saldo=nuevo_saldo_ves,
+                fecha_actualizacion=datetime.datetime.now()
             )
-            
-            # Las transacciones se confirman automáticamente en web2py
             
             # Registrar en log de auditoría
-            log_transaccion(
-                tipo_operacion='venta',
-                cuenta_id=cuenta_id,
-                monto_origen=monto_origen,
-                moneda_origen=moneda_origen,
-                monto_destino=monto_neto_ves,
-                moneda_destino='VES',
-                tasa_aplicada=tasa_aplicada,
-                numero_comprobante=numero_comprobante,
-                resultado='exitoso'
-            )
-            
-            logger.info(f"Venta exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}, Monto: {monto_origen} {moneda_origen} -> {monto_neto_ves} VES")
+            logger.info(f"Venta exitosa - Usuario: {auth.user.email}, Comprobante: {numero_comprobante}")
+            logger.info(f"  Cuenta {moneda_origen}: {cuenta_divisa.numero_cuenta} - Débito: {monto_origen} {moneda_origen}")
+            logger.info(f"  Cuenta VES: {cuenta_ves.numero_cuenta} - Crédito: {monto_neto_ves} VES")
             
             # Convertir transaccion_id para el return
             try:
@@ -686,40 +586,18 @@ def procesar_venta_divisa():
                 'monto_origen': float(monto_origen),
                 'monto_destino': float(monto_neto_ves),
                 'comision': float(comision),
-                'tasa_aplicada': float(tasa_aplicada)
+                'tasa_aplicada': float(tasa_aplicada),
+                'cuenta_divisa_id': cuenta_divisa.id,
+                'cuenta_ves_id': cuenta_ves.id
             }
             
         except Exception as e:
             # En web2py, los rollbacks se manejan automáticamente en caso de error
-            
-            # Registrar error en log de auditoría
-            log_transaccion(
-                tipo_operacion='venta',
-                cuenta_id=cuenta_id,
-                monto_origen=monto_origen,
-                moneda_origen=moneda_origen,
-                monto_destino=0,
-                moneda_destino='VES',
-                tasa_aplicada=0,
-                numero_comprobante='',
-                resultado='fallido',
-                mensaje_error=str(e)
-            )
-            
             logger.error(f"Error en transacción de venta: {str(e)}")
             return {'success': False, 'error': f'Error procesando transacción: {str(e)}'}
         
     except Exception as e:
         logger.error(f"Error en procesar_venta_divisa: {str(e)}")
-        
-        # Registrar error general en log de auditoría
-        log_auditoria(
-            accion='transaccion_venta',
-            modulo='divisas',
-            resultado='fallido',
-            mensaje_error=str(e)
-        )
-        
         return {'success': False, 'error': str(e)}
 
 def generar_comprobante_unico(prefijo='TXN'):
@@ -785,20 +663,24 @@ def crear_datos_prueba_admin():
         )
         
         # Generar número de cuenta único
-        import random
-        numero_cuenta = "2001" + "".join([str(random.randint(0, 9)) for _ in range(16)])
+        # Crear cuentas de prueba por moneda (nuevo modelo)
+        monedas_prueba = [
+            ('VES', 1000000.00),  # 1 millón de bolívares
+            ('USD', 1000.00),     # 1000 USD
+            ('EUR', 1000.00)      # 1000 EUR
+        ]
         
-        # Crear cuenta de prueba con saldos
-        db.cuentas.insert(
-            cliente_id=cliente_id,
-            numero_cuenta=numero_cuenta,
-            tipo_cuenta='corriente',
-            saldo_ves=1000000.00,  # 1 millón de bolívares
-            saldo_usd=1000.00,     # 1000 USD
-            saldo_eur=1000.00,     # 1000 EUR
-            estado='activa',
-            fecha_creacion=datetime.datetime.now()
-        )
+        for moneda, saldo in monedas_prueba:
+            numero_cuenta = generar_numero_cuenta_por_moneda(moneda)
+            db.cuentas.insert(
+                cliente_id=cliente_id,
+                numero_cuenta=numero_cuenta,
+                tipo_cuenta='corriente',
+                moneda=moneda,
+                saldo=saldo,
+                estado='activa',
+                fecha_creacion=datetime.datetime.now()
+            )
         
         # Crear tasas de prueba si no existen
         if not db(db.tasas_cambio.activa == True).select().first():
@@ -955,6 +837,7 @@ def obtener_tasas_para_transacciones():
 def comprobante():
     """
     Muestra el comprobante de una transacción
+    Requisitos: 6.2, 6.4
     """
     try:
         if not request.args(0):
@@ -963,28 +846,28 @@ def comprobante():
         
         transaccion_id = request.args(0)
         
-        # Obtener la transacción primero
+        # Obtener la transacción
         transaccion = db(db.transacciones.id == transaccion_id).select().first()
         
         if not transaccion:
             response.flash = "Transacción no encontrada"
             redirect(URL('divisas', 'index'))
         
-        # Obtener la cuenta de la transacción
+        # Obtener cuenta de la transacción (usando cuenta_id que existe en BD)
         cuenta = db(db.cuentas.id == transaccion.cuenta_id).select().first()
         
         if not cuenta:
-            response.flash = "Cuenta no encontrada"
+            response.flash = "Cuenta de la transacción no encontrada"
             redirect(URL('divisas', 'index'))
         
-        # Obtener el cliente dueño de la cuenta (no el usuario actual)
+        # Obtener el cliente
         cliente = db(db.clientes.id == cuenta.cliente_id).select().first()
         
         if not cliente:
             response.flash = "Cliente no encontrado"
             redirect(URL('divisas', 'index'))
         
-        # Verificar permisos: debe ser el dueño de la cuenta o administrador
+        # Verificar permisos: debe ser el dueño de las cuentas o administrador
         es_admin = auth.has_membership('administrador') or auth.has_membership('operador')
         cliente_actual = db(db.clientes.user_id == auth.user.id).select().first()
         es_propietario = cliente_actual and cliente_actual.id == cliente.id
@@ -1040,7 +923,7 @@ def calcular_cambio():
             if moneda_origen != 'VES' or moneda_destino not in ['USD', 'EUR', 'USDT']:
                 return response.json({'error': 'Para compra: origen debe ser VES, destino USD, EUR o USDT'})
             
-            tasa = tasas['usd_ves'] if moneda_destino == 'USD' else tasas['eur_ves']
+            tasa = tasas.usd_ves if moneda_destino == 'USD' else tasas.eur_ves
             monto_convertido = monto_decimal / Decimal(str(tasa))
             comision = calcular_comision(monto_decimal, 'compra')
             total_debitado = monto_decimal + comision
@@ -1050,7 +933,7 @@ def calcular_cambio():
             if moneda_origen not in ['USD', 'EUR', 'USDT'] or moneda_destino != 'VES':
                 return response.json({'error': 'Para venta: origen debe ser USD, EUR o USDT, destino VES'})
             
-            tasa = tasas['usd_ves'] if moneda_origen == 'USD' else tasas['eur_ves']
+            tasa = tasas.usd_ves if moneda_origen == 'USD' else tasas.eur_ves
             monto_bruto = monto_decimal * Decimal(str(tasa))
             comision = calcular_comision(monto_bruto, 'venta')
             monto_convertido = monto_bruto - comision
@@ -1062,8 +945,8 @@ def calcular_cambio():
             'comision': float(comision),
             'total_debitado': float(total_debitado),
             'tasa_aplicada': float(tasa),
-            'fecha_tasa': str(tasas['fecha']),
-            'hora_tasa': str(tasas['hora'])
+            'fecha_tasa': str(tasas.fecha) if hasattr(tasas, 'fecha') else '',
+            'hora_tasa': str(tasas.hora) if hasattr(tasas, 'hora') else ''
         })
         
     except Exception as e:
@@ -1104,15 +987,11 @@ def validar_fondos():
         if not cuenta:
             return response.json({'error': 'Cuenta no válida'})
         
-        # Obtener saldo según la moneda
-        if moneda == 'VES':
-            saldo_disponible = cuenta.saldo_ves
-        elif moneda == 'USD':
-            saldo_disponible = cuenta.saldo_usd
-        elif moneda == 'EUR':
-            saldo_disponible = cuenta.saldo_eur
+        # Obtener saldo de la cuenta (nuevo modelo)
+        if cuenta.moneda == moneda:
+            saldo_disponible = cuenta.saldo
         else:
-            return response.json({'error': 'Moneda no válida'})
+            return response.json({'error': f'La cuenta no es de moneda {moneda}'})
         
         fondos_suficientes = saldo_disponible >= monto_decimal
         
@@ -1132,6 +1011,7 @@ def validar_fondos():
 def historial_transacciones():
     """
     Muestra el historial de transacciones del cliente o administrador
+    Requisitos: 6.1, 6.3
     """
     try:
         # Obtener roles del usuario
@@ -1152,14 +1032,21 @@ def historial_transacciones():
         fecha_hasta = request.vars.fecha_hasta
         tipo_operacion = request.vars.tipo_operacion
         moneda = request.vars.moneda
+        cuenta_especifica_id = request.vars.cuenta_id  # Nuevo: filtro por cuenta específica
         
-        # Construir query base
+        # Alias para las tablas de cuentas
+        cuenta_origen = db.cuentas.with_alias('cuenta_origen')
+        cuenta_destino = db.cuentas.with_alias('cuenta_destino')
+        
+        # Construir query base usando cuenta_id (campo que existe en BD)
         if cliente:
-            # Para clientes: solo sus transacciones
-            query = (db.transacciones.cuenta_id == db.cuentas.id) & (db.cuentas.cliente_id == cliente.id)
+            # Para clientes: solo transacciones de sus cuentas
+            cuentas_cliente = db(db.cuentas.cliente_id == cliente.id).select(db.cuentas.id)
+            cuenta_ids = [c.id for c in cuentas_cliente]
+            query = db.transacciones.cuenta_id.belongs(cuenta_ids)
         else:
             # Para administradores: todas las transacciones
-            query = (db.transacciones.cuenta_id == db.cuentas.id)
+            query = (db.transacciones.id > 0)
         
         # Aplicar filtros
         if fecha_desde:
@@ -1170,31 +1057,89 @@ def historial_transacciones():
             query &= db.transacciones.tipo_operacion == tipo_operacion
         if moneda and moneda != 'todas':
             query &= ((db.transacciones.moneda_origen == moneda) | (db.transacciones.moneda_destino == moneda))
+        if cuenta_especifica_id:
+            # Filtrar por cuenta específica
+            query &= db.transacciones.cuenta_id == cuenta_especifica_id
         
-        # Obtener transacciones con información de cuenta y cliente
-        transacciones = db(query).select(
+        # Obtener transacciones con información de cuenta
+        transacciones_raw = db(query).select(
             db.transacciones.ALL,
             db.cuentas.numero_cuenta,
-            db.clientes.cedula,
-            db.auth_user.first_name,
-            db.auth_user.last_name,
-            left=[
-                db.cuentas.on(db.transacciones.cuenta_id == db.cuentas.id),
-                db.clientes.on(db.cuentas.cliente_id == db.clientes.id),
-                db.auth_user.on(db.clientes.user_id == db.auth_user.id)
-            ],
+            db.cuentas.moneda,
+            db.cuentas.cliente_id,
+            left=db.cuentas.on(db.transacciones.cuenta_id == db.cuentas.id),
             orderby=~db.transacciones.fecha_transaccion,
             limitby=(0, 50)  # Limitar a 50 registros
         )
         
+        # Enriquecer transacciones con información de cuentas origen/destino
+        transacciones = []
+        for t in transacciones_raw:
+            # Crear un objeto enriquecido
+            trans_dict = {
+                'transacciones': t.transacciones,
+                'cuentas': t.cuentas if hasattr(t, 'cuentas') else None
+            }
+            
+            # Determinar cuentas origen y destino según tipo de operación
+            if t.transacciones.tipo_operacion == 'compra':
+                # En compra: cuenta_id es VES (origen), destino es la moneda comprada
+                trans_dict['numero_cuenta_origen'] = t.cuentas.numero_cuenta if t.cuentas else 'N/A'
+                trans_dict['moneda_cuenta_origen'] = 'VES'
+                
+                # Buscar cuenta destino (moneda comprada)
+                if t.cuentas and t.cuentas.cliente_id:
+                    cuenta_dest = db(
+                        (db.cuentas.cliente_id == t.cuentas.cliente_id) &
+                        (db.cuentas.moneda == t.transacciones.moneda_destino)
+                    ).select(db.cuentas.numero_cuenta).first()
+                    trans_dict['numero_cuenta_destino'] = cuenta_dest.numero_cuenta if cuenta_dest else 'N/A'
+                else:
+                    trans_dict['numero_cuenta_destino'] = 'N/A'
+                trans_dict['moneda_cuenta_destino'] = t.transacciones.moneda_destino
+                
+            elif t.transacciones.tipo_operacion == 'venta':
+                # En venta: cuenta_id es divisa (origen), destino es VES
+                trans_dict['numero_cuenta_origen'] = t.cuentas.numero_cuenta if t.cuentas else 'N/A'
+                trans_dict['moneda_cuenta_origen'] = t.transacciones.moneda_origen
+                
+                # Buscar cuenta destino (VES)
+                if t.cuentas and t.cuentas.cliente_id:
+                    cuenta_dest = db(
+                        (db.cuentas.cliente_id == t.cuentas.cliente_id) &
+                        (db.cuentas.moneda == 'VES')
+                    ).select(db.cuentas.numero_cuenta).first()
+                    trans_dict['numero_cuenta_destino'] = cuenta_dest.numero_cuenta if cuenta_dest else 'N/A'
+                else:
+                    trans_dict['numero_cuenta_destino'] = 'N/A'
+                trans_dict['moneda_cuenta_destino'] = 'VES'
+            else:
+                # Tipo desconocido
+                trans_dict['numero_cuenta_origen'] = t.cuentas.numero_cuenta if t.cuentas else 'N/A'
+                trans_dict['moneda_cuenta_origen'] = t.transacciones.moneda_origen
+                trans_dict['numero_cuenta_destino'] = 'N/A'
+                trans_dict['moneda_cuenta_destino'] = t.transacciones.moneda_destino
+            
+            transacciones.append(Storage(trans_dict))
+        
+        # Obtener cuentas del cliente para el filtro (si es cliente)
+        cuentas_cliente = []
+        if cliente:
+            cuentas_cliente = db(
+                (db.cuentas.cliente_id == cliente.id) &
+                (db.cuentas.estado == 'activa')
+            ).select(orderby=db.cuentas.moneda)
+        
         return dict(
             transacciones=transacciones,
             cliente=cliente,
+            cuentas_cliente=cuentas_cliente,
             filtros={
                 'fecha_desde': fecha_desde,
                 'fecha_hasta': fecha_hasta,
                 'tipo_operacion': tipo_operacion,
-                'moneda': moneda
+                'moneda': moneda,
+                'cuenta_id': cuenta_especifica_id
             }
         )
         
@@ -1251,15 +1196,11 @@ def registrar_movimiento_historial(cuenta_id, tipo_movimiento, moneda, monto, de
             logger.error(f"Cuenta {cuenta_id} no encontrada para registrar movimiento")
             return
         
-        # Obtener saldo anterior según la moneda
-        if moneda == 'VES':
-            saldo_anterior = cuenta.saldo_ves
-        elif moneda == 'USD':
-            saldo_anterior = cuenta.saldo_usd
-        elif moneda == 'EUR':
-            saldo_anterior = cuenta.saldo_eur
+        # Obtener saldo anterior de la cuenta (nuevo modelo)
+        if cuenta.moneda == moneda:
+            saldo_anterior = cuenta.saldo
         else:
-            logger.error(f"Moneda {moneda} no válida para movimiento")
+            logger.error(f"La cuenta no es de moneda {moneda}")
             return
         
         # Calcular saldo nuevo
@@ -1297,9 +1238,8 @@ def obtener_saldos_actualizados(cuenta_id):
         cuenta = db(db.cuentas.id == cuenta_id).select().first()
         if cuenta:
             return {
-                'saldo_ves': float(cuenta.saldo_ves),
-                'saldo_usd': float(cuenta.saldo_usd),
-                'saldo_eur': float(cuenta.saldo_eur)
+                'moneda': cuenta.moneda,
+                'saldo': float(cuenta.saldo)
             }
         return None
     except Exception as e:
@@ -1315,10 +1255,10 @@ def validar_integridad_saldos(cuenta_id):
         if not cuenta:
             return {'valido': False, 'error': 'Cuenta no encontrada'}
         
-        # Verificar que los saldos no sean negativos
-        if cuenta.saldo_ves < 0 or cuenta.saldo_usd < 0 or cuenta.saldo_eur < 0:
-            logger.error(f"Saldos negativos detectados en cuenta {cuenta_id}: VES={cuenta.saldo_ves}, USD={cuenta.saldo_usd}, EUR={cuenta.saldo_eur}")
-            return {'valido': False, 'error': 'Saldos negativos detectados'}
+        # Verificar que el saldo no sea negativo
+        if cuenta.saldo < 0:
+            logger.error(f"Saldo negativo detectado en cuenta {cuenta_id}: {cuenta.moneda}={cuenta.saldo}")
+            return {'valido': False, 'error': 'Saldo negativo detectado'}
         
         return {'valido': True}
         

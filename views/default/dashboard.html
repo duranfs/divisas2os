@@ -144,43 +144,70 @@
       </div>
     </div>
     
-    <!-- Resumen de cuentas del cliente -->
+    <!-- Resumen de cuentas del cliente (Nuevo modelo: una cuenta por moneda) -->
     {{if cuentas:}}
     <div class="row mb-4">
       {{for cuenta in cuentas:}}
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <div class="card">
-          <div class="card-header bg-primary text-white">
+          <div class="card-header {{='bg-success' if cuenta.moneda == 'VES' else 'bg-primary' if cuenta.moneda == 'USD' else 'bg-warning' if cuenta.moneda == 'USDT' else 'bg-info'}} text-white">
             <h6 class="mb-0">
-              <i class="fas fa-credit-card"></i> 
-              Cuenta {{=cuenta.tipo_cuenta.title()}}
+              <i class="fas fa-{{='coins' if cuenta.moneda == 'VES' else 'dollar-sign' if cuenta.moneda == 'USD' else 'coins' if cuenta.moneda == 'USDT' else 'euro-sign'}}"></i> 
+              Cuenta {{=cuenta.moneda}}
             </h6>
           </div>
           <div class="card-body">
-            <p><strong>Número:</strong> {{=cuenta.numero_cuenta}}</p>
+            <p class="small"><strong>Número:</strong> {{=cuenta.numero_cuenta}}</p>
+            <p class="small"><strong>Tipo:</strong> {{=cuenta.tipo_cuenta.title()}}</p>
             <hr>
-            <div class="row text-center">
-              <div class="col-3">
-                <h6 class="text-success">VES</h6>
-                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_ves))}}</p>
-              </div>
-              <div class="col-3">
-                <h6 class="text-primary">USD</h6>
-                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_usd))}}</p>
-              </div>
-              <div class="col-3">
-                <h6 class="text-warning">USDT</h6>
-                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}</p>
-              </div>
-              <div class="col-3">
-                <h6 class="text-info">EUR</h6>
-                <p class="mb-0">{{="{:,.2f}".format(float(cuenta.saldo_eur))}}</p>
-              </div>
+            <div class="text-center">
+              <h4 class="mb-0 {{='text-success' if cuenta.moneda == 'VES' else 'text-primary' if cuenta.moneda == 'USD' else 'text-warning' if cuenta.moneda == 'USDT' else 'text-info'}}">
+                {{="{:,.2f}".format(float(cuenta.saldo or 0))}}
+              </h4>
+              <small class="text-muted">{{=cuenta.moneda}}</small>
             </div>
           </div>
         </div>
       </div>
       {{pass}}
+    </div>
+    
+    <!-- Totales consolidados -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-primary">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-wallet"></i> Resumen Total de Saldos</h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-3">
+                <h6 class="text-success">Total VES</h6>
+                <h4 class="text-success">{{="{:,.2f}".format(float(total_ves))}}</h4>
+              </div>
+              <div class="col-md-3">
+                <h6 class="text-primary">Total USD</h6>
+                <h4 class="text-primary">{{="{:,.2f}".format(float(total_usd))}}</h4>
+              </div>
+              <div class="col-md-3">
+                <h6 class="text-warning">Total USDT</h6>
+                <h4 class="text-warning">{{="{:,.2f}".format(float(total_usdt))}}</h4>
+              </div>
+              <div class="col-md-3">
+                <h6 class="text-info">Total EUR</h6>
+                <h4 class="text-info">{{="{:,.2f}".format(float(total_eur))}}</h4>
+              </div>
+            </div>
+            {{if equivalencia_total_ves:}}
+            <hr>
+            <div class="text-center">
+              <p class="mb-0"><strong>Equivalencia Total en VES:</strong></p>
+              <h3 class="text-success mb-0">{{="{:,.2f}".format(float(equivalencia_total_ves))}} Bs.</h3>
+            </div>
+            {{pass}}
+          </div>
+        </div>
+      </div>
     </div>
     {{else:}}
     <div class="row mb-4">

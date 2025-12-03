@@ -45,39 +45,50 @@
                         <i class="fas fa-calculator me-2"></i>Calculadora de Venta
                     </h3>
                     
-                    <!-- Selector de Cuenta -->
+                    <!-- Información de Cuenta VES Destino -->
                     <div class="mb-3">
-                        <label for="cuenta_id" class="form-label">
-                            <i class="fas fa-university"></i>Cuenta a Acreditar
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-university"></i> Cuenta VES Destino (Crédito)</h6>
+                            <p class="mb-0" id="info-cuenta-ves-destino">
+                                {{
+                                cuenta_ves = None
+                                for cuenta in cuentas:
+                                    if cuenta.moneda == 'VES':
+                                        cuenta_ves = cuenta
+                                        break
+                                pass
+                                }}
+                                {{if cuenta_ves:}}
+                                Los bolívares se acreditarán en: <strong>{{=cuenta_ves.numero_cuenta}}</strong><br>
+                                <small class="text-muted">Saldo actual: {{="{:,.2f}".format(float(cuenta_ves.saldo or 0))}} VES</small>
+                                {{else:}}
+                                <i class="fas fa-plus-circle text-primary"></i> Se creará automáticamente una cuenta VES para recibir los bolívares
+                                {{pass}}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Selector de Moneda a Vender (para determinar cuenta origen) -->
+                    <div class="mb-3">
+                        <label for="moneda_origen" class="form-label">
+                            <i class="fas fa-coins"></i>Divisa a Vender
                         </label>
-                        <select name="cuenta_id" id="cuenta_id" class="form-control cuenta-selector" required>
-                            <option value="">Seleccione una cuenta</option>
+                        <select name="moneda_origen" id="moneda_origen" class="form-control moneda-origen" required>
+                            <option value="">Seleccione divisa</option>
                             {{for cuenta in cuentas:}}
-                            <option value="{{=cuenta.id}}" data-saldo-usd="{{=cuenta.saldo_usd or 0}}" data-saldo-eur="{{=cuenta.saldo_eur or 0}}" data-saldo-usdt="{{=cuenta.saldo_usdt or 0}}">
-                                {{=cuenta.numero_cuenta}} - USD: {{="{:,.2f}".format(float(cuenta.saldo_usd or 0))}} | EUR: {{="{:,.2f}".format(float(cuenta.saldo_eur or 0))}} | USDT: {{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}
+                            {{if cuenta.moneda != 'VES':}}
+                            <option value="{{=cuenta.moneda}}" data-cuenta-id="{{=cuenta.id}}" data-saldo="{{=cuenta.saldo or 0}}" data-numero="{{=cuenta.numero_cuenta}}">
+                                {{=cuenta.moneda}} - {{=cuenta.numero_cuenta}} (Saldo: {{="{:,.2f}".format(float(cuenta.saldo or 0))}})
                             </option>
                             {{pass}}
+                            {{pass}}
                         </select>
-                        <div class="form-text">Seleccione la cuenta donde se acreditarán los bolívares</div>
+                        <div class="form-text">Seleccione la cuenta de divisa de la cual se debitará</div>
+                        <input type="hidden" name="cuenta_id" id="cuenta_id" value="">
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
-                            <!-- Divisa a Vender -->
-                            <div class="mb-3">
-                                <label for="moneda_origen" class="form-label">
-                                    <i class="fas fa-coins"></i>Divisa a Vender
-                                </label>
-                                <select name="moneda_origen" id="moneda_origen" class="form-control moneda-origen" required>
-                                    <option value="">Seleccione divisa</option>
-                                    <option value="USD">Dólares Estadounidenses (USD)</option>
-                                    <option value="EUR">Euros (EUR)</option>
-                                    <option value="USDT">Tether (USDT)</option>
-                                </select>
-                                <div class="form-text">Seleccione la divisa que desea vender</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <!-- Cantidad de Divisa a Vender -->
                             <div class="mb-3">
                                 <label for="cantidad_divisa_venta" class="form-label">
@@ -397,6 +408,7 @@ function configurarCalculadoraVenta() {
     const bolivaresInput = document.getElementById('monto_bolivares_recibir');
     const montoDestinoHidden = document.getElementById('monto_destino');
     const simboloDivisa = document.getElementById('simbolo-divisa-venta');
+    const cuentaIdHidden = document.getElementById('cuenta_id');
     
     // Las tasas se obtienen de la variable global
     
@@ -448,11 +460,11 @@ function configurarCalculadoraVenta() {
     }
     
     function validarFondosDisponibles(cantidad, moneda) {
-        const cuentaSelect = document.getElementById('cuenta_id');
-        const selectedOption = cuentaSelect.options[cuentaSelect.selectedIndex];
+        const monedaSelect = document.getElementById('moneda_origen');
+        const selectedOption = monedaSelect.options[monedaSelect.selectedIndex];
         
         if (selectedOption && selectedOption.value) {
-            const saldoDisponible = parseFloat(selectedOption.getAttribute(`data-saldo-${moneda.toLowerCase()}`)) || 0;
+            const saldoDisponible = parseFloat(selectedOption.getAttribute('data-saldo')) || 0;
             
             const validacionDiv = document.querySelector('.validacion-fondos');
             if (validacionDiv) {
@@ -484,44 +496,44 @@ function configurarCalculadoraVenta() {
     
     if (monedaSelect) {
         monedaSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
             // Actualizar símbolo
             if (simboloDivisa) {
                 simboloDivisa.textContent = this.value || 'USD';
             }
+            
+            // Actualizar cuenta_id hidden con el ID de la cuenta seleccionada
+            if (cuentaIdHidden && selectedOption) {
+                const cuentaId = selectedOption.getAttribute('data-cuenta-id');
+                cuentaIdHidden.value = cuentaId || '';
+            }
+            
+            // Actualizar widget de saldos
+            actualizarSaldosDisponibles(selectedOption);
+            
             calcular();
         });
     }
     
-    // Actualizar saldos cuando cambia la cuenta
-    const cuentaSelect = document.getElementById('cuenta_id');
-    if (cuentaSelect) {
-        cuentaSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const saldosDiv = document.getElementById('saldos-disponibles-venta');
+    function actualizarSaldosDisponibles(selectedOption) {
+        const saldosDiv = document.getElementById('saldos-disponibles-venta');
+        
+        if (selectedOption && selectedOption.value && saldosDiv) {
+            const moneda = selectedOption.value;
+            const saldo = parseFloat(selectedOption.getAttribute('data-saldo')) || 0;
+            const numeroCuenta = selectedOption.getAttribute('data-numero');
             
-            if (selectedOption && selectedOption.value && saldosDiv) {
-                const saldoUSD = parseFloat(selectedOption.getAttribute('data-saldo-usd')) || 0;
-                const saldoEUR = parseFloat(selectedOption.getAttribute('data-saldo-eur')) || 0;
-                const saldoUSDT = parseFloat(selectedOption.getAttribute('data-saldo-usdt')) || 0;
-                
-                saldosDiv.innerHTML = `
-                    <div class="saldo-item">
-                        <strong>USD:</strong> <span class="saldo-monto">${saldoUSD.toFixed(2)}</span>
-                    </div>
-                    <div class="saldo-item">
-                        <strong>EUR:</strong> <span class="saldo-monto">${saldoEUR.toFixed(2)}</span>
-                    </div>
-                    <div class="saldo-item">
-                        <strong>USDT:</strong> <span class="saldo-monto">${saldoUSDT.toFixed(2)}</span>
-                    </div>
-                `;
-            } else if (saldosDiv) {
-                saldosDiv.innerHTML = '<p class="text-muted small">Seleccione una cuenta para ver los saldos disponibles</p>';
-            }
-            
-            // Recalcular si hay valores
-            calcular();
-        });
+            saldosDiv.innerHTML = `
+                <div class="alert alert-info mb-0">
+                    <h6><i class="fas fa-wallet"></i> Cuenta Seleccionada</h6>
+                    <p class="mb-1"><strong>Número:</strong> ${numeroCuenta}</p>
+                    <p class="mb-0"><strong>Saldo disponible:</strong> <span class="text-success">${saldo.toFixed(2)} ${moneda}</span></p>
+                </div>
+            `;
+        } else if (saldosDiv) {
+            saldosDiv.innerHTML = '<p class="text-muted small">Seleccione una divisa para ver el saldo disponible</p>';
+        }
     }
 }
 </script>

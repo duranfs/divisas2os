@@ -783,13 +783,23 @@ db.define_table('cuentas',
     Field('cliente_id', 'reference clientes'),
     Field('numero_cuenta', 'string', length=20, unique=True),
     Field('tipo_cuenta', 'string', default='corriente'),
+    
+    # Nuevos campos para modelo de cuenta por moneda
+    Field('moneda', 'string', length=10, required=True, default='VES'),
+    Field('saldo', 'decimal(15,2)', default=0, required=True),
+    
+    # DEPRECATED: Campos antiguos del modelo multi-moneda
+    # Estos campos se mantienen temporalmente para compatibilidad durante la migración
+    # TODO: Eliminar después de completar la migración y validar el sistema
     Field('saldo_ves', 'decimal(15,2)', default=0),
     Field('saldo_usd', 'decimal(15,2)', default=0),
     Field('saldo_eur', 'decimal(15,2)', default=0),
     Field('saldo_usdt', 'decimal(15,2)', default=0),
+    
     Field('estado', 'string', default='activa'),
     Field('fecha_creacion', 'datetime', default=request.now),
-    format='%(numero_cuenta)s'
+    Field('fecha_actualizacion', 'datetime', update=request.now),
+    format='%(numero_cuenta)s - %(moneda)s'
 )
 
 # Tabla de Tasas de Cambio
@@ -806,10 +816,19 @@ db.define_table('tasas_cambio',
 
 # Tabla de Transacciones
 db.define_table('transacciones',
+    # Nuevos campos para modelo de cuenta por moneda (COMENTADOS - no existen en BD actual)
+    # Field('cuenta_origen_id', 'reference cuentas'),  # Cuenta que debita
+    # Field('cuenta_destino_id', 'reference cuentas'),  # Cuenta que acredita
+    
+    # Campo actual en uso
     Field('cuenta_id', 'reference cuentas'),
+    
     Field('tipo_operacion', 'string'), # 'compra' o 'venta'
+    
+    # Campos de moneda (mantener para referencia y compatibilidad)
     Field('moneda_origen', 'string', length=3),
     Field('moneda_destino', 'string', length=3),
+    
     Field('monto_origen', 'decimal(15,2)'),
     Field('monto_destino', 'decimal(15,2)'),
     Field('tasa_aplicada', 'decimal(10,4)'),
@@ -931,6 +950,17 @@ db.cuentas.numero_cuenta.requires = [
 db.cuentas.tipo_cuenta.requires = IS_IN_SET(['corriente', 'ahorro'], 
                                            error_message='Tipo de cuenta debe ser corriente o ahorro')
 
+# Validaciones para nuevos campos del modelo de cuenta por moneda
+db.cuentas.moneda.requires = [
+    IS_NOT_EMPTY(error_message='La moneda es requerida'),
+    IS_IN_SET(['VES', 'USD', 'EUR', 'USDT'], 
+              error_message='Moneda debe ser VES, USD, EUR o USDT')
+]
+
+db.cuentas.saldo.requires = IS_DECIMAL_IN_RANGE(0, 999999999999.9999, 
+                                                error_message='Saldo debe ser un valor positivo o cero')
+
+# DEPRECATED: Validaciones de campos antiguos (mantener para compatibilidad)
 db.cuentas.saldo_ves.requires = IS_DECIMAL_IN_RANGE(0, 999999999999.99, 
                                                    error_message='Saldo VES debe ser un valor positivo')
 db.cuentas.saldo_usd.requires = IS_DECIMAL_IN_RANGE(0, 999999999999.99, 
@@ -959,16 +989,21 @@ db.tasas_cambio.fuente.requires = IS_IN_SET(['BCV', 'Manual', 'Backup'],
                                            error_message='Fuente debe ser BCV, Manual o Backup')
 
 # Validaciones para transacciones
-db.transacciones.cuenta_id.requires = IS_IN_DB(db, 'cuentas.id', '%(numero_cuenta)s')
+# Nuevos campos para modelo de cuenta por moneda (COMENTADOS - campos no existen en BD)
+# db.transacciones.cuenta_origen_id.requires = IS_EMPTY_OR(IS_IN_DB(db, 'cuentas.id', '%(numero_cuenta)s - %(moneda)s'))
+# db.transacciones.cuenta_destino_id.requires = IS_EMPTY_OR(IS_IN_DB(db, 'cuentas.id', '%(numero_cuenta)s - %(moneda)s'))
+
+# Validación de campo actual en uso
+db.transacciones.cuenta_id.requires = IS_EMPTY_OR(IS_IN_DB(db, 'cuentas.id', '%(numero_cuenta)s'))
 
 db.transacciones.tipo_operacion.requires = IS_IN_SET(['compra', 'venta'], 
                                                     error_message='Tipo de operación debe ser compra o venta')
 
-db.transacciones.moneda_origen.requires = IS_IN_SET(['VES', 'USD', 'EUR'], 
-                                                   error_message='Moneda origen debe ser VES, USD o EUR')
+db.transacciones.moneda_origen.requires = IS_IN_SET(['VES', 'USD', 'EUR', 'USDT'], 
+                                                   error_message='Moneda origen debe ser VES, USD, EUR o USDT')
 
-db.transacciones.moneda_destino.requires = IS_IN_SET(['VES', 'USD', 'EUR'], 
-                                                    error_message='Moneda destino debe ser VES, USD o EUR')
+db.transacciones.moneda_destino.requires = IS_IN_SET(['VES', 'USD', 'EUR', 'USDT'], 
+                                                    error_message='Moneda destino debe ser VES, USD, EUR o USDT')
 
 db.transacciones.monto_origen.requires = [
     IS_NOT_EMPTY(error_message='El monto origen es requerido'),
@@ -1011,8 +1046,8 @@ db.movimientos_cuenta.cuenta_id.requires = IS_IN_DB(db, 'cuentas.id', '%(numero_
 db.movimientos_cuenta.tipo_movimiento.requires = IS_IN_SET(['debito', 'credito'], 
                                                           error_message='Tipo de movimiento debe ser debito o credito')
 
-db.movimientos_cuenta.moneda.requires = IS_IN_SET(['VES', 'USD', 'EUR'], 
-                                                 error_message='Moneda debe ser VES, USD o EUR')
+db.movimientos_cuenta.moneda.requires = IS_IN_SET(['VES', 'USD', 'EUR', 'USDT'], 
+                                                 error_message='Moneda debe ser VES, USD, EUR o USDT')
 
 db.movimientos_cuenta.monto.requires = [
     IS_NOT_EMPTY(error_message='El monto es requerido'),
@@ -1329,6 +1364,18 @@ try:
     db.executesql('CREATE INDEX IF NOT EXISTS idx_cuentas_estado ON cuentas(estado);')
     db.executesql('CREATE INDEX IF NOT EXISTS idx_cuentas_fecha_creacion ON cuentas(fecha_creacion);')
     
+    # Nuevos índices para modelo de cuenta por moneda
+    db.executesql('CREATE INDEX IF NOT EXISTS idx_cuentas_moneda ON cuentas(moneda);')
+    db.executesql('CREATE INDEX IF NOT EXISTS idx_cuentas_cliente_moneda ON cuentas(cliente_id, moneda);')
+    
+    # Constraint de unicidad: Un cliente no puede tener dos cuentas activas de la misma moneda
+    # Nota: SQLite soporta índices únicos parciales (con WHERE)
+    db.executesql('''
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_cuentas_cliente_moneda_activa 
+        ON cuentas(cliente_id, moneda) 
+        WHERE estado = 'activa'
+    ''')
+    
     # Índices para tabla transacciones
     db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_cuenta_id ON transacciones(cuenta_id);')
     db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_fecha ON transacciones(fecha_transaccion);')
@@ -1336,6 +1383,11 @@ try:
     db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_estado ON transacciones(estado);')
     db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_numero_comprobante ON transacciones(numero_comprobante);')
     db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_fecha_tipo ON transacciones(fecha_transaccion, tipo_operacion);')
+    
+    # Nuevos índices para modelo de cuenta por moneda (COMENTADOS - campos no existen en BD)
+    # db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_cuenta_origen ON transacciones(cuenta_origen_id);')
+    # db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_cuenta_destino ON transacciones(cuenta_destino_id);')
+    # db.executesql('CREATE INDEX IF NOT EXISTS idx_transacciones_cuentas_fecha ON transacciones(cuenta_origen_id, cuenta_destino_id, fecha_transaccion);')
     
     # Índices para tabla tasas_cambio
     db.executesql('CREATE INDEX IF NOT EXISTS idx_tasas_fecha ON tasas_cambio(fecha);')
@@ -1672,13 +1724,16 @@ db.define_table('alertas_limites',
 # Integración del módulo de remesas con el sistema de ventas
 # =========================================================================
 
-def validar_limite_venta(moneda, monto_venta, fecha=None):
+def validar_limite_venta(moneda, monto_venta, cliente_id=None, fecha=None):
     """
     Valida si una venta puede realizarse sin exceder límites
+    Integrado con sistema de cuentas por moneda
+    Requirement: 7.4
     
     Args:
         moneda (str): USD, EUR, USDT
         monto_venta (float): Monto a vender
+        cliente_id (int): ID del cliente (para validar saldo en cuenta)
         fecha (date): Fecha de la venta (default: hoy)
     
     Returns:
@@ -1686,7 +1741,8 @@ def validar_limite_venta(moneda, monto_venta, fecha=None):
             'puede_vender': bool,
             'razon': str,
             'limite_disponible': float,
-            'remesa_disponible': float
+            'remesa_disponible': float,
+            'saldo_cuenta': float
         }
     """
     if not fecha:
@@ -1713,7 +1769,8 @@ def validar_limite_venta(moneda, monto_venta, fecha=None):
             'limite_disponible': 0,
             'remesa_disponible': 0,
             'limite_diario': 0,
-            'limite_utilizado': 0
+            'limite_utilizado': 0,
+            'saldo_cuenta': 0
         }
         
         # Verificar si existe límite
@@ -1733,11 +1790,30 @@ def validar_limite_venta(moneda, monto_venta, fecha=None):
         limite_diario = float(limite.limite_diario)
         limite_utilizado = float(limite.monto_vendido)
         
+        # Si se proporciona cliente_id, validar saldo en cuenta de la moneda
+        saldo_cuenta = 0
+        if cliente_id:
+            cuenta = db(
+                (db.cuentas.cliente_id == cliente_id) &
+                (db.cuentas.moneda == moneda) &
+                (db.cuentas.estado == 'activa')
+            ).select().first()
+            
+            if cuenta:
+                saldo_cuenta = float(cuenta.saldo)
+            
+            # Validar que el cliente tenga saldo suficiente en su cuenta
+            if saldo_cuenta < monto_venta:
+                resultado['razon'] = f'Saldo insuficiente en cuenta {moneda}. Disponible: ${saldo_cuenta:,.2f}'
+                resultado['saldo_cuenta'] = saldo_cuenta
+                return resultado
+        
         resultado.update({
             'limite_disponible': limite_disponible,
             'remesa_disponible': remesa_disponible,
             'limite_diario': limite_diario,
-            'limite_utilizado': limite_utilizado
+            'limite_utilizado': limite_utilizado,
+            'saldo_cuenta': saldo_cuenta
         })
         
         # Validar límite diario
@@ -1762,7 +1838,8 @@ def validar_limite_venta(moneda, monto_venta, fecha=None):
             'puede_vender': False,
             'razon': f'Error del sistema: {str(e)}',
             'limite_disponible': 0,
-            'remesa_disponible': 0
+            'remesa_disponible': 0,
+            'saldo_cuenta': 0
         }
 
 def procesar_venta_con_limites(moneda, monto_venta, transaccion_id=None, fecha=None):
@@ -1889,3 +1966,148 @@ def enviar_alerta_limite(moneda, umbral, porcentaje_actual):
     #     subject=f'Alerta de Límite - {moneda}',
     #     message=mensaje
     # )
+
+
+# -------------------------------------------------------------------------
+# Funciones Utilitarias Globales
+# -------------------------------------------------------------------------
+
+def generar_numero_cuenta_por_moneda(moneda):
+    """
+    Genera número de cuenta único con prefijo por moneda
+    
+    Formato: [PREFIJO][18 DÍGITOS ALEATORIOS]
+    
+    Prefijos por moneda:
+    - VES: 01 (Bolívar Venezolano)
+    - USD: 02 (Dólar Estadounidense)
+    - EUR: 03 (Euro)
+    - USDT: 04 (Tether)
+    
+    Args:
+        moneda (str): Código de moneda (VES, USD, EUR, USDT)
+    
+    Returns:
+        str: Número de cuenta único de 20 dígitos
+    
+    Requirements: 1.5, 3.2
+    """
+    import random
+    
+    # Definir prefijos por moneda
+    prefijos = {
+        'VES': '01',
+        'USD': '02',
+        'EUR': '03',
+        'USDT': '04'
+    }
+    
+    prefijo = prefijos.get(moneda, '01')
+    
+    # Generar 10 intentos máximo para encontrar un número único
+    for _ in range(10):
+        # Generar 18 dígitos aleatorios
+        digitos = ''.join([str(random.randint(0, 9)) for _ in range(18)])
+        numero_cuenta = prefijo + digitos
+        
+        # Verificar que no exista en la base de datos
+        existe = db(db.cuentas.numero_cuenta == numero_cuenta).select().first()
+        if not existe:
+            return numero_cuenta
+    
+    # Si después de 10 intentos no se encuentra un número único, usar timestamp
+    import time
+    timestamp = str(int(time.time() * 1000))[-16:]  # Últimos 16 dígitos del timestamp
+    digitos_extra = ''.join([str(random.randint(0, 9)) for _ in range(2)])
+    return prefijo + timestamp + digitos_extra
+
+def obtener_tasas_actuales():
+    """
+    Obtiene las tasas de cambio actuales desde la base de datos
+    Retorna un objeto Row de web2py
+    """
+    try:
+        # Buscar la tasa activa más reciente
+        tasa_activa = db(db.tasas_cambio.activa == True).select(
+            orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora,
+            limitby=(0, 1)
+        ).first()
+        
+        if tasa_activa:
+            return tasa_activa
+        
+        # Si no hay tasa activa, buscar la más reciente
+        tasa_reciente = db().select(
+            db.tasas_cambio.ALL,
+            orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora,
+            limitby=(0, 1)
+        ).first()
+        
+        if tasa_reciente:
+            return tasa_reciente
+        
+        # Si no hay tasas, retornar None
+        return None
+        
+    except Exception as e:
+        import logging
+        logging.error(f"Error obteniendo tasas actuales: {str(e)}")
+        return None
+
+def calcular_comision(monto, tipo_operacion):
+    """
+    Calcula la comisión para una operación
+    
+    Args:
+        monto: Monto de la operación (Decimal o float)
+        tipo_operacion: 'compra' o 'venta'
+    
+    Returns:
+        Decimal: Comisión calculada
+    """
+    from decimal import Decimal, ROUND_HALF_UP
+    
+    try:
+        # Convertir monto a Decimal si no lo es
+        if not isinstance(monto, Decimal):
+            monto = Decimal(str(monto))
+        
+        # Obtener configuración de comisiones
+        if tipo_operacion == 'compra':
+            config_comision = db(db.configuracion.clave == 'comision_compra').select().first()
+        else:
+            config_comision = db(db.configuracion.clave == 'comision_venta').select().first()
+        
+        if config_comision:
+            porcentaje_comision = Decimal(config_comision.valor)
+        else:
+            # Comisión por defecto del 0.5%
+            porcentaje_comision = Decimal('0.005')
+        
+        comision = monto * porcentaje_comision
+        return comision.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+    except Exception as e:
+        import logging
+        logging.error(f"Error calculando comisión: {str(e)}")
+        # Comisión por defecto
+        return (Decimal(str(monto)) * Decimal('0.005')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+def generar_comprobante_unico(prefijo='TRX'):
+    """
+    Genera un número de comprobante único
+    
+    Args:
+        prefijo: Prefijo para el comprobante (default: 'TRX')
+    
+    Returns:
+        str: Número de comprobante único
+    """
+    import datetime
+    import uuid
+    
+    # Formato: PREFIJO-YYYYMMDDHHMMSS-UUID
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    uuid_part = str(uuid.uuid4())[:8].upper()
+    
+    return f"{prefijo}-{timestamp}-{uuid_part}"

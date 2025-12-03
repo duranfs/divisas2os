@@ -77,6 +77,32 @@
                     </div>
                     
                     <div class="mb-3">
+                        <small class="text-muted">Moneda:</small>
+                        <div>
+                            {{moneda_info = cuenta.moneda if hasattr(cuenta, 'moneda') and cuenta.moneda else 'VES'}}
+                            {{if moneda_info == 'VES':}}
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-coins me-1"></i>VES - Bolívares
+                                </span>
+                            {{elif moneda_info == 'USD':}}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-dollar-sign me-1"></i>USD - Dólares
+                                </span>
+                            {{elif moneda_info == 'EUR':}}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-euro-sign me-1"></i>EUR - Euros
+                                </span>
+                            {{elif moneda_info == 'USDT':}}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-coins me-1"></i>USDT - Tether
+                                </span>
+                            {{else:}}
+                                <span class="badge bg-secondary">{{=moneda_info}}</span>
+                            {{pass}}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
                         <small class="text-muted">Estado Actual:</small>
                         <div>
                             {{if cuenta.estado == 'activa':}}
@@ -142,50 +168,49 @@
         </div>
     </div>
 
-    <!-- Saldos actuales -->
+    <!-- Saldo actual de la cuenta -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-coins me-2"></i>Saldos Actuales
+                        <i class="fas fa-wallet me-2"></i>Saldo de la Cuenta
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
                             <div class="card bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-coins fa-2x text-primary mb-2"></i>
-                                    <h4 class="text-primary">{{="{:,.2f}".format(float(cuenta.saldo_ves)) if cuenta.saldo_ves else '0.00'}}</h4>
-                                    <small class="text-muted">Bolívares (VES)</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
-                                    <h4 class="text-success">{{="{:,.2f}".format(float(cuenta.saldo_usd)) if cuenta.saldo_usd else '0.00'}}</h4>
-                                    <small class="text-muted">Dólares (USD)</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-euro-sign fa-2x text-warning mb-2"></i>
-                                    <h4 class="text-warning">{{="{:,.2f}".format(float(cuenta.saldo_eur)) if cuenta.saldo_eur else '0.00'}}</h4>
-                                    <small class="text-muted">Euros (EUR)</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
-                                    <h4 class="text-info">{{="{:,.2f}".format(float(cuenta.saldo_usdt)) if cuenta.saldo_usdt else '0.00'}}</h4>
-                                    <small class="text-muted">Tether (USDT)</small>
+                                <div class="card-body text-center py-4">
+                                    {{moneda = cuenta.moneda if hasattr(cuenta, 'moneda') and cuenta.moneda else 'VES'}}
+                                    {{saldo = float(cuenta.saldo) if hasattr(cuenta, 'saldo') and cuenta.saldo else 0}}
+                                    
+                                    {{if moneda == 'VES':}}
+                                        <i class="fas fa-coins fa-3x text-primary mb-3"></i>
+                                        <h2 class="text-primary mb-2">{{="{:,.2f}".format(saldo)}}</h2>
+                                        <h5 class="text-muted mb-0">Bolívares (VES)</h5>
+                                    {{elif moneda == 'USD':}}
+                                        <i class="fas fa-dollar-sign fa-3x text-success mb-3"></i>
+                                        <h2 class="text-success mb-2">{{="{:,.2f}".format(saldo)}}</h2>
+                                        <h5 class="text-muted mb-0">Dólares (USD)</h5>
+                                    {{elif moneda == 'EUR':}}
+                                        <i class="fas fa-euro-sign fa-3x text-warning mb-3"></i>
+                                        <h2 class="text-warning mb-2">{{="{:,.2f}".format(saldo)}}</h2>
+                                        <h5 class="text-muted mb-0">Euros (EUR)</h5>
+                                    {{elif moneda == 'USDT':}}
+                                        <i class="fas fa-coins fa-3x text-info mb-3"></i>
+                                        <h2 class="text-info mb-2">{{="{:,.2f}".format(saldo)}}</h2>
+                                        <h5 class="text-muted mb-0">Tether (USDT)</h5>
+                                    {{else:}}
+                                        <i class="fas fa-wallet fa-3x text-secondary mb-3"></i>
+                                        <h2 class="text-secondary mb-2">{{="{:,.2f}".format(saldo)}}</h2>
+                                        <h5 class="text-muted mb-0">{{=moneda}}</h5>
+                                    {{pass}}
+                                    
+                                    <hr class="my-3">
+                                    <p class="text-muted mb-0">
+                                        <small>Esta cuenta maneja únicamente {{=moneda}}</small>
+                                    </p>
                                 </div>
                             </div>
                         </div>

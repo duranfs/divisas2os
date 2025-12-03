@@ -180,12 +180,13 @@
                     
                     {{if cuentas:}}
                     <div class="mt-3">
-                        <h6 class="text-muted mb-2">Saldos Totales:</h6>
+                        <h6 class="text-muted mb-2">Saldos Totales por Moneda:</h6>
                         {{
-                        total_ves = sum([float(c.saldo_ves or 0) for c in cuentas])
-                        total_usd = sum([float(c.saldo_usd or 0) for c in cuentas])
-                        total_eur = sum([float(c.saldo_eur or 0) for c in cuentas])
-                        total_usdt = sum([float(c.saldo_usdt or 0) for c in cuentas])
+                        # Calcular saldos totales por moneda usando el nuevo modelo
+                        total_ves = sum([float(c.saldo or 0) for c in cuentas if hasattr(c, 'moneda') and c.moneda == 'VES'])
+                        total_usd = sum([float(c.saldo or 0) for c in cuentas if hasattr(c, 'moneda') and c.moneda == 'USD'])
+                        total_eur = sum([float(c.saldo or 0) for c in cuentas if hasattr(c, 'moneda') and c.moneda == 'EUR'])
+                        total_usdt = sum([float(c.saldo or 0) for c in cuentas if hasattr(c, 'moneda') and c.moneda == 'USDT'])
                         }}
                         <small class="d-block">VES: <strong>{{="{:,.2f}".format(total_ves)}}</strong></small>
                         <small class="d-block">USD: <strong>{{="{:,.2f}".format(total_usd)}}</strong></small>
@@ -218,10 +219,8 @@
                                     <tr>
                                         <th><i class="fas fa-hashtag me-1"></i>Número de Cuenta</th>
                                         <th><i class="fas fa-tag me-1"></i>Tipo</th>
-                                        <th class="text-end"><i class="fas fa-coins me-1"></i>Saldo VES</th>
-                                        <th class="text-end"><i class="fas fa-dollar-sign me-1"></i>Saldo USD</th>
-                                        <th class="text-end"><i class="fas fa-euro-sign me-1"></i>Saldo EUR</th>
-                                        <th class="text-end"><i class="fas fa-coins me-1"></i>Saldo USDT</th>
+                                        <th><i class="fas fa-money-bill me-1"></i>Moneda</th>
+                                        <th class="text-end"><i class="fas fa-wallet me-1"></i>Saldo</th>
                                         <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
                                         <th><i class="fas fa-calendar me-1"></i>Fecha Creación</th>
                                     </tr>
@@ -235,21 +234,33 @@
                                         <td>
                                             <span class="badge bg-info">{{=cuenta.tipo_cuenta.title() if cuenta.tipo_cuenta else 'N/A'}}</span>
                                         </td>
-                                        <td class="text-end">
-                                            <strong class="text-primary">{{="{:,.2f}".format(float(cuenta.saldo_ves)) if cuenta.saldo_ves else '0.00'}}</strong>
-                                            <small class="text-muted d-block">VES</small>
+                                        <td>
+                                            {{moneda = cuenta.moneda if hasattr(cuenta, 'moneda') and cuenta.moneda else 'VES'}}
+                                            {{if moneda == 'VES':}}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-coins me-1"></i>VES
+                                                </span>
+                                            {{elif moneda == 'USD':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-dollar-sign me-1"></i>USD
+                                                </span>
+                                            {{elif moneda == 'EUR':}}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-euro-sign me-1"></i>EUR
+                                                </span>
+                                            {{elif moneda == 'USDT':}}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-coins me-1"></i>USDT
+                                                </span>
+                                            {{else:}}
+                                                <span class="badge bg-secondary">{{=moneda}}</span>
+                                            {{pass}}
                                         </td>
                                         <td class="text-end">
-                                            <strong class="text-success">{{="{:,.2f}".format(float(cuenta.saldo_usd)) if cuenta.saldo_usd else '0.00'}}</strong>
-                                            <small class="text-muted d-block">USD</small>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-warning">{{="{:,.2f}".format(float(cuenta.saldo_eur)) if cuenta.saldo_eur else '0.00'}}</strong>
-                                            <small class="text-muted d-block">EUR</small>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-info">{{="{:,.2f}".format(float(cuenta.saldo_usdt)) if cuenta.saldo_usdt else '0.00'}}</strong>
-                                            <small class="text-muted d-block">USDT</small>
+                                            {{saldo = float(cuenta.saldo) if hasattr(cuenta, 'saldo') and cuenta.saldo else 0}}
+                                            <strong class="{{='text-primary' if moneda == 'VES' else 'text-success' if moneda == 'USD' else 'text-warning' if moneda == 'EUR' else 'text-info'}}">
+                                                {{="{:,.2f}".format(saldo)}}
+                                            </strong>
                                         </td>
                                         <td>
                                             {{if cuenta.estado == 'activa':}}

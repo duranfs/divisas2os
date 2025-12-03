@@ -554,19 +554,66 @@ def validar_cedula(cedula):
     
     return True, "Cédula válida"
 
+def generar_numero_cuenta_por_moneda(moneda):
+    """
+    Genera número de cuenta único con prefijo por moneda
+    
+    Formato: [PREFIJO][18 DÍGITOS ALEATORIOS]
+    
+    Prefijos por moneda:
+    - VES: 01 (Bolívar Venezolano)
+    - USD: 02 (Dólar Estadounidense)
+    - EUR: 03 (Euro)
+    - USDT: 04 (Tether)
+    
+    Args:
+        moneda (str): Código de moneda (VES, USD, EUR, USDT)
+    
+    Returns:
+        str: Número de cuenta único de 20 dígitos
+    
+    Requirements: 1.5, 3.2
+    """
+    import random
+    
+    # Definir prefijos por moneda
+    prefijos = {
+        'VES': '01',
+        'USD': '02',
+        'EUR': '03',
+        'USDT': '04'
+    }
+    
+    # Obtener prefijo (por defecto VES si la moneda no es válida)
+    prefijo = prefijos.get(moneda, '01')
+    
+    # Generar número de cuenta único
+    while True:
+        # Generar 18 dígitos aleatorios
+        digitos = ''.join([str(random.randint(0, 9)) for _ in range(18)])
+        
+        # Combinar prefijo + dígitos = 20 dígitos totales
+        numero_cuenta = prefijo + digitos
+        
+        # Verificar unicidad en la base de datos
+        cuenta_existente = db(db.cuentas.numero_cuenta == numero_cuenta).select().first()
+        if not cuenta_existente:
+            return numero_cuenta
+
 def generar_numero_cuenta():
     """
     Genera un número de cuenta único de 20 dígitos
+    
+    Esta función mantiene compatibilidad con código existente.
+    Por defecto genera cuentas VES (prefijo 01).
+    
+    Returns:
+        str: Número de cuenta único de 20 dígitos
+    
+    Requirements: 1.5
     """
-    import random
-    while True:
-        # Generar número de cuenta con prefijo 2001 (código del banco)
-        numero = "2001" + "".join([str(random.randint(0, 9)) for _ in range(16)])
-        
-        # Verificar que no exista
-        cuenta_existente = db(db.cuentas.numero_cuenta == numero).select().first()
-        if not cuenta_existente:
-            return numero
+    # Usar la nueva función con moneda por defecto VES
+    return generar_numero_cuenta_por_moneda('VES')
 
 # -------------------------------------------------------------------------
 # Función de registro de clientes

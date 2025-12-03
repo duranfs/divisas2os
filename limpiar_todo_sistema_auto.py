@@ -43,19 +43,25 @@ if hasattr(db, 'remesas_diarias'):
 print("\n🗑️  Eliminando/Reseteando registros...")
 
 try:
-    from decimal import Decimal
-    
     # 1. Eliminar transacciones
     deleted_transacciones = db(db.transacciones.id > 0).delete()
     print(f"   ✓ Transacciones eliminadas: {deleted_transacciones}")
     
     # 2. Resetear saldos de todas las cuentas a 0
-    count_cuentas_reset = db(db.cuentas.id > 0).update(
-        saldo_ves=Decimal('0.00'),
-        saldo_usd=Decimal('0.00'),
-        saldo_eur=Decimal('0.00'),
-        saldo_usdt=Decimal('0.00')
-    )
+    # Obtener todas las cuentas y actualizarlas una por una
+    cuentas = db(db.cuentas.id > 0).select()
+    count_cuentas_reset = 0
+    
+    for cuenta in cuentas:
+        # Actualizar cada cuenta individualmente
+        cuenta.update_record(
+            saldo_ves=0,
+            saldo_usd=0,
+            saldo_eur=0,
+            saldo_usdt=0
+        )
+        count_cuentas_reset += 1
+    
     print(f"   ✓ Saldos de cuentas reseteados: {count_cuentas_reset}")
     
     # 3. Eliminar movimientos de remesas (si existe la tabla)

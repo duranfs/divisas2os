@@ -15,6 +15,50 @@ import os
 # Configurar logging
 logger = logging.getLogger("web2py.app.reportes")
 
+def obtener_cuentas_transaccion(transaccion):
+    """
+    Función auxiliar para obtener las cuentas origen y destino de una transacción
+    basándose en el modelo actual donde cada cliente tiene cuentas por moneda.
+    
+    Args:
+        transaccion: Row de transacción con cuenta_id, tipo_operacion, moneda_origen, moneda_destino
+    
+    Returns:
+        tuple: (cuenta_origen_str, cuenta_destino_str)
+    """
+    try:
+        # Obtener la cuenta principal de la transacción
+        cuenta = db(db.cuentas.id == transaccion.cuenta_id).select().first() if transaccion.cuenta_id else None
+        
+        if not cuenta:
+            return ("N/A", "N/A")
+        
+        cliente_id = cuenta.cliente_id
+        
+        if transaccion.tipo_operacion == 'compra':
+            # En compra: cuenta_id es VES (origen), buscar cuenta destino en la moneda comprada
+            cuenta_origen_str = f"{cuenta.numero_cuenta[-4:]}(VES)"
+            cuenta_destino = db(
+                (db.cuentas.cliente_id == cliente_id) &
+                (db.cuentas.moneda == transaccion.moneda_destino)
+            ).select().first()
+            cuenta_destino_str = f"{cuenta_destino.numero_cuenta[-4:]}({transaccion.moneda_destino})" if cuenta_destino else f"N/A({transaccion.moneda_destino})"
+            
+        else:  # venta
+            # En venta: cuenta_id es divisa (origen), buscar cuenta VES (destino)
+            cuenta_origen_str = f"{cuenta.numero_cuenta[-4:]}({transaccion.moneda_origen})"
+            cuenta_destino = db(
+                (db.cuentas.cliente_id == cliente_id) &
+                (db.cuentas.moneda == 'VES')
+            ).select().first()
+            cuenta_destino_str = f"{cuenta_destino.numero_cuenta[-4:]}(VES)" if cuenta_destino else "N/A(VES)"
+        
+        return (cuenta_origen_str, cuenta_destino_str)
+        
+    except Exception as e:
+        logger.error(f"Error en obtener_cuentas_transaccion: {str(e)}")
+        return ("N/A", "N/A")
+
 def index():
     """
     Página principal del módulo de reportes
@@ -163,30 +207,32 @@ def historial_transacciones():
 def reportes_administrativos():
     """
     Implementar reportes administrativos diarios
-    Requisitos: 7.1, 7.3
+    Requisitos: 7.1, 7.3, 8.1, 8.2, 8.3
     """
     try:
         # Obtener parámetros
         fecha_reporte = request.vars.fecha_reporte
         tipo_reporte = request.vars.tipo_reporte or 'diario'
+        moneda_filtro = request.vars.moneda_filtro or 'todas'  # Nuevo: filtro por moneda
         
         if not fecha_reporte:
             fecha_reporte = datetime.date.today().strftime('%Y-%m-%d')
         
         # Generar reporte según el tipo
         if tipo_reporte == 'diario':
-            reporte = generar_reporte_diario(fecha_reporte)
+            reporte = generar_reporte_diario(fecha_reporte, moneda_filtro)
         elif tipo_reporte == 'semanal':
-            reporte = generar_reporte_semanal(fecha_reporte)
+            reporte = generar_reporte_semanal(fecha_reporte, moneda_filtro)
         elif tipo_reporte == 'mensual':
-            reporte = generar_reporte_mensual(fecha_reporte)
+            reporte = generar_reporte_mensual(fecha_reporte, moneda_filtro)
         else:
             reporte = {'error': 'Tipo de reporte no válido'}
         
         return dict(
             reporte=reporte,
             fecha_reporte=fecha_reporte,
-            tipo_reporte=tipo_reporte
+            tipo_reporte=tipo_reporte,
+            moneda_filtro=moneda_filtro
         )
         
     except Exception as e:
@@ -195,43 +241,51 @@ def reportes_administrativos():
         return dict(
             reporte={'error': str(e)},
             fecha_reporte=fecha_reporte,
-            tipo_reporte=tipo_reporte
+            tipo_reporte=tipo_reporte,
+            moneda_filtro='todas'
         )
 
-def generar_reporte_diario(fecha_str):
+def generar_reporte_diario(fecha_str, moneda_filtro='todas'):
     """
-    Genera reporte diario de transacciones
+    Genera reporte diario de transacciones con soporte para cuentas por moneda
+    Requisitos: 8.1, 8.2, 8.3
     """
     try:
         fecha = datetime.datetime.strptime(fecha_str, '%Y-%m-%d').date()
         fecha_inicio = datetime.datetime.combine(fecha, datetime.time.min)
         fecha_fin = datetime.datetime.combine(fecha, datetime.time.max)
         
-        # Obtener transacciones del día
-        transacciones = db(
-            (db.transacciones.fecha_transaccion >= fecha_inicio) &
-            (db.transacciones.fecha_transaccion <= fecha_fin)
-        ).select()
+        # Obtener transacciones del día con filtro de moneda
+        query = (db.transacciones.fecha_transaccion >= fecha_inicio) & \
+                (db.transacciones.fecha_transaccion <= fecha_fin)
+        
+        # Aplicar filtro por moneda si se especifica
+        if moneda_filtro and moneda_filtro != 'todas':
+            query &= ((db.transacciones.moneda_origen == moneda_filtro) | 
+                     (db.transacciones.moneda_destino == moneda_filtro))
+        
+        transacciones = db(query).select()
         
         # Calcular estadísticas
         total_transacciones = len(transacciones)
         compras = [t for t in transacciones if t.tipo_operacion == 'compra']
         ventas = [t for t in transacciones if t.tipo_operacion == 'venta']
         
-        # Volúmenes de compras (lo que se pagó en VES y lo que se recibió en divisas)
-        volumen_compras_ves = sum([float(t.monto_origen) for t in compras])
+        # Volúmenes de compras por moneda (lo que se pagó en VES y lo que se recibió en divisas)
+        volumen_compras_ves = sum([float(t.monto_origen) for t in compras if t.moneda_origen == 'VES'])
         volumen_compras_usd = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USD'])
         volumen_compras_usdt = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USDT'])
         volumen_compras_eur = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'EUR'])
         
-        # Volúmenes de ventas (lo que se entregó en divisas)
+        # Volúmenes de ventas por moneda (lo que se entregó en divisas y lo que se recibió en VES)
         volumen_ventas_usd = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USD'])
         volumen_ventas_usdt = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USDT'])
         volumen_ventas_eur = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'EUR'])
+        volumen_ventas_ves = sum([float(t.monto_destino) for t in ventas if t.moneda_destino == 'VES'])
         
         total_comisiones = sum([float(t.comision) for t in transacciones])
         
-        # Calcular tasas promedio desde las transacciones del día
+        # Calcular tasas promedio por moneda desde las transacciones del día
         transacciones_usd = [t for t in transacciones if t.moneda_origen == 'USD' or t.moneda_destino == 'USD']
         transacciones_usdt = [t for t in transacciones if t.moneda_origen == 'USDT' or t.moneda_destino == 'USDT']
         transacciones_eur = [t for t in transacciones if t.moneda_origen == 'EUR' or t.moneda_destino == 'EUR']
@@ -240,8 +294,19 @@ def generar_reporte_diario(fecha_str):
         tasa_usdt_promedio = sum([float(t.tasa_aplicada) for t in transacciones_usdt]) / len(transacciones_usdt) if transacciones_usdt else 0
         tasa_eur_promedio = sum([float(t.tasa_aplicada) for t in transacciones_eur]) / len(transacciones_eur) if transacciones_eur else 0
         
+        # Obtener tasas actuales para conversión consolidada
+        tasas_actuales = obtener_tasas_actuales()
+        
+        # Calcular equivalente total en VES (consolidado)
+        total_consolidado_ves = volumen_compras_ves + volumen_ventas_ves
+        if tasas_actuales:
+            total_consolidado_ves += (volumen_compras_usd + volumen_ventas_usd) * tasas_actuales.get('USD', 0)
+            total_consolidado_ves += (volumen_compras_usdt + volumen_ventas_usdt) * tasas_actuales.get('USDT', 0)
+            total_consolidado_ves += (volumen_compras_eur + volumen_ventas_eur) * tasas_actuales.get('EUR', 0)
+        
         return {
             'fecha': fecha_str,
+            'moneda_filtro': moneda_filtro,
             'total_transacciones': total_transacciones,
             'total_compras': len(compras),
             'total_ventas': len(ventas),
@@ -252,15 +317,19 @@ def generar_reporte_diario(fecha_str):
             'volumen_ventas_usd': volumen_ventas_usd,
             'volumen_ventas_usdt': volumen_ventas_usdt,
             'volumen_ventas_eur': volumen_ventas_eur,
+            'volumen_ventas_ves': volumen_ventas_ves,
             'total_comisiones': total_comisiones,
             'tasa_usd_promedio': round(tasa_usd_promedio, 4),
             'tasa_usdt_promedio': round(tasa_usdt_promedio, 4),
             'tasa_eur_promedio': round(tasa_eur_promedio, 4),
+            'total_consolidado_ves': round(total_consolidado_ves, 2),
+            'tasas_conversion': tasas_actuales,
             'transacciones_detalle': [
                 {
                     'id': t.id,
                     'comprobante': t.numero_comprobante,
                     'tipo': t.tipo_operacion,
+                    'cuenta_id': t.cuenta_id,
                     'monto_origen': float(t.monto_origen),
                     'moneda_origen': t.moneda_origen,
                     'monto_destino': float(t.monto_destino),
@@ -276,9 +345,10 @@ def generar_reporte_diario(fecha_str):
         logger.error(f"Error generando reporte diario: {str(e)}")
         return {'error': str(e)}
 
-def generar_reporte_semanal(fecha_str):
+def generar_reporte_semanal(fecha_str, moneda_filtro='todas'):
     """
-    Genera reporte semanal de transacciones
+    Genera reporte semanal de transacciones con soporte para cuentas por moneda
+    Requisitos: 8.1, 8.2, 8.3
     """
     try:
         fecha = datetime.datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -290,11 +360,15 @@ def generar_reporte_semanal(fecha_str):
         fecha_inicio = datetime.datetime.combine(fecha_inicio_semana, datetime.time.min)
         fecha_fin = datetime.datetime.combine(fecha_fin_semana, datetime.time.max)
         
-        # Obtener transacciones de la semana
-        transacciones = db(
-            (db.transacciones.fecha_transaccion >= fecha_inicio) &
-            (db.transacciones.fecha_transaccion <= fecha_fin)
-        ).select()
+        # Obtener transacciones de la semana con filtro de moneda
+        query = (db.transacciones.fecha_transaccion >= fecha_inicio) & \
+                (db.transacciones.fecha_transaccion <= fecha_fin)
+        
+        if moneda_filtro and moneda_filtro != 'todas':
+            query &= ((db.transacciones.moneda_origen == moneda_filtro) | 
+                     (db.transacciones.moneda_destino == moneda_filtro))
+        
+        transacciones = db(query).select()
         
         # Agrupar por día
         transacciones_por_dia = {}
@@ -303,6 +377,9 @@ def generar_reporte_semanal(fecha_str):
             if dia not in transacciones_por_dia:
                 transacciones_por_dia[dia] = []
             transacciones_por_dia[dia].append(t)
+        
+        # Obtener tasas actuales para conversión
+        tasas_actuales = obtener_tasas_actuales()
         
         # Calcular estadísticas por día
         resumen_diario = []
@@ -313,14 +390,33 @@ def generar_reporte_semanal(fecha_str):
             compras_dia = [t for t in transacciones_dia if t.tipo_operacion == 'compra']
             ventas_dia = [t for t in transacciones_dia if t.tipo_operacion == 'venta']
             
+            # Calcular volúmenes por moneda
+            vol_ves = sum([float(t.monto_origen) for t in compras_dia if t.moneda_origen == 'VES']) + \
+                      sum([float(t.monto_destino) for t in ventas_dia if t.moneda_destino == 'VES'])
+            vol_usd = sum([float(t.monto_destino) for t in compras_dia if t.moneda_destino == 'USD']) + \
+                      sum([float(t.monto_origen) for t in ventas_dia if t.moneda_origen == 'USD'])
+            vol_usdt = sum([float(t.monto_destino) for t in compras_dia if t.moneda_destino == 'USDT']) + \
+                       sum([float(t.monto_origen) for t in ventas_dia if t.moneda_origen == 'USDT'])
+            vol_eur = sum([float(t.monto_destino) for t in compras_dia if t.moneda_destino == 'EUR']) + \
+                      sum([float(t.monto_origen) for t in ventas_dia if t.moneda_origen == 'EUR'])
+            
+            # Calcular equivalente en VES
+            vol_ves_equiv = vol_ves + \
+                           (vol_usd * tasas_actuales.get('USD', 0)) + \
+                           (vol_usdt * tasas_actuales.get('USDT', 0)) + \
+                           (vol_eur * tasas_actuales.get('EUR', 0))
+            
             resumen_diario.append({
                 'fecha': dia.strftime('%Y-%m-%d'),
                 'dia_semana': dia.strftime('%A'),
                 'total_transacciones': len(transacciones_dia),
                 'compras': len(compras_dia),
                 'ventas': len(ventas_dia),
-                'volumen_ves': sum([float(t.monto_origen) for t in compras_dia]) + 
-                              sum([float(t.monto_destino) for t in ventas_dia]),
+                'volumen_ves': vol_ves,
+                'volumen_usd': vol_usd,
+                'volumen_usdt': vol_usdt,
+                'volumen_eur': vol_eur,
+                'volumen_ves_equivalente': round(vol_ves_equiv, 2),
                 'comisiones': sum([float(t.comision) for t in transacciones_dia])
             })
         
@@ -328,11 +424,36 @@ def generar_reporte_semanal(fecha_str):
         total_transacciones = len(transacciones)
         total_comisiones = sum([float(t.comision) for t in transacciones])
         
+        # Totales por moneda
+        compras = [t for t in transacciones if t.tipo_operacion == 'compra']
+        ventas = [t for t in transacciones if t.tipo_operacion == 'venta']
+        
+        total_ves = sum([float(t.monto_origen) for t in compras if t.moneda_origen == 'VES']) + \
+                    sum([float(t.monto_destino) for t in ventas if t.moneda_destino == 'VES'])
+        total_usd = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USD']) + \
+                    sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USD'])
+        total_usdt = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USDT']) + \
+                     sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USDT'])
+        total_eur = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'EUR']) + \
+                    sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'EUR'])
+        
+        total_consolidado_ves = total_ves + \
+                               (total_usd * tasas_actuales.get('USD', 0)) + \
+                               (total_usdt * tasas_actuales.get('USDT', 0)) + \
+                               (total_eur * tasas_actuales.get('EUR', 0))
+        
         return {
             'fecha_inicio': fecha_inicio_semana.strftime('%Y-%m-%d'),
             'fecha_fin': fecha_fin_semana.strftime('%Y-%m-%d'),
+            'moneda_filtro': moneda_filtro,
             'total_transacciones': total_transacciones,
             'total_comisiones': total_comisiones,
+            'total_ves': total_ves,
+            'total_usd': total_usd,
+            'total_usdt': total_usdt,
+            'total_eur': total_eur,
+            'total_consolidado_ves': round(total_consolidado_ves, 2),
+            'tasas_conversion': tasas_actuales,
             'resumen_diario': resumen_diario
         }
         
@@ -340,9 +461,10 @@ def generar_reporte_semanal(fecha_str):
         logger.error(f"Error generando reporte semanal: {str(e)}")
         return {'error': str(e)}
 
-def generar_reporte_mensual(fecha_str):
+def generar_reporte_mensual(fecha_str, moneda_filtro='todas'):
     """
-    Genera reporte mensual de transacciones
+    Genera reporte mensual de transacciones con soporte para cuentas por moneda
+    Requisitos: 8.1, 8.2, 8.3
     """
     try:
         fecha = datetime.datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -356,36 +478,66 @@ def generar_reporte_mensual(fecha_str):
         fecha_inicio = datetime.datetime.combine(primer_dia, datetime.time.min)
         fecha_fin = datetime.datetime.combine(ultimo_dia, datetime.time.max)
         
-        # Obtener transacciones del mes
-        transacciones = db(
-            (db.transacciones.fecha_transaccion >= fecha_inicio) &
-            (db.transacciones.fecha_transaccion <= fecha_fin)
-        ).select()
+        # Obtener transacciones del mes con filtro de moneda
+        query = (db.transacciones.fecha_transaccion >= fecha_inicio) & \
+                (db.transacciones.fecha_transaccion <= fecha_fin)
+        
+        if moneda_filtro and moneda_filtro != 'todas':
+            query &= ((db.transacciones.moneda_origen == moneda_filtro) | 
+                     (db.transacciones.moneda_destino == moneda_filtro))
+        
+        transacciones = db(query).select()
         
         # Estadísticas generales
         compras = [t for t in transacciones if t.tipo_operacion == 'compra']
         ventas = [t for t in transacciones if t.tipo_operacion == 'venta']
         
-        # Volúmenes por moneda
-        volumen_compras_ves = sum([float(t.monto_origen) for t in compras])
+        # Volúmenes por moneda - Compras
+        volumen_compras_ves = sum([float(t.monto_origen) for t in compras if t.moneda_origen == 'VES'])
         volumen_compras_usd = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USD'])
         volumen_compras_usdt = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'USDT'])
         volumen_compras_eur = sum([float(t.monto_destino) for t in compras if t.moneda_destino == 'EUR'])
+        
+        # Volúmenes por moneda - Ventas
         volumen_ventas_usd = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USD'])
         volumen_ventas_usdt = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'USDT'])
         volumen_ventas_eur = sum([float(t.monto_origen) for t in ventas if t.moneda_origen == 'EUR'])
+        volumen_ventas_ves = sum([float(t.monto_destino) for t in ventas if t.moneda_destino == 'VES'])
         
-        # Clientes activos
-        cuentas_activas = set([t.cuenta_id for t in transacciones])
-        clientes_activos = len(set([
-            db(db.cuentas.id == cuenta_id).select().first().cliente_id 
-            for cuenta_id in cuentas_activas
-        ]))
+        # Obtener tasas actuales para conversión consolidada
+        tasas_actuales = obtener_tasas_actuales()
+        
+        # Calcular totales consolidados en VES
+        total_ves = volumen_compras_ves + volumen_ventas_ves
+        total_usd = volumen_compras_usd + volumen_ventas_usd
+        total_usdt = volumen_compras_usdt + volumen_ventas_usdt
+        total_eur = volumen_compras_eur + volumen_ventas_eur
+        
+        total_consolidado_ves = total_ves + \
+                               (total_usd * tasas_actuales.get('USD', 0)) + \
+                               (total_usdt * tasas_actuales.get('USDT', 0)) + \
+                               (total_eur * tasas_actuales.get('EUR', 0))
+        
+        # Clientes activos (considerando cuentas de las transacciones)
+        cuentas_activas = set()
+        for t in transacciones:
+            if t.cuenta_id:
+                cuentas_activas.add(t.cuenta_id)
+        
+        # Obtener clientes únicos de las cuentas activas
+        clientes_activos_set = set()
+        for cuenta_id in cuentas_activas:
+            cuenta = db(db.cuentas.id == cuenta_id).select().first()
+            if cuenta:
+                clientes_activos_set.add(cuenta.cliente_id)
+        
+        clientes_activos = len(clientes_activos_set)
         
         return {
             'mes': fecha.strftime('%B %Y'),
             'fecha_inicio': primer_dia.strftime('%Y-%m-%d'),
             'fecha_fin': ultimo_dia.strftime('%Y-%m-%d'),
+            'moneda_filtro': moneda_filtro,
             'total_transacciones': len(transacciones),
             'total_compras': len(compras),
             'total_ventas': len(ventas),
@@ -396,6 +548,13 @@ def generar_reporte_mensual(fecha_str):
             'volumen_ventas_usd': volumen_ventas_usd,
             'volumen_ventas_usdt': volumen_ventas_usdt,
             'volumen_ventas_eur': volumen_ventas_eur,
+            'volumen_ventas_ves': volumen_ventas_ves,
+            'total_ves': total_ves,
+            'total_usd': total_usd,
+            'total_usdt': total_usdt,
+            'total_eur': total_eur,
+            'total_consolidado_ves': round(total_consolidado_ves, 2),
+            'tasas_conversion': tasas_actuales,
             'total_comisiones': sum([float(t.comision) for t in transacciones]),
             'clientes_activos': clientes_activos,
             'cuentas_activas': len(cuentas_activas)
@@ -404,6 +563,28 @@ def generar_reporte_mensual(fecha_str):
     except Exception as e:
         logger.error(f"Error generando reporte mensual: {str(e)}")
         return {'error': str(e)}
+
+def obtener_tasas_actuales():
+    """
+    Obtiene las tasas de cambio actuales para conversión consolidada
+    Requisito: 8.3
+    """
+    try:
+        # Obtener las tasas más recientes de la tabla tasas_cambio
+        tasas = {}
+        for moneda in ['USD', 'USDT', 'EUR']:
+            tasa_record = db(db.tasas_cambio.moneda == moneda).select(
+                orderby=~db.tasas_cambio.fecha_actualizacion,
+                limitby=(0, 1)
+            ).first()
+            if tasa_record:
+                tasas[moneda] = float(tasa_record.tasa_compra)
+            else:
+                tasas[moneda] = 0
+        return tasas
+    except Exception as e:
+        logger.error(f"Error obteniendo tasas actuales: {str(e)}")
+        return {'USD': 0, 'USDT': 0, 'EUR': 0}
 
 def obtener_estadisticas_generales():
     """
@@ -591,36 +772,40 @@ def exportar_transacciones_pdf(fecha_desde, fecha_hasta, es_admin):
                 limitby=(0, 500)
             )
         
-        # Crear tabla de transacciones
+        # Crear tabla de transacciones con información de cuentas por moneda
         if es_admin:
-            headers = ['Fecha', 'Comprobante', 'Cliente', 'Tipo', 'Origen', 'Destino', 'Tasa', 'Comisión']
+            headers = ['Fecha', 'Comprobante', 'Cliente', 'Cta Origen', 'Cta Destino', 'Tipo', 'Origen', 'Destino', 'Tasa']
         else:
-            headers = ['Fecha', 'Comprobante', 'Cuenta', 'Tipo', 'Origen', 'Destino', 'Tasa', 'Comisión']
+            headers = ['Fecha', 'Comprobante', 'Cta Origen', 'Cta Destino', 'Tipo', 'Origen', 'Destino', 'Tasa']
         
         data = [headers]
         
         for t in transacciones:
+            # Obtener información de cuentas origen y destino
+            cuenta_origen_str, cuenta_destino_str = obtener_cuentas_transaccion(t.transacciones)
+            
             if es_admin:
                 fila = [
                     t.transacciones.fecha_transaccion.strftime('%d/%m/%Y %H:%M'),
                     t.transacciones.numero_comprobante,
                     t.clientes.cedula,
+                    cuenta_origen_str,
+                    cuenta_destino_str,
                     t.transacciones.tipo_operacion.title(),
                     f"{float(t.transacciones.monto_origen):.2f} {t.transacciones.moneda_origen}",
                     f"{float(t.transacciones.monto_destino):.2f} {t.transacciones.moneda_destino}",
-                    f"{float(t.transacciones.tasa_aplicada):.4f}",
-                    f"{float(t.transacciones.comision):.2f}"
+                    f"{float(t.transacciones.tasa_aplicada):.4f}"
                 ]
             else:
                 fila = [
                     t.transacciones.fecha_transaccion.strftime('%d/%m/%Y %H:%M'),
                     t.transacciones.numero_comprobante,
-                    t.cuentas.numero_cuenta[-4:],  # Últimos 4 dígitos
+                    cuenta_origen_str,
+                    cuenta_destino_str,
                     t.transacciones.tipo_operacion.title(),
                     f"{float(t.transacciones.monto_origen):.2f} {t.transacciones.moneda_origen}",
                     f"{float(t.transacciones.monto_destino):.2f} {t.transacciones.moneda_destino}",
-                    f"{float(t.transacciones.tasa_aplicada):.4f}",
-                    f"{float(t.transacciones.comision):.2f}"
+                    f"{float(t.transacciones.tasa_aplicada):.4f}"
                 ]
             data.append(fila)
         
@@ -715,12 +900,26 @@ def exportar_reporte_diario_pdf(fecha_str):
         Total de transacciones: {reporte['total_transacciones']}<br/>
         Operaciones de compra: {reporte['total_compras']}<br/>
         Operaciones de venta: {reporte['total_ventas']}<br/>
-        Volumen compras (VES): {reporte['volumen_compras_ves']:,.2f}<br/>
+        <br/>
+        <b>Compras por Moneda:</b><br/>
+        Volumen compras VES: {reporte['volumen_compras_ves']:,.2f}<br/>
+        Volumen compras USD: {reporte['volumen_compras_usd']:,.2f}<br/>
+        Volumen compras USDT: {reporte['volumen_compras_usdt']:,.2f}<br/>
+        Volumen compras EUR: {reporte['volumen_compras_eur']:,.2f}<br/>
+        <br/>
+        <b>Ventas por Moneda:</b><br/>
+        Volumen ventas VES: {reporte.get('volumen_ventas_ves', 0):,.2f}<br/>
         Volumen ventas USD: {reporte['volumen_ventas_usd']:,.2f}<br/>
+        Volumen ventas USDT: {reporte['volumen_ventas_usdt']:,.2f}<br/>
         Volumen ventas EUR: {reporte['volumen_ventas_eur']:,.2f}<br/>
-        Total comisiones: {reporte['total_comisiones']:,.2f} VES<br/>
+        <br/>
+        <b>Tasas Promedio:</b><br/>
         Tasa USD promedio: {reporte['tasa_usd_promedio']}<br/>
+        Tasa USDT promedio: {reporte['tasa_usdt_promedio']}<br/>
         Tasa EUR promedio: {reporte['tasa_eur_promedio']}<br/>
+        <br/>
+        Total comisiones: {reporte['total_comisiones']:,.2f} VES<br/>
+        <b>Total Consolidado VES: {reporte.get('total_consolidado_ves', 0):,.2f}</b><br/>
         """
         
         story.append(Paragraph(resumen, styles['Normal']))
@@ -731,18 +930,30 @@ def exportar_reporte_diario_pdf(fecha_str):
             story.append(Paragraph("<b>Detalle de Transacciones</b>", styles['Heading2']))
             story.append(Spacer(1, 6))
             
-            headers = ['Hora', 'Comprobante', 'Tipo', 'Origen', 'Destino', 'Tasa', 'Comisión']
+            headers = ['Hora', 'Comprobante', 'Tipo', 'Cta Origen', 'Cta Destino', 'Origen', 'Destino', 'Tasa']
             data = [headers]
             
             for t in reporte['transacciones_detalle']:
+                # Obtener información de cuentas usando la función auxiliar
+                # Crear un objeto temporal con los campos necesarios
+                from gluon.storage import Storage
+                trans_obj = Storage(
+                    cuenta_id=t.get('cuenta_id'),
+                    tipo_operacion=t.get('tipo'),
+                    moneda_origen=t.get('moneda_origen'),
+                    moneda_destino=t.get('moneda_destino')
+                )
+                cuenta_origen_str, cuenta_destino_str = obtener_cuentas_transaccion(trans_obj)
+                
                 fila = [
                     t['fecha'],
                     t['comprobante'],
                     t['tipo'].title(),
+                    cuenta_origen_str,
+                    cuenta_destino_str,
                     f"{t['monto_origen']:.2f} {t['moneda_origen']}",
                     f"{t['monto_destino']:.2f} {t['moneda_destino']}",
-                    f"{t['tasa']:.4f}",
-                    f"{t['comision']:.2f}"
+                    f"{t['tasa']:.4f}"
                 ]
                 data.append(fila)
             
@@ -813,7 +1024,8 @@ def exportar_excel():
 
 def exportar_transacciones_excel(fecha_desde, fecha_hasta):
     """
-    Exporta transacciones a Excel
+    Exporta transacciones a Excel con soporte para cuentas por moneda
+    Requisito: 8.4
     """
     try:
         from openpyxl import Workbook
@@ -830,8 +1042,9 @@ def exportar_transacciones_excel(fecha_desde, fecha_hasta):
         header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
         center_alignment = Alignment(horizontal="center")
         
-        # Encabezados
-        headers = ['Fecha', 'Comprobante', 'Cliente', 'Cuenta', 'Tipo', 'Moneda Origen', 
+        # Encabezados actualizados con información de cuentas por moneda
+        headers = ['Fecha', 'Comprobante', 'Cliente', 'Cuenta Origen', 'Moneda Cuenta Origen',
+                  'Cuenta Destino', 'Moneda Cuenta Destino', 'Tipo', 'Moneda Origen', 
                   'Monto Origen', 'Moneda Destino', 'Monto Destino', 'Tasa', 'Comisión', 'Estado']
         
         for col, header in enumerate(headers, 1):
@@ -840,10 +1053,8 @@ def exportar_transacciones_excel(fecha_desde, fecha_hasta):
             cell.fill = header_fill
             cell.alignment = center_alignment
         
-        # Obtener transacciones
-        query = (db.transacciones.cuenta_id == db.cuentas.id) & \
-                (db.cuentas.cliente_id == db.clientes.id) & \
-                (db.clientes.user_id == db.auth_user.id)
+        # Obtener transacciones con información de cuentas origen y destino
+        query = db.transacciones.id > 0
         
         if fecha_desde:
             fecha_desde_dt = datetime.datetime.strptime(fecha_desde, '%Y-%m-%d')
@@ -855,46 +1066,99 @@ def exportar_transacciones_excel(fecha_desde, fecha_hasta):
             query &= db.transacciones.fecha_transaccion <= fecha_hasta_dt
         
         transacciones = db(query).select(
-            db.transacciones.ALL,
-            db.cuentas.numero_cuenta,
-            db.clientes.cedula,
-            db.auth_user.first_name,
-            db.auth_user.last_name,
-            join=[
-                db.cuentas.on(db.transacciones.cuenta_id == db.cuentas.id),
-                db.clientes.on(db.cuentas.cliente_id == db.clientes.id),
-                db.auth_user.on(db.clientes.user_id == db.auth_user.id)
-            ],
             orderby=~db.transacciones.fecha_transaccion
         )
         
         # Llenar datos
         for row, t in enumerate(transacciones, 2):
-            ws.cell(row=row, column=1, value=t.transacciones.fecha_transaccion.strftime('%d/%m/%Y %H:%M:%S'))
-            ws.cell(row=row, column=2, value=t.transacciones.numero_comprobante)
-            ws.cell(row=row, column=3, value=f"{t.auth_user.first_name} {t.auth_user.last_name}")
-            ws.cell(row=row, column=4, value=t.cuentas.numero_cuenta)
-            ws.cell(row=row, column=5, value=t.transacciones.tipo_operacion.title())
-            ws.cell(row=row, column=6, value=t.transacciones.moneda_origen)
-            ws.cell(row=row, column=7, value=float(t.transacciones.monto_origen))
-            ws.cell(row=row, column=8, value=t.transacciones.moneda_destino)
-            ws.cell(row=row, column=9, value=float(t.transacciones.monto_destino))
-            ws.cell(row=row, column=10, value=float(t.transacciones.tasa_aplicada))
-            ws.cell(row=row, column=11, value=float(t.transacciones.comision))
-            ws.cell(row=row, column=12, value=t.transacciones.estado.title())
+            # Obtener información de cuentas usando la función auxiliar
+            cuenta_origen_str, cuenta_destino_str = obtener_cuentas_transaccion(t)
+            
+            # Obtener información del cliente desde la cuenta de la transacción
+            cliente = None
+            cliente_nombre = "N/A"
+            cuenta = db(db.cuentas.id == t.cuenta_id).select().first() if t.cuenta_id else None
+            if cuenta:
+                cliente = db(db.clientes.id == cuenta.cliente_id).select().first()
+                if cliente:
+                    usuario = db(db.auth_user.id == cliente.user_id).select().first()
+                    if usuario:
+                        cliente_nombre = f"{usuario.first_name} {usuario.last_name}"
+            
+            ws.cell(row=row, column=1, value=t.fecha_transaccion.strftime('%d/%m/%Y %H:%M:%S'))
+            ws.cell(row=row, column=2, value=t.numero_comprobante)
+            ws.cell(row=row, column=3, value=cliente_nombre)
+            ws.cell(row=row, column=4, value=cuenta_origen_str)
+            ws.cell(row=row, column=5, value=t.moneda_origen)
+            ws.cell(row=row, column=6, value=cuenta_destino_str)
+            ws.cell(row=row, column=7, value=cuenta_destino.moneda if cuenta_destino else "N/A")
+            ws.cell(row=row, column=8, value=t.tipo_operacion.title())
+            ws.cell(row=row, column=9, value=t.moneda_origen)
+            ws.cell(row=row, column=10, value=float(t.monto_origen))
+            ws.cell(row=row, column=11, value=t.moneda_destino)
+            ws.cell(row=row, column=12, value=float(t.monto_destino))
+            ws.cell(row=row, column=13, value=float(t.tasa_aplicada))
+            ws.cell(row=row, column=14, value=float(t.comision))
+            ws.cell(row=row, column=15, value=t.estado.title())
         
-        # Ajustar ancho de columnas
-        for column in ws.columns:
-            max_length = 0
-            column_letter = get_column_letter(column[0].column)
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            adjusted_width = min(max_length + 2, 50)
-            ws.column_dimensions[column_letter].width = adjusted_width
+        # Crear hojas adicionales por tipo de moneda
+        for moneda in ['VES', 'USD', 'USDT', 'EUR']:
+            ws_moneda = wb.create_sheet(f"Transacciones {moneda}")
+            
+            # Encabezados
+            for col, header in enumerate(headers, 1):
+                cell = ws_moneda.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = center_alignment
+            
+            # Filtrar transacciones por moneda
+            transacciones_moneda = [t for t in transacciones if t.moneda_origen == moneda or t.moneda_destino == moneda]
+            
+            # Llenar datos
+            for row_idx, t in enumerate(transacciones_moneda, 2):
+                cuenta_origen_str, cuenta_destino_str = obtener_cuentas_transaccion(t)
+                
+                # Obtener información del cliente
+                cliente = None
+                cliente_nombre = "N/A"
+                cuenta = db(db.cuentas.id == t.cuenta_id).select().first() if t.cuenta_id else None
+                if cuenta:
+                    cliente = db(db.clientes.id == cuenta.cliente_id).select().first()
+                    if cliente:
+                        usuario = db(db.auth_user.id == cliente.user_id).select().first()
+                        if usuario:
+                            cliente_nombre = f"{usuario.first_name} {usuario.last_name}"
+                
+                ws_moneda.cell(row=row_idx, column=1, value=t.fecha_transaccion.strftime('%d/%m/%Y %H:%M:%S'))
+                ws_moneda.cell(row=row_idx, column=2, value=t.numero_comprobante)
+                ws_moneda.cell(row=row_idx, column=3, value=cliente_nombre)
+                ws_moneda.cell(row=row_idx, column=4, value=cuenta_origen_str)
+                ws_moneda.cell(row=row_idx, column=5, value=t.moneda_origen)
+                ws_moneda.cell(row=row_idx, column=6, value=cuenta_destino_str)
+                ws_moneda.cell(row=row_idx, column=7, value=t.moneda_destino)
+                ws_moneda.cell(row=row_idx, column=8, value=t.tipo_operacion.title())
+                ws_moneda.cell(row=row_idx, column=9, value=t.moneda_origen)
+                ws_moneda.cell(row=row_idx, column=10, value=float(t.monto_origen))
+                ws_moneda.cell(row=row_idx, column=11, value=t.moneda_destino)
+                ws_moneda.cell(row=row_idx, column=12, value=float(t.monto_destino))
+                ws_moneda.cell(row=row_idx, column=13, value=float(t.tasa_aplicada))
+                ws_moneda.cell(row=row_idx, column=14, value=float(t.comision))
+                ws_moneda.cell(row=row_idx, column=15, value=t.estado.title())
+        
+        # Ajustar ancho de columnas en todas las hojas
+        for sheet in wb.worksheets:
+            for column in sheet.columns:
+                max_length = 0
+                column_letter = get_column_letter(column[0].column)
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                sheet.column_dimensions[column_letter].width = adjusted_width
         
         # Guardar en buffer
         buffer = BytesIO()
@@ -914,7 +1178,8 @@ def exportar_transacciones_excel(fecha_desde, fecha_hasta):
 
 def exportar_reporte_diario_excel(fecha_str):
     """
-    Exporta reporte diario a Excel
+    Exporta reporte diario a Excel con soporte para cuentas por moneda
+    Requisito: 8.4
     """
     try:
         from openpyxl import Workbook
@@ -922,7 +1187,7 @@ def exportar_reporte_diario_excel(fecha_str):
         from openpyxl.utils import get_column_letter
         
         # Generar reporte diario
-        reporte = generar_reporte_diario(fecha_str)
+        reporte = generar_reporte_diario(fecha_str, 'todas')
         
         if 'error' in reporte:
             raise Exception(reporte['error'])
@@ -941,45 +1206,129 @@ def exportar_reporte_diario_excel(fecha_str):
         # Título
         ws_resumen.cell(row=1, column=1, value=f"Reporte Diario - {reporte['fecha']}").font = title_font
         
-        # Resumen
+        # Resumen con información por moneda
         resumen_data = [
             ['Total Transacciones', reporte['total_transacciones']],
             ['Total Compras', reporte['total_compras']],
             ['Total Ventas', reporte['total_ventas']],
+            ['', ''],
+            ['COMPRAS POR MONEDA', ''],
             ['Volumen Compras VES', reporte['volumen_compras_ves']],
+            ['Volumen Compras USD', reporte['volumen_compras_usd']],
+            ['Volumen Compras USDT', reporte['volumen_compras_usdt']],
+            ['Volumen Compras EUR', reporte['volumen_compras_eur']],
+            ['', ''],
+            ['VENTAS POR MONEDA', ''],
+            ['Volumen Ventas VES', reporte.get('volumen_ventas_ves', 0)],
             ['Volumen Ventas USD', reporte['volumen_ventas_usd']],
+            ['Volumen Ventas USDT', reporte['volumen_ventas_usdt']],
             ['Volumen Ventas EUR', reporte['volumen_ventas_eur']],
-            ['Total Comisiones', reporte['total_comisiones']],
+            ['', ''],
+            ['TASAS PROMEDIO', ''],
             ['Tasa USD Promedio', reporte['tasa_usd_promedio']],
-            ['Tasa EUR Promedio', reporte['tasa_eur_promedio']]
+            ['Tasa USDT Promedio', reporte['tasa_usdt_promedio']],
+            ['Tasa EUR Promedio', reporte['tasa_eur_promedio']],
+            ['', ''],
+            ['Total Comisiones', reporte['total_comisiones']],
+            ['Total Consolidado VES', reporte.get('total_consolidado_ves', 0)]
         ]
         
         for row, (concepto, valor) in enumerate(resumen_data, 3):
             ws_resumen.cell(row=row, column=1, value=concepto).font = header_font
             ws_resumen.cell(row=row, column=2, value=valor)
         
-        # Hoja de detalle
+        # Hoja de detalle con información de cuentas
         if reporte['transacciones_detalle']:
             ws_detalle = wb.create_sheet("Detalle Transacciones")
             
-            # Encabezados
-            headers = ['Hora', 'Comprobante', 'Tipo', 'Moneda Origen', 'Monto Origen', 
-                      'Moneda Destino', 'Monto Destino', 'Tasa', 'Comisión']
+            # Encabezados actualizados
+            headers = ['Hora', 'Comprobante', 'Tipo', 'Cuenta Origen', 'Cuenta Destino',
+                      'Moneda Origen', 'Monto Origen', 'Moneda Destino', 'Monto Destino', 
+                      'Tasa', 'Comisión']
             
             for col, header in enumerate(headers, 1):
                 ws_detalle.cell(row=1, column=col, value=header).font = header_font
             
             # Datos
             for row, t in enumerate(reporte['transacciones_detalle'], 2):
+                # Obtener números de cuenta
+                cuenta_origen_num = "N/A"
+                cuenta_destino_num = "N/A"
+                if t.get('cuenta_id'):
+                    cuenta = db(db.cuentas.id == t['cuenta_id']).select().first()
+                    if cuenta:
+                        if t['tipo'] == 'compra':
+                            # En compra: cuenta_id es destino, origen es VES
+                            cuenta_destino_num = cuenta.numero_cuenta
+                            cuenta_ves = db((db.cuentas.cliente_id == cuenta.cliente_id) & 
+                                           (db.cuentas.moneda == 'VES')).select().first()
+                            cuenta_origen_num = cuenta_ves.numero_cuenta if cuenta_ves else "N/A"
+                        else:  # venta
+                            # En venta: cuenta_id es origen, destino es VES
+                            cuenta_origen_num = cuenta.numero_cuenta
+                            cuenta_ves = db((db.cuentas.cliente_id == cuenta.cliente_id) & 
+                                           (db.cuentas.moneda == 'VES')).select().first()
+                            cuenta_destino_num = cuenta_ves.numero_cuenta if cuenta_ves else "N/A"
+                
                 ws_detalle.cell(row=row, column=1, value=t['fecha'])
                 ws_detalle.cell(row=row, column=2, value=t['comprobante'])
                 ws_detalle.cell(row=row, column=3, value=t['tipo'].title())
-                ws_detalle.cell(row=row, column=4, value=t['moneda_origen'])
-                ws_detalle.cell(row=row, column=5, value=t['monto_origen'])
-                ws_detalle.cell(row=row, column=6, value=t['moneda_destino'])
-                ws_detalle.cell(row=row, column=7, value=t['monto_destino'])
-                ws_detalle.cell(row=row, column=8, value=t['tasa'])
-                ws_detalle.cell(row=row, column=9, value=t['comision'])
+                ws_detalle.cell(row=row, column=4, value=cuenta_origen_num)
+                ws_detalle.cell(row=row, column=5, value=cuenta_destino_num)
+                ws_detalle.cell(row=row, column=6, value=t['moneda_origen'])
+                ws_detalle.cell(row=row, column=7, value=t['monto_origen'])
+                ws_detalle.cell(row=row, column=8, value=t['moneda_destino'])
+                ws_detalle.cell(row=row, column=9, value=t['monto_destino'])
+                ws_detalle.cell(row=row, column=10, value=t['tasa'])
+                ws_detalle.cell(row=row, column=11, value=t['comision'])
+        
+        # Crear hojas separadas por moneda
+        for moneda in ['VES', 'USD', 'USDT', 'EUR']:
+            transacciones_moneda = [t for t in reporte['transacciones_detalle'] 
+                                   if t['moneda_origen'] == moneda or t['moneda_destino'] == moneda]
+            
+            if transacciones_moneda:
+                ws_moneda = wb.create_sheet(f"Transacciones {moneda}")
+                
+                # Encabezados
+                headers = ['Hora', 'Comprobante', 'Tipo', 'Cuenta Origen', 'Cuenta Destino',
+                          'Moneda Origen', 'Monto Origen', 'Moneda Destino', 'Monto Destino', 
+                          'Tasa', 'Comisión']
+                
+                for col, header in enumerate(headers, 1):
+                    ws_moneda.cell(row=1, column=col, value=header).font = header_font
+                
+                # Datos
+                for row, t in enumerate(transacciones_moneda, 2):
+                    cuenta_origen_num = "N/A"
+                    cuenta_destino_num = "N/A"
+                    if t.get('cuenta_id'):
+                        cuenta = db(db.cuentas.id == t['cuenta_id']).select().first()
+                        if cuenta:
+                            if t['tipo'] == 'compra':
+                                # En compra: cuenta_id es destino, origen es VES
+                                cuenta_destino_num = cuenta.numero_cuenta
+                                cuenta_ves = db((db.cuentas.cliente_id == cuenta.cliente_id) & 
+                                               (db.cuentas.moneda == 'VES')).select().first()
+                                cuenta_origen_num = cuenta_ves.numero_cuenta if cuenta_ves else "N/A"
+                            else:  # venta
+                                # En venta: cuenta_id es origen, destino es VES
+                                cuenta_origen_num = cuenta.numero_cuenta
+                                cuenta_ves = db((db.cuentas.cliente_id == cuenta.cliente_id) & 
+                                               (db.cuentas.moneda == 'VES')).select().first()
+                                cuenta_destino_num = cuenta_ves.numero_cuenta if cuenta_ves else "N/A"
+                    
+                    ws_moneda.cell(row=row, column=1, value=t['fecha'])
+                    ws_moneda.cell(row=row, column=2, value=t['comprobante'])
+                    ws_moneda.cell(row=row, column=3, value=t['tipo'].title())
+                    ws_moneda.cell(row=row, column=4, value=cuenta_origen_num)
+                    ws_moneda.cell(row=row, column=5, value=cuenta_destino_num)
+                    ws_moneda.cell(row=row, column=6, value=t['moneda_origen'])
+                    ws_moneda.cell(row=row, column=7, value=t['monto_origen'])
+                    ws_moneda.cell(row=row, column=8, value=t['moneda_destino'])
+                    ws_moneda.cell(row=row, column=9, value=t['monto_destino'])
+                    ws_moneda.cell(row=row, column=10, value=t['tasa'])
+                    ws_moneda.cell(row=row, column=11, value=t['comision'])
         
         # Guardar en buffer
         buffer = BytesIO()

@@ -314,7 +314,10 @@ def log_security_event(event_type, user_id, details, ip_address=None):
 
 @auth.requires_login()
 def index():
-    """Dashboard principal de cuentas - Versión simplificada y robusta"""
+    """
+    Dashboard principal de cuentas - Modelo de cuenta por moneda
+    Requirements: 5.1, 5.2, 5.5
+    """
     try:
         # Enfoque directo: buscar si el usuario es cliente primero
         cliente_record = db(db.clientes.user_id == auth.user.id).select().first()
@@ -374,23 +377,36 @@ def index():
         logger = logging.getLogger("web2py.app.cuentas")
         logger.info(f"Acceso a dashboard de cuentas por usuario {auth.user.id} - Cliente: {cliente.id if cliente else 'N/A'}")
         
-        # Obtener todas las cuentas del cliente con información adicional
+        # Obtener todas las cuentas del cliente agrupadas por moneda (Requirement 5.1)
         cuentas = db(db.cuentas.cliente_id == cliente.id).select(
-            orderby=db.cuentas.fecha_creacion
+            orderby=db.cuentas.moneda | db.cuentas.fecha_creacion
         )
         
-        # Calcular totales por moneda
-        total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
-        total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
-        total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
-        total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
+        # Agrupar cuentas por moneda para mejor visualización
+        cuentas_por_moneda = {
+            'VES': [],
+            'USD': [],
+            'EUR': [],
+            'USDT': []
+        }
+        
+        for cuenta in cuentas:
+            moneda = cuenta.moneda if hasattr(cuenta, 'moneda') and cuenta.moneda else 'VES'
+            if moneda in cuentas_por_moneda:
+                cuentas_por_moneda[moneda].append(cuenta)
+        
+        # Calcular totales por moneda (Requirement 5.2)
+        total_ves = sum([float(cuenta.saldo or 0) for cuenta in cuentas_por_moneda['VES']])
+        total_usd = sum([float(cuenta.saldo or 0) for cuenta in cuentas_por_moneda['USD']])
+        total_eur = sum([float(cuenta.saldo or 0) for cuenta in cuentas_por_moneda['EUR']])
+        total_usdt = sum([float(cuenta.saldo or 0) for cuenta in cuentas_por_moneda['USDT']])
         
         # Obtener tasas actuales para mostrar equivalencias
         tasa_actual = db(db.tasas_cambio.activa == True).select(
             orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora
         ).first()
         
-        # Calcular equivalencias si hay tasas disponibles
+        # Calcular equivalencia total en VES (Requirement 5.5)
         equivalencias = {}
         if tasa_actual:
             # Convertir todo a VES como base
@@ -413,7 +429,10 @@ def index():
         ultimas_transacciones = []
         if cuentas:
             cuenta_ids = [cuenta.id for cuenta in cuentas]
-            ultimas_transacciones = db(db.transacciones.cuenta_id.belongs(cuenta_ids)).select(
+            # Buscar transacciones de las cuentas del cliente
+            ultimas_transacciones = db(
+                db.transacciones.cuenta_id.belongs(cuenta_ids)
+            ).select(
                 orderby=~db.transacciones.fecha_transaccion,
                 limitby=(0, 5)
             )
@@ -427,6 +446,7 @@ def index():
         
         return dict(
             cuentas=cuentas,
+            cuentas_por_moneda=cuentas_por_moneda,
             cliente=cliente,
             total_ves=total_ves,
             total_usd=total_usd,
@@ -448,6 +468,7 @@ def index():
         response.flash = "Error al cargar sus cuentas. Intente nuevamente."
         return dict(
             cuentas=[],
+            cuentas_por_moneda={'VES': [], 'USD': [], 'EUR': [], 'USDT': []},
             cliente=None,
             total_ves=0,
             total_usd=0,
@@ -462,13 +483,31 @@ def index():
 
 @auth.requires_login()
 def crear():
-    """Crear nueva cuenta bancaria"""
+    """
+    Crear nueva cuenta bancaria por moneda
+    Requirements: 3.1, 3.2, 3.4
+    """
     # Verificar si es administrador o cliente
     es_admin = auth.has_membership('administrador')
     
+    # Determinar el cliente
+    cliente = None
+    cliente_id = None
+    
     if es_admin:
         # Administrador puede crear cuenta para cualquier cliente
-        form = SQLFORM(db.cuentas, fields=['cliente_id', 'tipo_cuenta'])
+        cliente_id = request.vars.cliente_id
+        
+        if cliente_id:
+            try:
+                cliente_id = int(cliente_id)
+                cliente = db(db.clientes.id == cliente_id).select().first()
+                if not cliente:
+                    response.flash = "Cliente no encontrado"
+                    cliente_id = None
+            except (ValueError, TypeError):
+                response.flash = "ID de cliente inválido"
+                cliente_id = None
     else:
         # Cliente solo puede crear su propia cuenta
         cliente = db(db.clientes.user_id == auth.user.id).select().first()
@@ -477,42 +516,153 @@ def crear():
             session.flash = "Debe completar su registro como cliente primero"
             redirect(URL('clientes', 'registrar'))
         
-        # Crear formulario sin campo cliente_id
-        form = SQLFORM(db.cuentas, fields=['tipo_cuenta'])
-        form.vars.cliente_id = cliente.id
+        cliente_id = cliente.id
     
-    if form.validate():
+    # Crear formulario personalizado con selector de moneda
+    form_fields = []
+    
+    # Si es administrador y no ha seleccionado cliente, mostrar selector
+    if es_admin and not cliente_id:
+        # Obtener lista de clientes con información del usuario
+        clientes = db(
+            db.clientes.user_id == db.auth_user.id
+        ).select(
+            db.clientes.ALL,
+            db.auth_user.first_name,
+            db.auth_user.last_name,
+            orderby=db.auth_user.first_name
+        )
+        opciones_clientes = [OPTION('-- Seleccione un cliente --', _value='')]
+        for row in clientes:
+            nombre_completo = f"{row.auth_user.first_name} {row.auth_user.last_name} - {row.clientes.cedula}"
+            opciones_clientes.append(
+                OPTION(nombre_completo, _value=row.clientes.id)
+            )
+        
+        form_fields.append(
+            DIV(
+                LABEL('Cliente:', _for='cliente_id'),
+                SELECT(
+                    *opciones_clientes,
+                    _name='cliente_id',
+                    _id='cliente_id',
+                    _class='form-control',
+                    requires=IS_NOT_EMPTY()
+                ),
+                _class='form-group'
+            )
+        )
+    
+    # Campos comunes
+    form_fields.extend([
+        DIV(
+            LABEL('Tipo de Cuenta:', _for='tipo_cuenta'),
+            SELECT(
+                OPTION('Corriente', _value='corriente'),
+                OPTION('Ahorro', _value='ahorro'),
+                _name='tipo_cuenta',
+                _id='tipo_cuenta',
+                _class='form-control',
+                requires=IS_IN_SET(['corriente', 'ahorro'])
+            ),
+            _class='form-group'
+        ),
+        DIV(
+            LABEL('Moneda:', _for='moneda'),
+            SELECT(
+                OPTION('Bolívares (VES)', _value='VES'),
+                OPTION('Dólares (USD)', _value='USD'),
+                OPTION('Euros (EUR)', _value='EUR'),
+                OPTION('Tether (USDT)', _value='USDT'),
+                _name='moneda',
+                _id='moneda',
+                _class='form-control',
+                requires=IS_IN_SET(['VES', 'USD', 'EUR', 'USDT'])
+            ),
+            _class='form-group'
+        ),
+        DIV(
+            INPUT(_type='submit', _value='Crear Cuenta', _class='btn btn-primary'),
+            A('Cancelar', _href=URL('cuentas', 'listar_todas' if es_admin else 'index'), _class='btn btn-default'),
+            _class='form-group'
+        )
+    ])
+    
+    form = FORM(*form_fields, _method='post')
+    
+    if form.accepts(request.vars, session):
+        # Si es administrador y viene cliente_id del formulario, usarlo
+        if es_admin and form.vars.cliente_id:
+            try:
+                cliente_id = int(form.vars.cliente_id)
+                cliente = db(db.clientes.id == cliente_id).select().first()
+                if not cliente:
+                    response.flash = "Cliente no encontrado"
+                    return dict(form=form, cliente=None, es_admin=es_admin)
+            except (ValueError, TypeError):
+                response.flash = "ID de cliente inválido"
+                return dict(form=form, cliente=None, es_admin=es_admin)
+        
+        if not cliente_id:
+            response.flash = "Debe seleccionar un cliente"
+            return dict(form=form, cliente=None, es_admin=es_admin)
+        
         try:
-            # Generar número de cuenta único
-            numero_cuenta = generar_numero_cuenta()
+            tipo_cuenta = form.vars.tipo_cuenta
+            moneda = form.vars.moneda
             
-            # Insertar la cuenta
+            # Validar que no exista cuenta activa de esa moneda (Requirement 3.4)
+            cuenta_existente = db(
+                (db.cuentas.cliente_id == cliente_id) &
+                (db.cuentas.moneda == moneda) &
+                (db.cuentas.estado == 'activa')
+            ).select().first()
+            
+            if cuenta_existente:
+                response.flash = f"Ya existe una cuenta activa en {moneda} para este cliente"
+                return dict(form=form, cliente=cliente, es_admin=es_admin)
+            
+            # Generar número de cuenta único con prefijo por moneda (Requirement 3.2)
+            numero_cuenta = generar_numero_cuenta_por_moneda(moneda)
+            
+            # Insertar la cuenta con el nuevo modelo
             cuenta_id = db.cuentas.insert(
-                cliente_id=form.vars.cliente_id,
-                tipo_cuenta=form.vars.tipo_cuenta,
+                cliente_id=cliente_id,
+                tipo_cuenta=tipo_cuenta,
                 numero_cuenta=numero_cuenta,
-                saldo_ves=0,
-                saldo_usd=0,
-                saldo_eur=0,
-                saldo_usdt=0,
+                moneda=moneda,
+                saldo=0,
                 estado='activa'
             )
             db.commit()
             
-            # Mostrar mensaje de éxito
-            response.flash = f"Cuenta creada exitosamente. Número de cuenta: {numero_cuenta}"
+            # Log de auditoría
+            import logging
+            logger = logging.getLogger("web2py.app.cuentas")
+            logger.info(f"Cuenta creada: ID={cuenta_id}, Cliente={cliente_id}, Moneda={moneda}, Número={numero_cuenta}")
             
         except Exception as e:
             db.rollback()
+            import logging
+            logger = logging.getLogger("web2py.app.cuentas")
+            logger.error(f"Error al crear cuenta: {str(e)}")
             response.flash = f"Error al crear la cuenta: {str(e)}"
+            return dict(form=form, cliente=cliente, es_admin=es_admin)
+        
+        # Si todo salió bien, redirigir (fuera del try/except)
+        session.flash = f"Cuenta {moneda} creada exitosamente. Número de cuenta: {numero_cuenta}"
+        redirect(URL('cuentas', 'listar_todas' if es_admin else 'index'))
     elif form.errors:
         response.flash = "Por favor corrija los errores en el formulario"
     
-    return dict(form=form)
+    return dict(form=form, cliente=cliente, es_admin=es_admin)
 
 @auth.requires_login()
 def consultar():
-    """Consultar saldos de una cuenta específica - Requisitos: 2.1, 7.1"""
+    """
+    Consultar saldos de una cuenta específica - Modelo de cuenta por moneda
+    Requirements: 5.2, 5.3
+    """
     cuenta_id = request.args(0)
     
     if not cuenta_id:
@@ -534,42 +684,61 @@ def consultar():
         session.flash = "Cuenta no encontrada"
         redirect(URL('cuentas', 'index'))
     
+    # Obtener cliente asociado
+    cliente = db(db.clientes.id == cuenta.cliente_id).select().first()
+    
     # Log de acceso para auditoría
     import logging
     logger = logging.getLogger("web2py.app.cuentas")
     logger.info(f"Consulta de saldos de cuenta {cuenta_id} por usuario {auth.user.id}")
+    
+    # Obtener moneda de la cuenta (Requirement 5.3)
+    moneda_cuenta = cuenta.moneda if hasattr(cuenta, 'moneda') and cuenta.moneda else 'VES'
+    saldo_cuenta = float(cuenta.saldo or 0) if hasattr(cuenta, 'saldo') else 0
     
     # Obtener tasas actuales para conversiones
     tasa_actual = db(db.tasas_cambio.activa == True).select(
         orderby=~db.tasas_cambio.fecha | ~db.tasas_cambio.hora
     ).first()
     
-    # Calcular equivalencias si hay tasas disponibles
+    # Calcular equivalencias del saldo en otras monedas (Requirement 5.2)
     equivalencias = {}
-    if tasa_actual:
-        # Convertir todo a VES como base (convertir a float para evitar errores de tipos)
-        total_ves_equivalente = float(cuenta.saldo_ves or 0)
-        if cuenta.saldo_usd:
-            total_ves_equivalente += float(cuenta.saldo_usd) * float(tasa_actual.usd_ves)
-        if cuenta.saldo_eur:
-            total_ves_equivalente += float(cuenta.saldo_eur) * float(tasa_actual.eur_ves)
+    if tasa_actual and saldo_cuenta > 0:
+        # Primero convertir el saldo a VES como base
+        if moneda_cuenta == 'VES':
+            saldo_en_ves = saldo_cuenta
+        elif moneda_cuenta == 'USD' and tasa_actual.usd_ves:
+            saldo_en_ves = saldo_cuenta * float(tasa_actual.usd_ves)
+        elif moneda_cuenta == 'EUR' and tasa_actual.eur_ves:
+            saldo_en_ves = saldo_cuenta * float(tasa_actual.eur_ves)
+        elif moneda_cuenta == 'USDT' and tasa_actual.usdt_ves:
+            saldo_en_ves = saldo_cuenta * float(tasa_actual.usdt_ves)
+        else:
+            saldo_en_ves = 0
         
+        # Calcular equivalencias en todas las monedas
         equivalencias = {
-            'total_ves': total_ves_equivalente,
-            'total_usd': total_ves_equivalente / float(tasa_actual.usd_ves) if tasa_actual.usd_ves else 0,
-            'total_eur': total_ves_equivalente / float(tasa_actual.eur_ves) if tasa_actual.eur_ves else 0
+            'ves': saldo_en_ves,
+            'usd': saldo_en_ves / float(tasa_actual.usd_ves) if tasa_actual.usd_ves else 0,
+            'eur': saldo_en_ves / float(tasa_actual.eur_ves) if tasa_actual.eur_ves else 0,
+            'usdt': saldo_en_ves / float(tasa_actual.usdt_ves) if tasa_actual.usdt_ves else 0
         }
     
     return dict(
         cuenta=cuenta,
         cliente=cliente,
+        moneda_cuenta=moneda_cuenta,
+        saldo_cuenta=saldo_cuenta,
         tasa_actual=tasa_actual,
         equivalencias=equivalencias
     )
 
 @auth.requires_login()
 def movimientos():
-    """Historial de movimientos de una cuenta"""
+    """
+    Historial de movimientos de una cuenta - Modelo de cuenta por moneda
+    Requirements: 6.1, 6.2
+    """
     cuenta_id = request.args(0)
     
     # Verificar que el usuario sea cliente
@@ -580,7 +749,9 @@ def movimientos():
         redirect(URL('default', 'index'))
     
     # Obtener todas las cuentas del cliente
-    cuentas_cliente = db(db.cuentas.cliente_id == cliente.id).select()
+    cuentas_cliente = db(db.cuentas.cliente_id == cliente.id).select(
+        orderby=db.cuentas.moneda | db.cuentas.fecha_creacion
+    )
     
     # Si no se especifica cuenta_id, usar la primera cuenta del cliente
     if not cuenta_id:
@@ -606,7 +777,8 @@ def movimientos():
     tipo_operacion = request.vars.tipo_operacion
     moneda = request.vars.moneda
     
-    # Construir query base
+    # Construir query base - filtrar por cuenta específica (Requirement 6.1)
+    # Buscar transacciones de esta cuenta
     query = (db.transacciones.cuenta_id == cuenta.id)
     
     # Aplicar filtros
@@ -640,15 +812,46 @@ def movimientos():
         limitby=((page-1)*items_per_page, page*items_per_page)
     )
     
+    # Enriquecer transacciones con información de cuentas (Requirement 6.2)
+    transacciones_enriquecidas = []
+    for trans in transacciones:
+        trans_dict = trans.as_dict()
+        
+        # La cuenta actual es la que está en cuenta_id
+        trans_dict['cuenta_numero'] = cuenta.numero_cuenta
+        trans_dict['cuenta_moneda'] = cuenta.moneda
+        
+        # Determinar si es débito o crédito según el tipo de operación
+        if trans.tipo_operacion == 'compra':
+            # En compra: si la cuenta es VES, es débito; si es divisa, es crédito
+            if cuenta.moneda == 'VES':
+                trans_dict['tipo_movimiento'] = 'debito'
+            else:
+                trans_dict['tipo_movimiento'] = 'credito'
+        elif trans.tipo_operacion == 'venta':
+            # En venta: si la cuenta es divisa, es débito; si es VES, es crédito
+            if cuenta.moneda == 'VES':
+                trans_dict['tipo_movimiento'] = 'credito'
+            else:
+                trans_dict['tipo_movimiento'] = 'debito'
+        else:
+            trans_dict['tipo_movimiento'] = 'otro'
+        
+        transacciones_enriquecidas.append(Storage(trans_dict))
+    
     # Contar total para paginación
     total_transacciones = db(query).count()
     total_pages = (total_transacciones + items_per_page - 1) // items_per_page
+    
+    # Obtener moneda de la cuenta
+    moneda_cuenta = cuenta.moneda if hasattr(cuenta, 'moneda') and cuenta.moneda else 'VES'
     
     return dict(
         cuenta=cuenta,
         cliente=cliente,
         cuentas_cliente=cuentas_cliente,
-        transacciones=transacciones,
+        transacciones=transacciones_enriquecidas,
+        moneda_cuenta=moneda_cuenta,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
         tipo_operacion=tipo_operacion,
@@ -782,28 +985,17 @@ def listar_todas():
         if saldo_min:
             try:
                 saldo_min_val = float(saldo_min)
-                if moneda_saldo == 'VES':
-                    query &= (db.cuentas.saldo_ves >= saldo_min_val)
-                elif moneda_saldo == 'USD':
-                    query &= (db.cuentas.saldo_usd >= saldo_min_val)
-                elif moneda_saldo == 'EUR':
-                    query &= (db.cuentas.saldo_eur >= saldo_min_val)
-                elif moneda_saldo == 'USDT':
-                    query &= (db.cuentas.saldo_usdt >= saldo_min_val)
+                # Filtrar por moneda y saldo mínimo
+                query &= (db.cuentas.moneda == moneda_saldo)
+                query &= (db.cuentas.saldo >= saldo_min_val)
             except (ValueError, TypeError):
                 pass  # Ignorar valores inválidos
         
         if saldo_max:
             try:
                 saldo_max_val = float(saldo_max)
-                if moneda_saldo == 'VES':
-                    query &= (db.cuentas.saldo_ves <= saldo_max_val)
-                elif moneda_saldo == 'USD':
-                    query &= (db.cuentas.saldo_usd <= saldo_max_val)
-                elif moneda_saldo == 'EUR':
-                    query &= (db.cuentas.saldo_eur <= saldo_max_val)
-                elif moneda_saldo == 'USDT':
-                    query &= (db.cuentas.saldo_usdt <= saldo_max_val)
+                # Filtrar por saldo máximo
+                query &= (db.cuentas.saldo <= saldo_max_val)
             except (ValueError, TypeError):
                 pass  # Ignorar valores inválidos
         
@@ -905,10 +1097,15 @@ def gestionar():
         session.flash = "Usuario no encontrado"
         redirect(URL('cuentas', 'listar_todas'))
     
-    # Formulario para editar estado y saldos (incluyendo USDT)
+    # Formulario para editar estado y saldo (modelo de cuenta por moneda)
+    # Solo mostrar campos relevantes: estado y saldo de la moneda específica
     form = SQLFORM(db.cuentas, cuenta_record.id, 
-                   fields=['estado', 'saldo_ves', 'saldo_usd', 'saldo_eur', 'saldo_usdt'],
-                   showid=False)
+                   fields=['estado', 'saldo'],
+                   showid=False,
+                   labels={'estado': 'Estado de la Cuenta', 'saldo': 'Saldo'})
+    
+    # Agregar información de la moneda como campo de solo lectura en la vista
+    form.vars.moneda = cuenta_record.moneda
     
     if form.process().accepted:
         session.flash = "Cuenta actualizada exitosamente"
@@ -934,15 +1131,65 @@ def gestionar():
 # Funciones auxiliares
 # -------------------------------------------------------------------------
 
-def generar_numero_cuenta():
-    """Generar número de cuenta único de 20 dígitos"""
+def generar_numero_cuenta_por_moneda(moneda):
+    """
+    Genera número de cuenta único con prefijo por moneda
+    
+    Formato: [PREFIJO][18 DÍGITOS ALEATORIOS]
+    
+    Prefijos por moneda:
+    - VES: 01 (Bolívar Venezolano)
+    - USD: 02 (Dólar Estadounidense)
+    - EUR: 03 (Euro)
+    - USDT: 04 (Tether)
+    
+    Args:
+        moneda (str): Código de moneda (VES, USD, EUR, USDT)
+    
+    Returns:
+        str: Número de cuenta único de 20 dígitos
+    
+    Requirements: 1.5, 3.2
+    """
+    import random
+    
+    # Definir prefijos por moneda
+    prefijos = {
+        'VES': '01',
+        'USD': '02',
+        'EUR': '03',
+        'USDT': '04'
+    }
+    
+    # Obtener prefijo (por defecto VES si la moneda no es válida)
+    prefijo = prefijos.get(moneda, '01')
+    
+    # Generar número de cuenta único
     while True:
-        # Generar número aleatorio de 20 dígitos
-        numero = ''.join([str(random.randint(0, 9)) for _ in range(20)])
+        # Generar 18 dígitos aleatorios
+        digitos = ''.join([str(random.randint(0, 9)) for _ in range(18)])
         
-        # Verificar que no exista en la base de datos
-        if db(db.cuentas.numero_cuenta == numero).isempty():
-            return numero
+        # Combinar prefijo + dígitos = 20 dígitos totales
+        numero_cuenta = prefijo + digitos
+        
+        # Verificar unicidad en la base de datos
+        if db(db.cuentas.numero_cuenta == numero_cuenta).isempty():
+            return numero_cuenta
+
+def generar_numero_cuenta():
+    """
+    Generar número de cuenta único de 20 dígitos
+    
+    Esta función mantiene compatibilidad con código existente.
+    Por defecto genera cuentas VES (prefijo 01).
+    
+    Returns:
+        str: Número de cuenta único de 20 dígitos
+    
+    Requirements: 1.5
+    """
+    # Usar la nueva función con moneda por defecto VES
+    return generar_numero_cuenta_por_moneda('VES')
 
 def obtener_saldo_cuenta(cuenta_id, moneda):
     """Obtener saldo de una cuenta en una moneda específica"""
@@ -951,12 +1198,9 @@ def obtener_saldo_cuenta(cuenta_id, moneda):
     if not cuenta:
         return 0
     
-    if moneda == 'VES':
-        return cuenta.saldo_ves or 0
-    elif moneda == 'USD':
-        return cuenta.saldo_usd or 0
-    elif moneda == 'EUR':
-        return cuenta.saldo_eur or 0
+    # Usar nuevo modelo de cuentas por moneda
+    if cuenta.moneda == moneda:
+        return cuenta.saldo or 0
     else:
         return 0
 
@@ -1028,11 +1272,11 @@ def mis_cuentas():
             orderby=db.cuentas.fecha_creacion
         )
         
-        # Calcular totales por moneda
-        total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
-        total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
-        total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
-        total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
+        # Calcular totales por moneda usando nuevo modelo
+        total_ves = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'VES'])
+        total_usd = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'USD'])
+        total_eur = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'EUR'])
+        total_usdt = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'USDT'])
         
         # Log de acceso
         import logging
@@ -1084,7 +1328,7 @@ def debug_cliente():
             debug_info.append(f"Cuentas encontradas: {len(cuentas)}")
             
             for cuenta in cuentas:
-                debug_info.append(f"  - Cuenta: {cuenta.numero_cuenta}, VES: {cuenta.saldo_ves}, Estado: {cuenta.estado}")
+                debug_info.append(f"  - Cuenta: {cuenta.numero_cuenta}, {cuenta.moneda}: {cuenta.saldo}, Estado: {cuenta.estado}")
         
         # 4. Verificar roles usando get_user_roles
         try:
@@ -1155,9 +1399,8 @@ def debug_cliente():
                     'numero_cuenta': cuenta.numero_cuenta,
                     'tipo_cuenta': cuenta.tipo_cuenta,
                     'estado': cuenta.estado,
-                    'saldo_ves': float(cuenta.saldo_ves or 0),
-                    'saldo_usd': float(cuenta.saldo_usd or 0),
-                    'saldo_eur': float(cuenta.saldo_eur or 0)
+                    'moneda': cuenta.moneda,
+                    'saldo': float(cuenta.saldo or 0)
                 })
         except Exception as e:
             debug_info['cuentas'] = f"Error: {str(e)}"

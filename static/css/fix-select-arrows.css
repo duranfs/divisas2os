@@ -1,0 +1,37 @@
+/* =========================================================================
+   FIX SELECT ARROWS - Eliminar flechas duplicadas en selectores
+   ========================================================================= */
+
+/* Eliminar la apariencia nativa del navegador */
+select.form-control,
+select.form-select,
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 12px 12px;
+    padding-right: 2.5rem !important;
+}
+
+/* Para selectores en modo oscuro o con fondo oscuro */
+.bg-dark select.form-control,
+.bg-dark select.form-select,
+.card-body.bg-dark select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+/* Asegurar que no haya flechas duplicadas en Firefox */
+select::-ms-expand {
+    display: none;
+}
+
+/* Mejorar el aspecto en focus */
+select.form-control:focus,
+select.form-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}

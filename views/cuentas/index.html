@@ -1,186 +1,239 @@
 {{extend 'layout.html'}}
 
 <div class="container-fluid">
-    <!-- Header de la página -->
-    <div class="page-header fade-in-up">
-        <div class="row align-items-center">
-            <div class="col-10">
-                <h1>
-                    <i class="fas fa-university me-3"></i>Mis Cuentas
-                </h1>
-                <p class="lead mb-0">Consulta y gestión de tus cuentas bancarias</p>
-            </div>
-            <div class="col-2 text-end">
-                <a href="{{=URL('cuentas', 'crear')}}" class="btn btn-success">
-                    <i class="fas fa-plus me-1"></i>Nueva Cuenta
-                </a>
-            </div>
-        </div>
+    <!-- Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-university me-3"></i>Mis Cuentas y Saldos</h1>
+        <p class="lead">Gestiona tus cuentas bancarias y consulta tus saldos</p>
     </div>
 
     <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Dashboard</a></li>
-            <li class="breadcrumb-item active">Mis Cuentas</li>
+            <li class="breadcrumb-item"><a href="{{=URL('default', 'dashboard')}}">Inicio</a></li>
+            <li class="breadcrumb-item active">Cuentas</li>
         </ol>
     </nav>
 
+    <!-- Flash Messages -->
     {{if response.flash:}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="alert alert-info alert-dismissible fade show">
-                {{=response.flash}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
+    <div class="alert alert-info alert-dismissible fade show">
+        {{=response.flash}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {{pass}}
 
-    <!-- Resumen de totales -->
+    <!-- Resumen de Saldos -->
     {{if cuentas:}}
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
-                    <h5 class="card-title text-success">{{="{:,.2f}".format(float(total_ves or 0))}}</h5>
-                    <p class="card-text">Total VES</p>
-                    <i class="fas fa-coins fa-2x text-success"></i>
+                    <h6 class="text-muted">Total Cuentas</h6>
+                    <h3>{{=stats.get('total_cuentas', 0)}}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
-                    <h5 class="card-title text-primary">{{="{:,.2f}".format(float(total_usd or 0))}}</h5>
-                    <p class="card-text">Total USD</p>
-                    <i class="fas fa-dollar-sign fa-2x text-primary"></i>
+                    <h6 class="text-muted">Cuentas Activas</h6>
+                    <h3 class="text-success">{{=stats.get('cuentas_activas', 0)}}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
-                    <h5 class="card-title text-info">{{="{:,.2f}".format(float(total_eur or 0))}}</h5>
-                    <p class="card-text">Total EUR</p>
-                    <i class="fas fa-euro-sign fa-2x text-info"></i>
+                    <h6 class="text-muted">VES</h6>
+                    <h3>Bs. {{="{:,.2f}".format(float(total_ves or 0))}}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
-                    <h5 class="card-title text-warning">{{="{:,.2f}".format(float(total_usdt or 0))}}</h5>
-                    <p class="card-text">Total USDT</p>
-                    <i class="fab fa-bitcoin fa-2x text-warning"></i>
+                    <h6 class="text-muted">USD</h6>
+                    <h3>$ {{="{:,.2f}".format(float(total_usd or 0))}}</h3>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Equivalencias en VES -->
-    {{if equivalencias and tasa_actual:}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-exchange-alt me-2"></i>Equivalencias en VES
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h6 class="text-muted">Total Patrimonio</h6>
-                            <h4 class="text-success">{{="{:,.2f}".format(float(equivalencias.get('total_ves', 0)))}}</h4>
-                            <small class="text-muted">VES</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="text-muted">Equivalente USD</h6>
-                            <h4 class="text-primary">{{="{:,.2f}".format(float(equivalencias.get('total_usd', 0)))}}</h4>
-                            <small class="text-muted">USD</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="text-muted">Equivalente EUR</h6>
-                            <h4 class="text-info">{{="{:,.2f}".format(float(equivalencias.get('total_eur', 0)))}}</h4>
-                            <small class="text-muted">EUR</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="text-muted">Equivalente USDT</h6>
-                            <h4 class="text-warning">{{="{:,.2f}".format(float(equivalencias.get('total_usdt', 0)))}}</h4>
-                            <small class="text-muted">USDT</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {{pass}}
 
-    <!-- Lista de cuentas -->
-    <div class="row">
-        {{for cuenta in cuentas:}}
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">
-                        <i class="fas fa-credit-card me-2"></i>
-                        Cuenta {{=cuenta.tipo_cuenta.title()}}
-                    </h6>
-                    {{if cuenta.estado == 'activa':}}
-                        <span class="badge bg-success">Activa</span>
-                    {{elif cuenta.estado == 'inactiva':}}
-                        <span class="badge bg-danger">Inactiva</span>
-                    {{elif cuenta.estado == 'bloqueada':}}
-                        <span class="badge bg-warning">Bloqueada</span>
-                    {{else:}}
-                        <span class="badge bg-secondary">{{=cuenta.estado.title()}}</span>
-                    {{pass}}
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <strong>Número de Cuenta:</strong><br>
-                        <code class="fs-6">{{=cuenta.numero_cuenta}}</code>
+    <!-- Lista de Cuentas por Moneda -->
+    {{if cuentas_por_moneda:}}
+        <!-- Cuentas VES -->
+        {{if cuentas_por_moneda.get('VES'):}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-coins text-warning me-2"></i>
+                    Cuentas en Bolívares (VES)
+                    <span class="badge bg-warning ms-2">{{=len(cuentas_por_moneda['VES'])}} cuenta(s)</span>
+                </h4>
+            </div>
+            {{for cuenta in cuentas_por_moneda['VES']:}}
+            <div class="col-md-6 mb-3">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning bg-opacity-10">
+                        <h6 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Cuenta {{=cuenta.tipo_cuenta.title()}}
+                            <span class="badge bg-{{='success' if cuenta.estado == 'activa' else 'danger'}} ms-2">
+                                {{=cuenta.estado.title()}}
+                            </span>
+                        </h6>
                     </div>
-                    
-                    <div class="row text-center">
-                        <div class="col-3">
-                            <h6 class="text-success mb-1">VES</h6>
-                            <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_ves or 0))}}</p>
+                    <div class="card-body">
+                        <p><strong>Número:</strong> <code>{{=cuenta.numero_cuenta}}</code></p>
+                        <div class="text-center py-3 bg-light rounded">
+                            <small class="text-muted">Saldo Disponible</small>
+                            <h2 class="text-warning mb-0">Bs. {{="{:,.2f}".format(float(cuenta.saldo or 0))}}</h2>
                         </div>
-                        <div class="col-3">
-                            <h6 class="text-primary mb-1">USD</h6>
-                            <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_usd or 0))}}</p>
-                        </div>
-                        <div class="col-3">
-                            <h6 class="text-info mb-1">EUR</h6>
-                            <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_eur or 0))}}</p>
-                        </div>
-                        <div class="col-3">
-                            <h6 class="text-warning mb-1">USDT</h6>
-                            <p class="mb-0 fw-bold">{{="{:,.2f}".format(float(cuenta.saldo_usdt or 0))}}</p>
+                        <div class="mt-3">
+                            <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-list"></i> Movimientos
+                            </a>
                         </div>
                     </div>
-                    
-                    <hr>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-eye me-1"></i>Ver Detalle
-                        </a>
-                        <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-info btn-sm">
-                            <i class="fas fa-list me-1"></i>Movimientos
-                        </a>
-                    </div>
-                </div>
-                <div class="card-footer text-muted small">
-                    <i class="fas fa-calendar me-1"></i>
-                    Creada: {{=cuenta.fecha_creacion.strftime('%d/%m/%Y') if cuenta.fecha_creacion else 'N/A'}}
                 </div>
             </div>
+            {{pass}}
         </div>
         {{pass}}
-    </div>
+
+        <!-- Cuentas USD -->
+        {{if cuentas_por_moneda.get('USD'):}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-dollar-sign text-success me-2"></i>
+                    Cuentas en Dólares (USD)
+                    <span class="badge bg-success ms-2">{{=len(cuentas_por_moneda['USD'])}} cuenta(s)</span>
+                </h4>
+            </div>
+            {{for cuenta in cuentas_por_moneda['USD']:}}
+            <div class="col-md-6 mb-3">
+                <div class="card border-success">
+                    <div class="card-header bg-success bg-opacity-10">
+                        <h6 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Cuenta {{=cuenta.tipo_cuenta.title()}}
+                            <span class="badge bg-{{='success' if cuenta.estado == 'activa' else 'danger'}} ms-2">
+                                {{=cuenta.estado.title()}}
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Número:</strong> <code>{{=cuenta.numero_cuenta}}</code></p>
+                        <div class="text-center py-3 bg-light rounded">
+                            <small class="text-muted">Saldo Disponible</small>
+                            <h2 class="text-success mb-0">$ {{="{:,.2f}".format(float(cuenta.saldo or 0))}}</h2>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-list"></i> Movimientos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{pass}}
+        </div>
+        {{pass}}
+
+        <!-- Cuentas EUR -->
+        {{if cuentas_por_moneda.get('EUR'):}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-euro-sign text-info me-2"></i>
+                    Cuentas en Euros (EUR)
+                    <span class="badge bg-info ms-2">{{=len(cuentas_por_moneda['EUR'])}} cuenta(s)</span>
+                </h4>
+            </div>
+            {{for cuenta in cuentas_por_moneda['EUR']:}}
+            <div class="col-md-6 mb-3">
+                <div class="card border-info">
+                    <div class="card-header bg-info bg-opacity-10">
+                        <h6 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Cuenta {{=cuenta.tipo_cuenta.title()}}
+                            <span class="badge bg-{{='success' if cuenta.estado == 'activa' else 'danger'}} ms-2">
+                                {{=cuenta.estado.title()}}
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Número:</strong> <code>{{=cuenta.numero_cuenta}}</code></p>
+                        <div class="text-center py-3 bg-light rounded">
+                            <small class="text-muted">Saldo Disponible</small>
+                            <h2 class="text-info mb-0">€ {{="{:,.2f}".format(float(cuenta.saldo or 0))}}</h2>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-list"></i> Movimientos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{pass}}
+        </div>
+        {{pass}}
+
+        <!-- Cuentas USDT -->
+        {{if cuentas_por_moneda.get('USDT'):}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fab fa-bitcoin text-primary me-2"></i>
+                    Cuentas en Tether (USDT)
+                    <span class="badge bg-primary ms-2">{{=len(cuentas_por_moneda['USDT'])}} cuenta(s)</span>
+                </h4>
+            </div>
+            {{for cuenta in cuentas_por_moneda['USDT']:}}
+            <div class="col-md-6 mb-3">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <h6 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Cuenta {{=cuenta.tipo_cuenta.title()}}
+                            <span class="badge bg-{{='success' if cuenta.estado == 'activa' else 'danger'}} ms-2">
+                                {{=cuenta.estado.title()}}
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Número:</strong> <code>{{=cuenta.numero_cuenta}}</code></p>
+                        <div class="text-center py-3 bg-light rounded">
+                            <small class="text-muted">Saldo Disponible</small>
+                            <h2 class="text-primary mb-0">₮ {{="{:,.2f}".format(float(cuenta.saldo or 0))}}</h2>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{=URL('cuentas', 'detalle', args=[cuenta.id])}}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                            <a href="{{=URL('cuentas', 'movimientos', args=[cuenta.id])}}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-list"></i> Movimientos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{pass}}
+        </div>
+        {{pass}}
+    {{pass}}
 
     {{else:}}
     <!-- No hay cuentas -->
@@ -188,227 +241,17 @@
         <div class="col-12">
             <div class="card text-center">
                 <div class="card-body py-5">
-                    <div class="empty-state-no-data">
-                        <i class="fas fa-university fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">No tienes cuentas registradas</h4>
-                        <p class="text-muted mb-4">
-                            Para comenzar a operar con divisas, necesitas crear al menos una cuenta bancaria.
-                            <br>
-                            <small>Las cuentas te permiten mantener saldos en diferentes monedas (VES, USD, EUR, USDT).</small>
-                        </p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="{{=URL('cuentas', 'crear')}}" class="btn btn-success btn-lg">
-                                <i class="fas fa-plus me-2"></i>Crear Mi Primera Cuenta
-                            </a>
-                            <a href="{{=URL('default', 'dashboard')}}" class="btn btn-outline-secondary">
-                                <i class="fas fa-home me-1"></i>Ir al Dashboard
-                            </a>
-                        </div>
-                        <div class="mt-4">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                ¿Necesitas ayuda para crear tu cuenta? Consulta la 
-                                <a href="{{=URL('default', 'ayuda')}}" class="text-decoration-none">guía de usuario</a>
-                                o contacta al soporte.
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {{pass}}
-
-    <!-- Últimas transacciones -->
-    {{if ultimas_transacciones:}}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">
-                        <i class="fas fa-history me-2"></i>Últimas Transacciones
-                    </h6>
-                    <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-sm btn-outline-primary">
-                        Ver Todas
+                    <i class="fas fa-university fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No tienes cuentas registradas</h4>
+                    <p class="text-muted mb-4">
+                        Para comenzar a operar con divisas, necesitas crear al menos una cuenta bancaria.
+                    </p>
+                    <a href="{{=URL('cuentas', 'crear')}}" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus me-2"></i>Crear Mi Primera Cuenta
                     </a>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Tipo</th>
-                                    <th>Monedas</th>
-                                    <th>Monto</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{for transaccion in ultimas_transacciones:}}
-                                <tr>
-                                    <td>{{=transaccion.fecha_transaccion.strftime('%d/%m/%Y %H:%M') if transaccion.fecha_transaccion else 'N/A'}}</td>
-                                    <td>
-                                        {{if transaccion.tipo_operacion == 'compra':}}
-                                            <span class="badge bg-success">Compra</span>
-                                        {{else:}}
-                                            <span class="badge bg-warning">Venta</span>
-                                        {{pass}}
-                                    </td>
-                                    <td>{{=transaccion.moneda_origen}} → {{=transaccion.moneda_destino}}</td>
-                                    <td>{{="{:,.2f}".format(float(transaccion.monto_origen))}} {{=transaccion.moneda_origen}}</td>
-                                    <td>
-                                        {{if transaccion.estado == 'completada':}}
-                                            <span class="badge bg-success">Completada</span>
-                                        {{elif transaccion.estado == 'pendiente':}}
-                                            <span class="badge bg-warning">Pendiente</span>
-                                        {{else:}}
-                                            <span class="badge bg-danger">{{=transaccion.estado.title()}}</span>
-                                        {{pass}}
-                                    </td>
-                                </tr>
-                                {{pass}}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
     {{pass}}
-
-    <!-- Widget de tasas actuales y acciones rápidas -->
-    <div class="row mt-4">
-        {{if tasa_actual:}}
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Tasas Actuales
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <h6 class="text-muted">USD/VES</h6>
-                            <h5 class="text-primary">{{="{:,.4f}".format(float(tasa_actual.usd_ves)) if tasa_actual.usd_ves else "N/A"}}</h5>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="text-muted">EUR/VES</h6>
-                            <h5 class="text-info">{{="{:,.4f}".format(float(tasa_actual.eur_ves)) if tasa_actual.eur_ves else "N/A"}}</h5>
-                        </div>
-                    </div>
-                    {{if tasa_actual.usdt_ves:}}
-                    <div class="row text-center mt-2">
-                        <div class="col-12">
-                            <h6 class="text-muted">USDT/VES</h6>
-                            <h5 class="text-warning">{{="{:,.4f}".format(float(tasa_actual.usdt_ves))}}</h5>
-                        </div>
-                    </div>
-                    {{pass}}
-                    <div class="text-center mt-2">
-                        <small class="text-muted">
-                            Actualizado: {{=tasa_actual.fecha.strftime('%d/%m/%Y') if tasa_actual.fecha else 'N/A'}}
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{pass}}
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{=URL('divisas', 'comprar')}}" class="btn btn-warning">
-                            <i class="fas fa-shopping-cart me-2"></i>Comprar Divisas
-                        </a>
-                        <a href="{{=URL('divisas', 'vender')}}" class="btn btn-success">
-                            <i class="fas fa-hand-holding-usd me-2"></i>Vender Divisas
-                        </a>
-                        <a href="{{=URL('divisas', 'historial_transacciones')}}" class="btn btn-outline-primary">
-                            <i class="fas fa-history me-2"></i>Ver Historial
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-
-<style>
-/* Estilos específicos para mis cuentas */
-.page-header {
-    background: linear-gradient(135deg, var(--color-primario, #2563eb) 0%, var(--color-secundario, #06b6d4) 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.page-header h1 {
-    color: white !important;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.page-header .lead {
-    color: rgba(255, 255, 255, 0.9) !important;
-    margin: 0;
-}
-
-/* Tarjetas de cuentas con hover effect */
-.card {
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-/* Números de cuenta con estilo código */
-code {
-    background-color: var(--color-superficie-elevada, #f1f5f9);
-    color: var(--color-texto-primario, #1e293b);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-family: 'Courier New', monospace;
-}
-
-/* Estilos para estados vacíos */
-.empty-state-no-data {
-    padding: 2rem;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.empty-state-no-data i {
-    opacity: 0.6;
-}
-
-.empty-state-no-data h4 {
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.empty-state-no-data p {
-    line-height: 1.6;
-}
-
-.empty-state-no-data .btn {
-    border-radius: 0.5rem;
-    font-weight: 500;
-}
-
-.empty-state-no-data .btn-lg {
-    padding: 0.75rem 2rem;
-    font-size: 1.1rem;
-}
-</style>

@@ -194,9 +194,8 @@
                                     <th>Cliente</th>
                                     <th>Cédula</th>
                                     <th>Tipo</th>
-                                    <th>Saldo VES</th>
-                                    <th>Saldo USD</th>
-                                    <th>Saldo EUR</th>
+                                    <th>Moneda</th>
+                                    <th>Saldo</th>
                                     <th>Estado</th>
                                     <th>Fecha Creación</th>
                                     <th>Acciones</th>
@@ -216,26 +215,31 @@
                                         <td>
                                             <span class="badge bg-info">{{=cuenta.cuentas.tipo_cuenta.title()}}</span>
                                         </td>
-                                        <td class="text-end">
-                                            {{if cuenta.cuentas.saldo_ves:}}
-                                                <strong>{{="{:,.2f}".format(float(cuenta.cuentas.saldo_ves))}}</strong> VES
+                                        <td>
+                                            {{moneda = cuenta.cuentas.moneda if hasattr(cuenta.cuentas, 'moneda') and cuenta.cuentas.moneda else 'VES'}}
+                                            {{if moneda == 'VES':}}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-coins me-1"></i>VES
+                                                </span>
+                                            {{elif moneda == 'USD':}}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-dollar-sign me-1"></i>USD
+                                                </span>
+                                            {{elif moneda == 'EUR':}}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-euro-sign me-1"></i>EUR
+                                                </span>
+                                            {{elif moneda == 'USDT':}}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-coins me-1"></i>USDT
+                                                </span>
                                             {{else:}}
-                                                <span class="text-muted">0.00 VES</span>
+                                                <span class="badge bg-secondary">{{=moneda}}</span>
                                             {{pass}}
                                         </td>
                                         <td class="text-end">
-                                            {{if cuenta.cuentas.saldo_usd:}}
-                                                <strong>{{="{:,.2f}".format(float(cuenta.cuentas.saldo_usd))}}</strong> USD
-                                            {{else:}}
-                                                <span class="text-muted">0.00 USD</span>
-                                            {{pass}}
-                                        </td>
-                                        <td class="text-end">
-                                            {{if cuenta.cuentas.saldo_eur:}}
-                                                <strong>{{="{:,.2f}".format(float(cuenta.cuentas.saldo_eur))}}</strong> EUR
-                                            {{else:}}
-                                                <span class="text-muted">0.00 EUR</span>
-                                            {{pass}}
+                                            {{saldo = float(cuenta.cuentas.saldo) if hasattr(cuenta.cuentas, 'saldo') and cuenta.cuentas.saldo else 0}}
+                                            <strong>{{="{:,.2f}".format(saldo)}}</strong>
                                         </td>
                                         <td>
                                             {{if cuenta.cuentas.estado == 'activa':}}

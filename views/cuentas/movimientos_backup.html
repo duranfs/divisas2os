@@ -196,7 +196,7 @@
                                     <td class="text-end">{{="{:,.2f}".format(float(transaccion.monto_origen)) if transaccion.monto_origen else "0.00"}}</td>
                                     <td><strong>{{=transaccion.moneda_destino}}</strong></td>
                                     <td class="text-end">{{="{:,.2f}".format(float(transaccion.monto_destino)) if transaccion.monto_destino else "0.00"}}</td>
-                                    <td class="text-end">{{="{:,.4f}".format(float(transaccion.tasa_cambio)) if transaccion.tasa_cambio else "N/A"}}</td>
+                                    <td class="text-end">{{="{:,.4f}".format(float(transaccion.tasa_aplicada)) if transaccion.tasa_aplicada else "N/A"}}</td>
                                     <td>
                                         <span class="badge bg-{{='success' if transaccion.estado == 'completada' else 'warning'}}">
                                             {{=transaccion.estado.title()}}

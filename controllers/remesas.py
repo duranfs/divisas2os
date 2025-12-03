@@ -5,6 +5,7 @@ Gestión de liquidez y control de ventas
 """
 
 import logging
+import uuid
 from decimal import Decimal
 from datetime import datetime, timedelta
 
@@ -14,9 +15,37 @@ logger = logging.getLogger("web2py.app.divisas")
 # FUNCIONES AUXILIARES
 # =========================================================================
 
+def generar_comprobante_unico(prefijo='TXN'):
+    """
+    Genera un número de comprobante único
+    Formato: PREFIJO-YYYYMMDD-HHMMSS-UUID4
+    """
+    try:
+        fecha_hora = datetime.now()
+        fecha_str = fecha_hora.strftime("%Y%m%d")
+        hora_str = fecha_hora.strftime("%H%M%S")
+        uuid_corto = str(uuid.uuid4())[:8].upper()
+        
+        comprobante = f"{prefijo}-{fecha_str}-{hora_str}-{uuid_corto}"
+        
+        # Verificar que no exista (muy improbable, pero por seguridad)
+        existe = db(db.transacciones.numero_comprobante == comprobante).count()
+        if existe > 0:
+            # Agregar timestamp adicional si existe
+            timestamp = str(int(fecha_hora.timestamp()))[-4:]
+            comprobante = f"{prefijo}-{fecha_str}-{hora_str}-{uuid_corto}-{timestamp}"
+        
+        return comprobante
+        
+    except Exception as e:
+        logger.error(f"Error generando comprobante único: {str(e)}")
+        return f"{prefijo}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
 def obtener_disponibilidad_moneda(moneda, fecha=None):
     """
     Obtiene la disponibilidad actual de una moneda SUMANDO todas las remesas activas del día
+    Integrado con sistema de cuentas por moneda
+    Requirement: 7.4
     Retorna: dict con monto_disponible, limite_diario, porcentaje_usado
     """
     if not fecha:
@@ -38,12 +67,22 @@ def obtener_disponibilidad_moneda(moneda, fecha=None):
                 (db.limites_venta.moneda == moneda) &
                 (db.limites_venta.activo == True)).select().first()
     
+    # Calcular total en cuentas de clientes (solo para moneda USD)
+    total_en_cuentas = 0
+    if moneda == 'USD':
+        cuentas_usd = db(
+            (db.cuentas.moneda == 'USD') &
+            (db.cuentas.estado == 'activa')
+        ).select()
+        total_en_cuentas = sum([float(c.saldo) for c in cuentas_usd]) if cuentas_usd else 0
+    
     resultado = {
         'moneda': moneda,
         'fecha': fecha,
         'remesa_disponible': total_disponible,
         'remesa_total': total_recibido,
         'remesa_vendido': total_vendido,
+        'total_en_cuentas': total_en_cuentas,
         'limite_diario': float(limite.limite_diario) if limite else 0,
         'limite_vendido': float(limite.monto_vendido) if limite else 0,
         'limite_disponible': float(limite.monto_disponible) if limite else 0,
@@ -187,7 +226,11 @@ def index():
 
 @auth.requires_membership('administrador')
 def registrar_remesa():
-    """Registrar nueva remesa diaria - Versión SIMPLE sin lógica de suma"""
+    """
+    Registrar nueva remesa diaria - Versión SIMPLE sin lógica de suma
+    Integrado con sistema de cuentas por moneda
+    Requirements: 7.1, 7.2
+    """
     
     # Ocultar campos calculados
     db.remesas_diarias.monto_disponible.readable = False
@@ -209,6 +252,7 @@ def registrar_remesa():
         # Obtener el ID y monto de la remesa recién creada
         remesa_id = form.vars.id
         monto_recibido = form.vars.monto_recibido
+        moneda = form.vars.moneda
         
         # Leer el registro recién creado
         remesa = db.remesas_diarias[remesa_id]
@@ -224,10 +268,106 @@ def registrar_remesa():
                 activa='T'
             )
         
-        session.flash = f'✅ Remesa de {form.vars.moneda} por ${float(monto_recibido):,.2f} registrada'
+        logger.info(f"Remesa registrada: {moneda} ${float(monto_recibido):,.2f} - ID: {remesa_id}")
+        
+        session.flash = f'✅ Remesa de {moneda} por ${float(monto_recibido):,.2f} registrada'
         redirect(URL('index'))
     
     return dict(form=form)
+
+@auth.requires_membership('administrador')
+def recibir_remesa_cliente():
+    """
+    Recibir remesa para un cliente específico
+    Acredita el monto en la cuenta USD del cliente
+    Requirements: 7.1, 7.2, 7.3
+    """
+    try:
+        # Obtener parámetros
+        cliente_id = request.vars.cliente_id
+        monto_usd = request.vars.monto_usd
+        referencia = request.vars.referencia or ''
+        observaciones = request.vars.observaciones or ''
+        
+        if not cliente_id or not monto_usd:
+            session.flash = '❌ Faltan parámetros requeridos'
+            redirect(URL('index'))
+        
+        monto_usd = Decimal(str(monto_usd))
+        
+        if monto_usd <= 0:
+            session.flash = '❌ El monto debe ser mayor a cero'
+            redirect(URL('index'))
+        
+        # Obtener cliente
+        cliente = db.clientes[cliente_id]
+        if not cliente:
+            session.flash = '❌ Cliente no encontrado'
+            redirect(URL('index'))
+        
+        # Buscar cuenta USD del cliente
+        cuenta_usd = db(
+            (db.cuentas.cliente_id == cliente_id) &
+            (db.cuentas.moneda == 'USD') &
+            (db.cuentas.estado == 'activa')
+        ).select().first()
+        
+        # Si no existe, crear cuenta USD automáticamente
+        if not cuenta_usd:
+            from models.db import generar_numero_cuenta_por_moneda
+            numero_cuenta = generar_numero_cuenta_por_moneda('USD')
+            
+            cuenta_usd_id = db.cuentas.insert(
+                cliente_id=cliente_id,
+                numero_cuenta=numero_cuenta,
+                tipo_cuenta='corriente',
+                moneda='USD',
+                saldo=Decimal('0.0'),
+                estado='activa',
+                fecha_creacion=request.now
+            )
+            cuenta_usd = db.cuentas[cuenta_usd_id]
+            logger.info(f"Cuenta USD creada automáticamente para cliente {cliente_id}: {numero_cuenta}")
+        
+        # Acreditar monto en cuenta USD
+        nuevo_saldo = cuenta_usd.saldo + monto_usd
+        cuenta_usd.update_record(
+            saldo=nuevo_saldo,
+            fecha_actualizacion=request.now
+        )
+        
+        # Registrar transacción de remesa
+        comprobante = generar_comprobante_unico('REM')
+        
+        db.transacciones.insert(
+            cuenta_destino_id=cuenta_usd.id,
+            tipo_operacion='remesa',
+            moneda_destino='USD',
+            monto_destino=monto_usd,
+            comprobante=comprobante,
+            estado='completada',
+            fecha_transaccion=request.now
+        )
+        
+        # Registrar en log de auditoría
+        db.logs_auditoria.insert(
+            usuario_id=auth.user_id,
+            accion='RECEPCION_REMESA',
+            tabla='cuentas',
+            registro_id=cuenta_usd.id,
+            detalles=f"Remesa recibida: ${float(monto_usd):,.2f} USD - Cliente: {cliente.nombre} {cliente.apellido} - Ref: {referencia}",
+            ip_address=request.client
+        )
+        
+        logger.info(f"Remesa recibida - Cliente: {cliente_id}, Monto: ${float(monto_usd):,.2f} USD, Cuenta: {cuenta_usd.numero_cuenta}")
+        
+        session.flash = f'✅ Remesa de ${float(monto_usd):,.2f} USD acreditada en cuenta {cuenta_usd.numero_cuenta}'
+        redirect(URL('index'))
+        
+    except Exception as e:
+        logger.error(f"Error recibiendo remesa: {str(e)}")
+        session.flash = f'❌ Error: {str(e)}'
+        redirect(URL('index'))
 
 @auth.requires_membership('administrador')
 def configurar_limites():

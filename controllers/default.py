@@ -42,22 +42,29 @@ def dashboard():
 
 def dashboard_cliente(cliente):
     """Dashboard específico para clientes"""
-    # Obtener cuentas del cliente
-    cuentas = db(db.cuentas.cliente_id == cliente.id).select()
+    # Obtener cuentas activas del cliente
+    cuentas = db(
+        (db.cuentas.cliente_id == cliente.id) &
+        (db.cuentas.estado == 'activa')
+    ).select()
     
-    # Calcular totales por moneda (convertir a float para evitar problemas de tipos)
-    total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
-    total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
-    total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
-    total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
+    # Calcular totales por moneda usando el nuevo modelo
+    total_ves = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'VES'])
+    total_usd = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'USD'])
+    total_eur = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'EUR'])
+    total_usdt = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'USDT'])
     
-    # Obtener últimas transacciones
-    ultimas_transacciones = db(
-        (db.transacciones.cuenta_id.belongs([c.id for c in cuentas]))
-    ).select(
-        orderby=~db.transacciones.fecha_transaccion,
-        limitby=(0, 5)
-    )
+    # Obtener últimas transacciones (usando campo cuenta_id actual hasta que se migre)
+    cuenta_ids = [c.id for c in cuentas]
+    if cuenta_ids:
+        ultimas_transacciones = db(
+            db.transacciones.cuenta_id.belongs(cuenta_ids)
+        ).select(
+            orderby=~db.transacciones.fecha_transaccion,
+            limitby=(0, 5)
+        )
+    else:
+        ultimas_transacciones = []
     
     # Obtener tasas actuales
     tasas_actuales = obtener_tasas_actuales()
@@ -328,12 +335,15 @@ def api_dashboard_data():
     cliente = db(db.clientes.user_id == user_id).select().first()
     
     if cliente:
-        # Datos para cliente
-        cuentas = db(db.cuentas.cliente_id == cliente.id).select()
-        total_ves = sum([float(cuenta.saldo_ves or 0) for cuenta in cuentas])
-        total_usd = sum([float(cuenta.saldo_usd or 0) for cuenta in cuentas])
-        total_eur = sum([float(cuenta.saldo_eur or 0) for cuenta in cuentas])
-        total_usdt = sum([float(cuenta.saldo_usdt or 0) for cuenta in cuentas])
+        # Datos para cliente usando nuevo modelo de cuentas por moneda
+        cuentas = db(
+            (db.cuentas.cliente_id == cliente.id) &
+            (db.cuentas.estado == 'activa')
+        ).select()
+        total_ves = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'VES'])
+        total_usd = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'USD'])
+        total_eur = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'EUR'])
+        total_usdt = sum([float(cuenta.saldo or 0) for cuenta in cuentas if cuenta.moneda == 'USDT'])
         
         tasas = obtener_tasas_actuales()
         

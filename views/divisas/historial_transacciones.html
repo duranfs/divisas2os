@@ -65,10 +65,34 @@
                                         <option value="VES">VES</option>
                                         <option value="USD">USD</option>
                                         <option value="EUR">EUR</option>
+                                        <option value="USDT">USDT</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
+                        {{if cuentas_cliente:}}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="cuenta_id">
+                                        <i class="fas fa-filter"></i> Filtrar por Cuenta Específica:
+                                    </label>
+                                    <select name="cuenta_id" id="cuenta_id" class="form-control">
+                                        <option value="">Todas mis cuentas</option>
+                                        {{for cuenta in cuentas_cliente:}}
+                                        <option value="{{=cuenta.id}}" {{='selected' if filtros and filtros.get('cuenta_id') == str(cuenta.id) else ''}}>
+                                            {{=cuenta.numero_cuenta}} - {{=cuenta.moneda}} (Saldo: {{="{:,.2f}".format(float(cuenta.saldo))}})
+                                        </option>
+                                        {{pass}}
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Filtre las transacciones donde esta cuenta aparezca como origen o destino
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{pass}}
                         <div class="row">
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">
@@ -115,9 +139,10 @@
                                     <th>Fecha/Hora</th>
                                     <th>Comprobante</th>
                                     <th>Tipo</th>
-                                    <th>Cuenta</th>
-                                    <th>Origen</th>
-                                    <th>Destino</th>
+                                    <th>Cuenta Origen</th>
+                                    <th>Cuenta Destino</th>
+                                    <th>Monto Origen</th>
+                                    <th>Monto Destino</th>
                                     <th>Tasa</th>
                                     <th>Comisión</th>
                                     <th>Estado</th>
@@ -135,7 +160,7 @@
                                     </td>
                                     <td>
                                         <code class="comprobante-codigo" title="Clic para copiar">
-                                            {{=transaccion.transacciones.numero_comprobante}}
+                                            {{=transaccion.transacciones.numero_comprobante if transaccion.transacciones.numero_comprobante else 'N/A'}}
                                         </code>
                                     </td>
                                     <td>
@@ -146,7 +171,26 @@
                                         {{pass}}
                                     </td>
                                     <td>
-                                        <small>{{=transaccion.cuentas.numero_cuenta if hasattr(transaccion, 'cuentas') else 'N/A'}}</small>
+                                        <small>
+                                            {{
+                                            # Obtener cuenta origen desde el alias
+                                            numero_origen = transaccion.get('numero_cuenta_origen', 'N/A')
+                                            moneda_origen = transaccion.get('moneda_cuenta_origen', transaccion.transacciones.moneda_origen if transaccion.transacciones.moneda_origen else '')
+                                            }}
+                                            <strong>{{=numero_origen}}</strong><br>
+                                            <span class="badge badge-secondary">{{=moneda_origen}}</span>
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {{
+                                            # Obtener cuenta destino desde el alias
+                                            numero_destino = transaccion.get('numero_cuenta_destino', 'N/A')
+                                            moneda_destino = transaccion.get('moneda_cuenta_destino', transaccion.transacciones.moneda_destino if transaccion.transacciones.moneda_destino else '')
+                                            }}
+                                            <strong>{{=numero_destino}}</strong><br>
+                                            <span class="badge badge-secondary">{{=moneda_destino}}</span>
+                                        </small>
                                     </td>
                                     <td class="text-right">
                                         <strong>{{="{:,.2f}".format(float(transaccion.transacciones.monto_origen)) if transaccion.transacciones.monto_origen else '0.00'}}</strong><br>
@@ -176,7 +220,7 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <button type="button" class="btn btn-outline-secondary btn-sm" 
-                                                    onclick="copiarComprobante('{{=transaccion.transacciones.numero_comprobante}}')" 
+                                                    onclick="copiarComprobante('{{=transaccion.transacciones.numero_comprobante if transaccion.transacciones.numero_comprobante else 'N/A'}}')" 
                                                     title="Copiar Número">
                                                 <i class="fas fa-copy"></i>
                                             </button>
@@ -275,6 +319,9 @@ $(document).ready(function() {
     {{pass}}
     {{if filtros.get('moneda'):}}
     $('#moneda').val('{{=filtros["moneda"]}}');
+    {{pass}}
+    {{if filtros.get('cuenta_id'):}}
+    $('#cuenta_id').val('{{=filtros["cuenta_id"]}}');
     {{pass}}
     {{pass}}
 });

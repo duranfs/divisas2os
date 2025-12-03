@@ -89,6 +89,7 @@
 'Email sent': 'Correo electrónico enviado',
 'Email verification': 'Email verification',
 'Email verified': 'Email verified',
+'Enter a value': 'Enter a value',
 'Errors': 'Errores',
 'Errors in form, please check it out.': 'Errors in form, please check it out.',
 'export as csv file': 'exportar como archivo CSV',

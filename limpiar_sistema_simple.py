@@ -1,95 +1,69 @@
 # -*- coding: utf-8 -*-
 """
-Script simple para limpiar el sistema usando SQL directo
+Script SIMPLE para limpiar el sistema
 """
 
 import sys
 import os
-import sqlite3
 
-# Path a la base de datos
-db_path = r'C:\web2py\applications\divisas2os\databases\storage.sqlite'
+# Configurar path para web2py
+web2py_path = r'C:\web2py'
+sys.path.insert(0, web2py_path)
+os.chdir(web2py_path)
+
+from gluon import *
+from gluon.shell import env
+
+# Cargar el entorno
+myenv = env('divisas2os', import_models=True)
+db = myenv['db']
 
 print("=" * 70)
-print("LIMPIEZA DEL SISTEMA")
+print("LIMPIEZA SIMPLE DEL SISTEMA")
 print("=" * 70)
-
-# Conectar a la base de datos
-conn = sqlite3.connect(db_path)
-cursor = conn.cursor()
-
-# Contar registros antes
-cursor.execute("SELECT COUNT(*) FROM transacciones")
-count_transacciones = cursor.fetchone()[0]
-
-cursor.execute("SELECT COUNT(*) FROM cuentas")
-count_cuentas = cursor.fetchone()[0]
-
-print(f"\n📊 REGISTROS ACTUALES:")
-print(f"   Transacciones: {count_transacciones}")
-print(f"   Cuentas: {count_cuentas}")
-
-print("\n⚠️  ADVERTENCIA: Esto hará:")
-print("   1. ❌ Eliminar todas las transacciones")
-print("   2. 🔄 Resetear todos los saldos a 0")
-
-respuesta = input("\n¿Continuar? (SI/NO): ").strip().upper()
-
-if respuesta != 'SI':
-    print("\n❌ Operación cancelada.")
-    conn.close()
-    sys.exit(0)
-
-print("\n🗑️  Limpiando...")
 
 try:
     # 1. Eliminar transacciones
-    cursor.execute("DELETE FROM transacciones")
-    print(f"   ✓ Transacciones eliminadas: {cursor.rowcount}")
+    print("\n1. Eliminando transacciones...")
+    db.executesql("DELETE FROM transacciones")
+    print("   ✓ Transacciones eliminadas")
     
     # 2. Resetear saldos
-    cursor.execute("""
-        UPDATE cuentas 
-        SET saldo_ves = 0, 
-            saldo_usd = 0, 
-            saldo_eur = 0, 
-            saldo_usdt = 0
-    """)
-    print(f"   ✓ Saldos reseteados: {cursor.rowcount}")
+    print("\n2. Reseteando saldos de cuentas...")
+    db.executesql("UPDATE cuentas SET saldo_ves=0, saldo_usd=0, saldo_eur=0, saldo_usdt=0")
+    print("   ✓ Saldos reseteados")
     
-    # 3. Limpiar remesas si existen
+    # 3. Eliminar remesas (si existen)
     try:
-        cursor.execute("DELETE FROM movimientos_remesas")
-        print(f"   ✓ Movimientos de remesas eliminados: {cursor.rowcount}")
-        
-        cursor.execute("DELETE FROM limites_venta")
-        print(f"   ✓ Límites eliminados: {cursor.rowcount}")
-        
-        cursor.execute("DELETE FROM remesas_diarias")
-        print(f"   ✓ Remesas eliminadas: {cursor.rowcount}")
-    except sqlite3.OperationalError:
-        print("   ℹ️  Tablas de remesas no encontradas (normal si no existen)")
+        print("\n3. Eliminando remesas...")
+        db.executesql("DELETE FROM movimientos_remesas")
+        db.executesql("DELETE FROM limites_venta")
+        db.executesql("DELETE FROM remesas_diarias")
+        print("   ✓ Remesas eliminadas")
+    except:
+        print("   ℹ️  No hay tablas de remesas")
     
     # Commit
-    conn.commit()
+    db.commit()
+    
+    print("\n" + "=" * 70)
+    print("✅ LIMPIEZA COMPLETADA")
+    print("=" * 70)
     
     # Verificar
-    cursor.execute("SELECT COUNT(*) FROM transacciones")
-    final_transacciones = cursor.fetchone()[0]
+    print("\n📊 VERIFICACIÓN:")
+    transacciones = db.executesql("SELECT COUNT(*) FROM transacciones")[0][0]
+    cuentas = db.executesql("SELECT COUNT(*) FROM cuentas")[0][0]
+    print(f"   Transacciones: {transacciones}")
+    print(f"   Cuentas: {cuentas} (con saldos en 0)")
     
-    cursor.execute("SELECT COUNT(*) FROM cuentas")
-    final_cuentas = cursor.fetchone()[0]
-    
-    print("\n✅ LIMPIEZA COMPLETADA")
-    print(f"\n📊 RESULTADO:")
-    print(f"   Transacciones: {final_transacciones}")
-    print(f"   Cuentas: {final_cuentas} (saldos en 0)")
     print("\n🎉 Sistema limpio!")
     
 except Exception as e:
     print(f"\n❌ ERROR: {str(e)}")
-    conn.rollback()
-finally:
-    conn.close()
+    import traceback
+    traceback.print_exc()
+    db.rollback()
+    sys.exit(1)
 
 print("\n" + "=" * 70)
